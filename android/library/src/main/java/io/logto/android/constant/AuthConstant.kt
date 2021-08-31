@@ -1,16 +1,19 @@
 package io.logto.android.constant
 
 class AuthConstant {
-    companion object {
-        const val KEY_CLIENT_ID = "client_id"
-        const val KEY_CODE_CHALLENGE = "code_challenge"
-        const val KEY_CODE_CHALLENGE_METHOD = "code_challenge_method"
-        const val KEY_PROMPT = "prompt"
-        const val KEY_REDIRECT_URI = "redirect_uri"
-        const val KEY_RESPONSE_TYPE = "response_type"
-        const val KEY_CODE = "code"
-        const val KEY_SCOPE = "scope"
-        const val KEY_RESOURCE = "resource"
+
+    class QueryKey {
+        companion object {
+            const val CLIENT_ID = "client_id"
+            const val CODE_CHALLENGE = "code_challenge"
+            const val CODE_CHALLENGE_METHOD = "code_challenge_method"
+            const val PROMPT = "prompt"
+            const val REDIRECT_URI = "redirect_uri"
+            const val RESPONSE_TYPE = "response_type"
+            const val CODE = "code"
+            const val SCOPE = "scope"
+            const val RESOURCE = "resource"
+        }
     }
 
     class PromptValue {

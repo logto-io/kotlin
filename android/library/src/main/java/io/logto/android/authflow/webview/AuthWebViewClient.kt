@@ -32,7 +32,7 @@ class AuthWebViewClient(
     }
 
     private fun handleAuthRedirect(redirectUrl: String) {
-        val authCode = UrlUtil.getQueryParam(redirectUrl, AuthConstant.KEY_CODE)
+        val authCode = UrlUtil.getQueryParam(redirectUrl, AuthConstant.QueryKey.CODE)
         Log.d(TAG, "Authorization Code: $authCode")
         // LOG-69 Retrieve credentials
     }
