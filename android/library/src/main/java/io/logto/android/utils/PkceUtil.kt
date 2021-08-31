@@ -26,7 +26,7 @@ class PkceUtil {
                 return Base64.encodeToString(byteArray, CODE_ENCODE_FLAG)
             } catch (error: NoSuchAlgorithmException) {
                 throw Exception(error)
-            } catch (e: UnsupportedEncodingException) {
+            } catch (error: UnsupportedEncodingException) {
                 throw Exception(error)
             }
         }
