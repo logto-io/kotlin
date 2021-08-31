@@ -28,7 +28,7 @@ class AuthWebViewClient(
         return false
     }
 
-    // LOG-67 Catch exceptions in WebView auth flow
+    // LOG-67: Catch exceptions in WebView auth flow
     // TBD ...
 
     private fun isAuthRedirectUrl(redirectUrl: String): Boolean {
