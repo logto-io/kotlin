@@ -21,7 +21,7 @@ class WebViewAuthActivity : AppCompatActivity() {
         val authUrl = intent.getStringExtra(EXTRA_AUTH_URL)
         val redirectUri = intent.getStringExtra(EXTRA_REDIRECT_URI)
         if (authUrl == null || redirectUri == null) {
-            // LOG-67 Catch exceptions in WebView auth flow
+            // LOG-67: Catch exceptions in WebView auth flow
             Log.d(TAG, "missing extra EXTRA_AUTH_URL or EXTRA_REDIRECT_URI")
             return
         }
