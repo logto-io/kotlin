@@ -2,4 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="io.logto.demo">
 
+    <application>
+        <activity
+            android:name="io.logto.android.activity.WebViewAuthActivity"
+            android:exported="true" />
+    </application>
+
 </manifest>
