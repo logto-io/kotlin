@@ -30,7 +30,7 @@ class WebViewAuthFlow {
     private fun generateAuthUrl(): String {
         val codeVerifier = PkceUtil.generateCodeVerifier()
         val codeChallenge = PkceUtil.generateCodeChallenge(codeVerifier)
-        val baseUrl = Uri.parse(logtoConfig.getAuthEndpoint())
+        val baseUrl = Uri.parse(logtoConfig.authEndpoint)
         val parameters = mapOf(
             AuthConstant.KEY_CLIENT_ID to logtoConfig.clientId,
             AuthConstant.KEY_CODE_CHALLENGE to codeChallenge,
@@ -38,7 +38,7 @@ class WebViewAuthFlow {
             AuthConstant.KEY_PROMPT to AuthConstant.PromptValue.CONSENT,
             AuthConstant.KEY_REDIRECT_URI to logtoConfig.redirectUri,
             AuthConstant.KEY_RESPONSE_TYPE to AuthConstant.ResponseType.CODE,
-            AuthConstant.KEY_SCOPE to logtoConfig.getEncodedScopes(),
+            AuthConstant.KEY_SCOPE to logtoConfig.encodedScopes,
             AuthConstant.KEY_RESOURCE to AuthConstant.ResourceValue.LOGTO_API,
         )
         return UrlUtil.appendQueryParameters(baseUrl.buildUpon(), parameters).toString()

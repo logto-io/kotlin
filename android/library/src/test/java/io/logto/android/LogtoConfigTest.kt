@@ -45,16 +45,16 @@ class LogtoConfigTest {
 
     @Test
     fun getEncodedScopes() {
-        assertThat(logtoConfig.getEncodedScopes(), `is`("openid offline_access"))
+        assertThat(logtoConfig.encodedScopes, `is`("openid offline_access"))
     }
 
     @Test
     fun getAuthEndpoint() {
-        assertThat(logtoConfig.getAuthEndpoint(), `is`("oidcEndpoint/auth"))
+        assertThat(logtoConfig.authEndpoint, `is`("oidcEndpoint/auth"))
     }
 
     @Test
     fun getTokenEndpoint() {
-        assertThat(logtoConfig.getTokenEndpoint(), `is`("oidcEndpoint/token"))
+        assertThat(logtoConfig.tokenEndpoint, `is`("oidcEndpoint/token"))
     }
 }

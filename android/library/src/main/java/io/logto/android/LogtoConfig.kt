@@ -6,12 +6,14 @@ data class LogtoConfig(
     val scopes: List<String>,
     val redirectUri: String,
 ) {
+    val encodedScopes: String
+        get() = scopes.joinToString(" ")
 
-    fun getEncodedScopes(): String = scopes.joinToString(" ")
+    val authEndpoint: String
+        get() = "$oidcEndpoint$AUTH_PATH"
 
-    fun getAuthEndpoint(): String = "$oidcEndpoint$AUTH_PATH"
-
-    fun getTokenEndpoint(): String = "$oidcEndpoint$TOKEN_PATH"
+    val tokenEndpoint: String
+        get() = "$oidcEndpoint$TOKEN_PATH"
 
     private companion object {
         const val AUTH_PATH = "auth"
