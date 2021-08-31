@@ -24,10 +24,10 @@ class PkceUtil {
                 digester.update(codeVerifier.toByteArray(Charsets.ISO_8859_1))
                 val byteArray: ByteArray = digester.digest()
                 return Base64.encodeToString(byteArray, CODE_ENCODE_FLAG)
-            } catch (e: NoSuchAlgorithmException) {
-                throw Exception(e)
+            } catch (error: NoSuchAlgorithmException) {
+                throw Exception(error)
             } catch (e: UnsupportedEncodingException) {
-                throw Exception(e)
+                throw Exception(error)
             }
         }
     }
