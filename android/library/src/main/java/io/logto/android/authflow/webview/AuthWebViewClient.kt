@@ -14,10 +14,14 @@ class AuthWebViewClient(
 ) : WebViewClient() {
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-        val redirectUrl = request!!.url.toString()
+        if (view == null || request == null) {
+            return super.shouldOverrideUrlLoading(view, request)
+        }
+
+        val redirectUrl = request.url.toString()
         if (isAuthRedirectUrl(redirectUrl)) {
             handleAuthRedirect(redirectUrl)
-            view!!.destroy()
+            view.destroy()
             attachedActivity.finish()
             return true
         }
