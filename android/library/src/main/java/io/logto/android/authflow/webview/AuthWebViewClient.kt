@@ -1,16 +1,17 @@
 package io.logto.android.authflow.webview
 
 import android.app.Activity
-import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import io.logto.android.callback.AuthorizationCodeCallback
 import io.logto.android.constant.AuthConstant
 import io.logto.android.utils.UrlUtil
 
 class AuthWebViewClient(
     private val attachedActivity: Activity,
-    private val specifiedRedirectUri: String
+    private val specifiedRedirectUri: String,
+    private val authorizationCodeCallback: AuthorizationCodeCallback,
 ) : WebViewClient() {
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
@@ -37,8 +38,11 @@ class AuthWebViewClient(
 
     private fun handleAuthRedirect(redirectUrl: String) {
         val authCode = UrlUtil.getQueryParam(redirectUrl, AuthConstant.QueryKey.CODE)
-        Log.d(TAG, "Authorization Code: $authCode")
-        // LOG-69 Retrieve credentials
+        if (authCode !== null) {
+            authorizationCodeCallback.onSuccess(authCode)
+            return
+        }
+        authorizationCodeCallback.onFailed(Error("Get Authorization Error"))
     }
 
     internal companion object {
