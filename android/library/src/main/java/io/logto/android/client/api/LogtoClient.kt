@@ -1,5 +1,6 @@
 package io.logto.android.client.api
 
+import io.logto.android.constant.AuthConstant
 import io.logto.android.model.Credential
 import retrofit2.Call
 import retrofit2.http.Field
@@ -10,10 +11,10 @@ interface LogtoClient {
     @FormUrlEncoded
     @POST("token")
     fun getCredential(
-        @Field("redirect_uri") redirectUri: String,
-        @Field("code") code: String,
-        @Field("grant_type") grantType: String,
-        @Field("client_id") clientId: String,
-        @Field("code_verifier") codeVerifier: String,
+        @Field(AuthConstant.ParamKey.REDIRECT_URI) redirectUri: String,
+        @Field(AuthConstant.ParamKey.CODE) code: String,
+        @Field(AuthConstant.ParamKey.GRANT_TYPE) grantType: String,
+        @Field(AuthConstant.ParamKey.CLIENT_ID) clientId: String,
+        @Field(AuthConstant.ParamKey.CODE_VERIFIER) codeVerifier: String,
     ): Call<Credential>
 }

@@ -37,7 +37,7 @@ class AuthWebViewClient(
     }
 
     private fun handleAuthRedirect(redirectUrl: String) {
-        val authCode = UrlUtil.getQueryParam(redirectUrl, AuthConstant.QueryKey.CODE)
+        val authCode = UrlUtil.getQueryParam(redirectUrl, AuthConstant.ParamKey.CODE)
         if (authCode == null) {
             authorizationCodeCallback.onFailed(Error("Get Authorization Error"))
             return
