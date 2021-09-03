@@ -8,6 +8,7 @@ import android.util.Log
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
 import io.logto.android.authflow.webview.AuthWebViewClient
+import io.logto.android.callback.AuthorizationCodeCallback
 
 class WebViewAuthActivity : AppCompatActivity() {
 
@@ -35,14 +36,25 @@ class WebViewAuthActivity : AppCompatActivity() {
         val webView = WebView(this)
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
-        webView.webViewClient = AuthWebViewClient(this, redirectUri)
+        webView.webViewClient = AuthWebViewClient(
+            this,
+            redirectUri,
+            authorizationCodeCallback
+        )
         return webView
     }
 
     companion object {
         private val TAG = WebViewAuthActivity::class.java.simpleName
+
         private const val EXTRA_AUTH_URL: String = "EXTRA_AUTH_URL"
         private const val EXTRA_REDIRECT_URI: String = "EXTRA_REDIRECT_URI"
+
+        private lateinit var authorizationCodeCallback: AuthorizationCodeCallback
+
+        fun setAuthorizationCodeCallback(authorizationCodeCallback: AuthorizationCodeCallback) {
+            WebViewAuthActivity.authorizationCodeCallback = authorizationCodeCallback
+        }
 
         fun makeIntent(
             context: Activity,
