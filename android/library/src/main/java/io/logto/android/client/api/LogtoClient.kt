@@ -11,10 +11,10 @@ interface LogtoClient {
     @FormUrlEncoded
     @POST("token")
     fun getCredential(
-        @Field(AuthConstant.ParamKey.REDIRECT_URI) redirectUri: String,
-        @Field(AuthConstant.ParamKey.CODE) code: String,
-        @Field(AuthConstant.ParamKey.GRANT_TYPE) grantType: String,
-        @Field(AuthConstant.ParamKey.CLIENT_ID) clientId: String,
-        @Field(AuthConstant.ParamKey.CODE_VERIFIER) codeVerifier: String,
+        @Field(AuthConstant.QueryKey.REDIRECT_URI) redirectUri: String,
+        @Field(AuthConstant.QueryKey.CODE) code: String,
+        @Field(AuthConstant.QueryKey.GRANT_TYPE) grantType: String,
+        @Field(AuthConstant.QueryKey.CLIENT_ID) clientId: String,
+        @Field(AuthConstant.QueryKey.CODE_VERIFIER) codeVerifier: String,
     ): Call<Credential>
 }

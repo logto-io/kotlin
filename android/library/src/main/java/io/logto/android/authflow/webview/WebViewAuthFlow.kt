@@ -59,14 +59,14 @@ class WebViewAuthFlow {
         val codeChallenge = PkceUtil.generateCodeChallenge(codeVerifier)
         val baseUrl = Uri.parse(logtoConfig.authEndpoint)
         val parameters = mapOf(
-            AuthConstant.ParamKey.CLIENT_ID to logtoConfig.clientId,
-            AuthConstant.ParamKey.CODE_CHALLENGE to codeChallenge,
-            AuthConstant.ParamKey.CODE_CHALLENGE_METHOD to AuthConstant.CodeChallengeMethod.S256,
-            AuthConstant.ParamKey.PROMPT to AuthConstant.PromptValue.CONSENT,
-            AuthConstant.ParamKey.REDIRECT_URI to logtoConfig.redirectUri,
-            AuthConstant.ParamKey.RESPONSE_TYPE to AuthConstant.ResponseType.CODE,
-            AuthConstant.ParamKey.SCOPE to logtoConfig.encodedScopes,
-            AuthConstant.ParamKey.RESOURCE to AuthConstant.ResourceValue.LOGTO_API,
+            AuthConstant.QueryKey.CLIENT_ID to logtoConfig.clientId,
+            AuthConstant.QueryKey.CODE_CHALLENGE to codeChallenge,
+            AuthConstant.QueryKey.CODE_CHALLENGE_METHOD to AuthConstant.CodeChallengeMethod.S256,
+            AuthConstant.QueryKey.PROMPT to AuthConstant.PromptValue.CONSENT,
+            AuthConstant.QueryKey.REDIRECT_URI to logtoConfig.redirectUri,
+            AuthConstant.QueryKey.RESPONSE_TYPE to AuthConstant.ResponseType.CODE,
+            AuthConstant.QueryKey.SCOPE to logtoConfig.encodedScopes,
+            AuthConstant.QueryKey.RESOURCE to AuthConstant.ResourceValue.LOGTO_API,
         )
         return UrlUtil.appendQueryParameters(baseUrl.buildUpon(), parameters).toString()
     }

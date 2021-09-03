@@ -1,7 +1,7 @@
 package io.logto.android.constant
 
 class AuthConstant {
-    class ParamKey {
+    class QueryKey {
         companion object {
             const val CLIENT_ID = "client_id"
             const val CODE = "code"
