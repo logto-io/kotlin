@@ -12,9 +12,10 @@ import io.logto.android.constant.AuthConstant
 import io.logto.android.model.Credential
 import io.logto.android.utils.PkceUtil
 import io.logto.android.utils.UrlUtil
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class WebViewAuthFlow {
 
@@ -75,7 +76,19 @@ class WebViewAuthFlow {
         authorizationCode: String,
         authenticationCallback: AuthenticationCallback
     ) {
-        val call = logtoClient.getCredential(
+        MainScope().launch {
+            try {
+                authenticationCallback.onSuccess(fetchCredential(authorizationCode))
+            } catch (error: Error) {
+                authenticationCallback.onFailed(error)
+            }
+        }
+    }
+
+    private suspend fun fetchCredential(authorizationCode: String): Credential = withContext(
+        Dispatchers.IO
+    ) {
+        val response = logtoClient.getCredential(
             logtoConfig.redirectUri,
             authorizationCode,
             AuthConstant.GrantType.AUTHORIZATION_CODE,
@@ -83,20 +96,11 @@ class WebViewAuthFlow {
             codeVerifier,
         )
 
-        call.enqueue(object : Callback<Credential> {
-            override fun onResponse(call: Call<Credential>, response: Response<Credential>) {
-                val credential = response.body()
-                if (credential != null) {
-                    authenticationCallback.onSuccess(credential)
-                    return
-                }
-                authenticationCallback.onFailed(Error("fetch credential error"))
-            }
+        if (!response.isSuccessful) {
+            throw Error("request credential call error")
+        }
 
-            override fun onFailure(call: Call<Credential>, t: Throwable) {
-                authenticationCallback.onFailed(Error("authentication request error"))
-            }
-        })
+        response.body() ?: throw Error("fetch credential error")
     }
 
     companion object {
