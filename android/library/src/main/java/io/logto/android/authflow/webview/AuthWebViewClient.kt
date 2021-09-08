@@ -22,7 +22,6 @@ class AuthWebViewClient(
         val redirectUrl = request.url.toString()
         if (isAuthRedirectUrl(redirectUrl)) {
             handleAuthRedirect(redirectUrl)
-            view.destroy()
             attachedActivity.finish()
             return true
         }
