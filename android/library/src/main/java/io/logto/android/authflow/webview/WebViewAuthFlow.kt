@@ -1,6 +1,6 @@
 package io.logto.android.authflow.webview
 
-import android.app.Activity
+import android.content.Context
 import android.net.Uri
 import io.logto.android.LogtoConfig
 import io.logto.android.activity.WebViewAuthActivity
@@ -10,6 +10,7 @@ import io.logto.android.client.LogtoClientBuilder
 import io.logto.android.client.api.LogtoClient
 import io.logto.android.constant.AuthConstant
 import io.logto.android.model.Credential
+import io.logto.android.storage.CredentialStorage
 import io.logto.android.utils.PkceUtil
 import io.logto.android.utils.UrlUtil
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,10 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class WebViewAuthFlow {
+class WebViewAuthFlow(
+    private val context: Context,
+    private val credentialStorage: CredentialStorage
+) {
 
     private lateinit var logtoConfig: LogtoConfig
     private lateinit var logtoClient: LogtoClient
@@ -30,7 +34,7 @@ class WebViewAuthFlow {
         return this
     }
 
-    fun start(context: Activity, authenticationCallback: AuthenticationCallback) {
+    fun start(authenticationCallback: AuthenticationCallback) {
         if (!this::logtoClient.isInitialized) {
             // LOG-67: Catch exceptions in WebView auth flow
             authenticationCallback.onFailed(Error("missing logtoConfig"))
@@ -78,7 +82,9 @@ class WebViewAuthFlow {
     ) {
         MainScope().launch {
             try {
-                authenticationCallback.onSuccess(fetchCredential(authorizationCode))
+                val credential = fetchCredential(authorizationCode)
+                credentialStorage.saveCredential(credential)
+                authenticationCallback.onSuccess(credential)
             } catch (error: Error) {
                 authenticationCallback.onFailed(error)
             }

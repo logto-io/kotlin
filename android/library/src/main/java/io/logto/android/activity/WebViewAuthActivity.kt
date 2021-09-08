@@ -1,7 +1,7 @@
 package io.logto.android.activity
 
 import android.annotation.SuppressLint
-import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -57,7 +57,7 @@ class WebViewAuthActivity : AppCompatActivity() {
         }
 
         fun makeIntent(
-            context: Activity,
+            context: Context,
             authUrl: String,
             redirectUri: String,
         ): Intent {

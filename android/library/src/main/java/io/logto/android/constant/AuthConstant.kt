@@ -53,4 +53,10 @@ class AuthConstant {
             const val LOGTO_API = "https://api.logto.io"
         }
     }
+
+    class StorageKey {
+        companion object {
+            const val CREDENTIAL = "io.logto.credential"
+        }
+    }
 }
