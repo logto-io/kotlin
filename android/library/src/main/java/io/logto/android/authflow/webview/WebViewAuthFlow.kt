@@ -20,7 +20,7 @@ import kotlinx.coroutines.withContext
 
 class WebViewAuthFlow(
     private val context: Context,
-    private val credentialStorage: CredentialStorage
+    private val credentialStorage: CredentialStorage?
 ) {
 
     private lateinit var logtoConfig: LogtoConfig
@@ -83,7 +83,7 @@ class WebViewAuthFlow(
         MainScope().launch {
             try {
                 val credential = fetchCredential(authorizationCode)
-                credentialStorage.saveCredential(credential)
+                credentialStorage?.saveCredential(credential)
                 authenticationCallback.onSuccess(credential)
             } catch (error: Error) {
                 authenticationCallback.onFailed(error)

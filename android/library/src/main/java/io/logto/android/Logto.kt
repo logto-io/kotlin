@@ -7,19 +7,13 @@ import io.logto.android.storage.CredentialStorage
 
 class Logto {
     companion object {
-        lateinit var credentialStorage: CredentialStorage
+        private var credentialStorage: CredentialStorage? = null
 
         fun webViewAuthFlow(context: Context): WebViewAuthFlow {
             credentialStorage = CredentialStorage(context.applicationContext)
             return WebViewAuthFlow(context, credentialStorage)
         }
 
-        fun getCredential(): Credential? {
-            return if (this::credentialStorage.isInitialized) {
-                credentialStorage.getCredential()
-            } else {
-                null
-            }
-        }
+        fun getCredential(): Credential? = credentialStorage?.getCredential()
     }
 }
