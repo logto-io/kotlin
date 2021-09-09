@@ -22,9 +22,6 @@ class CredentialStorage(
     }
 
     fun getCredential(): Credential? {
-        if (!sharedPreferences.contains(AuthConstant.StorageKey.CREDENTIAL)) {
-            return null
-        }
         val credentialJson = get(AuthConstant.StorageKey.CREDENTIAL) ?: return null
         return Gson().fromJson(credentialJson, Credential::class.java)
     }
@@ -40,11 +37,5 @@ class CredentialStorage(
         }
     }
 
-    private fun get(key: String): String? {
-        return if (!sharedPreferences.contains(key)) {
-            null
-        } else {
-            sharedPreferences.getString(key, null)
-        }
-    }
+    private fun get(key: String): String? = sharedPreferences.getString(key, null)
 }
