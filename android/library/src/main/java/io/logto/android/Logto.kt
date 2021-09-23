@@ -9,12 +9,9 @@ import io.logto.android.model.Credential
 import io.logto.android.storage.CredentialStorage
 
 object Logto {
-
-    private lateinit var logtoConfig: LogtoConfig
-
     private lateinit var application: Application
 
-    private var inited: Boolean = false
+    private lateinit var logtoConfig: LogtoConfig
 
     private var credentialStorage: CredentialStorage? = null
 
@@ -33,7 +30,6 @@ object Logto {
         if (useStorage) {
             credentialStorage = CredentialStorage(application)
         }
-        inited = true
     }
 
     fun loginWithWebView(
@@ -59,8 +55,8 @@ object Logto {
     }
 
     private fun checkInitState() {
-        if (!inited) {
-            throw Exception("Logto singleton is not initialized!")
+        if (!::application.isInitialized || !::logtoConfig.isInitialized) {
+            throw Exception("Logto is not initialized!")
         }
     }
 }
