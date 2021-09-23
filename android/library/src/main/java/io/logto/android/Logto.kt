@@ -20,10 +20,10 @@ class Logto private constructor() {
 
     private var credentialStorage: CredentialStorage? = null
 
-    private var _credential: Credential? = null
+    private var credentialCache: Credential? = null
 
     val credential: Credential?
-        get() = credentialStorage?.getCredential() ?: _credential
+        get() = credentialStorage?.getCredential() ?: credentialCache
 
     fun init(
         application: Application,
@@ -49,7 +49,7 @@ class Logto private constructor() {
             logtoConfig,
             object : AuthenticationCallback {
                 override fun onSuccess(result: Credential) {
-                    _credential = result
+                    credentialCache = result
                     credentialStorage?.saveCredential(result)
                     onComplete(null, result)
                 }
