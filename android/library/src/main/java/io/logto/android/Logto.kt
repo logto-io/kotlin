@@ -41,7 +41,7 @@ class Logto private constructor() {
 
     fun loginWithWebView(
         context: Context,
-        onComplete: (credential: Credential?, error: Error?) -> Unit
+        onComplete: (error: Error?, credential: Credential?) -> Unit
     ) {
         checkInitState()
         WebViewAuthFlow(
@@ -51,11 +51,11 @@ class Logto private constructor() {
                 override fun onSuccess(result: Credential) {
                     _credential = result
                     credentialStorage?.saveCredential(result)
-                    onComplete(result, null)
+                    onComplete(null, result)
                 }
 
                 override fun onFailed(error: Error) {
-                    onComplete(null, error)
+                    onComplete(error, null)
                 }
             }
         ).startAuth()
