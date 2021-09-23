@@ -1,19 +1,62 @@
 package io.logto.android
 
+import android.app.Application
 import android.content.Context
 import io.logto.android.authflow.webview.WebViewAuthFlow
+import io.logto.android.callback.AuthenticationCallback
+import io.logto.android.config.LogtoConfig
 import io.logto.android.model.Credential
 import io.logto.android.storage.CredentialStorage
 
-class Logto {
-    companion object {
-        private var credentialStorage: CredentialStorage? = null
+object Logto {
+    private lateinit var application: Application
 
-        fun webViewAuthFlow(context: Context): WebViewAuthFlow {
-            credentialStorage = CredentialStorage(context.applicationContext)
-            return WebViewAuthFlow(context, credentialStorage)
+    private lateinit var logtoConfig: LogtoConfig
+
+    private var credentialStorage: CredentialStorage? = null
+
+    private var credentialCache: Credential? = null
+
+    val credential: Credential?
+        get() = credentialStorage?.getCredential() ?: credentialCache
+
+    fun init(
+        application: Application,
+        logtoConfig: LogtoConfig,
+        useStorage: Boolean = true
+    ) {
+        this.application = application
+        this.logtoConfig = logtoConfig
+        if (useStorage) {
+            credentialStorage = CredentialStorage(application)
         }
+    }
 
-        fun getCredential(): Credential? = credentialStorage?.getCredential()
+    fun loginWithWebView(
+        context: Context,
+        onComplete: (error: Error?, credential: Credential?) -> Unit
+    ) {
+        checkInitState()
+        WebViewAuthFlow(
+            context,
+            logtoConfig,
+            object : AuthenticationCallback {
+                override fun onSuccess(result: Credential) {
+                    credentialCache = result
+                    credentialStorage?.saveCredential(result)
+                    onComplete(null, result)
+                }
+
+                override fun onFailed(error: Error) {
+                    onComplete(error, null)
+                }
+            }
+        ).startAuth()
+    }
+
+    private fun checkInitState() {
+        if (!::application.isInitialized || !::logtoConfig.isInitialized) {
+            throw Exception("Logto is not initialized!")
+        }
     }
 }

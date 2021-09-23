@@ -2,15 +2,13 @@ package io.logto.android.authflow.webview
 
 import android.content.Context
 import android.net.Uri
-import io.logto.android.LogtoConfig
 import io.logto.android.activity.WebViewAuthActivity
 import io.logto.android.callback.AuthenticationCallback
 import io.logto.android.callback.AuthorizationCodeCallback
 import io.logto.android.client.LogtoClientBuilder
-import io.logto.android.client.api.LogtoClient
+import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.AuthConstant
 import io.logto.android.model.Credential
-import io.logto.android.storage.CredentialStorage
 import io.logto.android.utils.PkceUtil
 import io.logto.android.utils.UrlUtil
 import kotlinx.coroutines.Dispatchers
@@ -20,27 +18,14 @@ import kotlinx.coroutines.withContext
 
 class WebViewAuthFlow(
     private val context: Context,
-    private val credentialStorage: CredentialStorage?
+    private val logtoConfig: LogtoConfig,
+    private val authenticationCallback: AuthenticationCallback
 ) {
 
-    private lateinit var logtoConfig: LogtoConfig
-    private lateinit var logtoClient: LogtoClient
-    private lateinit var codeVerifier: String
+    private val codeVerifier: String = PkceUtil.generateCodeVerifier()
+    private val logtoClient = LogtoClientBuilder(logtoConfig).build()
 
-    fun login(logtoConfig: LogtoConfig): WebViewAuthFlow {
-        this.logtoConfig = logtoConfig
-        logtoClient = LogtoClientBuilder(logtoConfig).build()
-        codeVerifier = PkceUtil.generateCodeVerifier()
-        return this
-    }
-
-    fun start(authenticationCallback: AuthenticationCallback) {
-        if (!this::logtoClient.isInitialized) {
-            // LOG-67: Catch exceptions in WebView auth flow
-            authenticationCallback.onFailed(Error("missing logtoConfig"))
-            return
-        }
-
+    fun startAuth() {
         WebViewAuthActivity.setAuthorizationCodeCallback(object : AuthorizationCodeCallback {
             override fun onSuccess(result: String) {
                 authenticate(result, authenticationCallback)
@@ -50,7 +35,6 @@ class WebViewAuthFlow(
                 authenticationCallback.onFailed(Error("request authorization code failed"))
             }
         })
-
         context.startActivity(
             WebViewAuthActivity.makeIntent(
                 context,
@@ -83,7 +67,6 @@ class WebViewAuthFlow(
         MainScope().launch {
             try {
                 val credential = fetchCredential(authorizationCode)
-                credentialStorage?.saveCredential(credential)
                 authenticationCallback.onSuccess(credential)
             } catch (error: Error) {
                 authenticationCallback.onFailed(error)

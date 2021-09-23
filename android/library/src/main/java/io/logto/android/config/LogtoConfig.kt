@@ -1,4 +1,4 @@
-package io.logto.android
+package io.logto.android.config
 
 data class LogtoConfig(
     val clientId: String,
