@@ -16,8 +16,6 @@ class Logto private constructor() {
 
     private var inited: Boolean = false
 
-    private var useStorage: Boolean = false
-
     private var credentialStorage: CredentialStorage? = null
 
     private var credentialCache: Credential? = null
@@ -32,8 +30,7 @@ class Logto private constructor() {
     ) {
         this.application = application
         this.logtoConfig = logtoConfig
-        this.useStorage = useStorage
-        if (this.useStorage) {
+        if (useStorage) {
             credentialStorage = CredentialStorage(application)
         }
         inited = true
