@@ -8,7 +8,7 @@ import io.logto.android.config.LogtoConfig
 import io.logto.android.model.Credential
 import io.logto.android.storage.CredentialStorage
 
-class Logto private constructor() {
+object Logto {
 
     private lateinit var logtoConfig: LogtoConfig
 
@@ -61,19 +61,6 @@ class Logto private constructor() {
     private fun checkInitState() {
         if (!inited) {
             throw Exception("Logto singleton is not initialized!")
-        }
-    }
-
-    companion object {
-        private lateinit var instance: Logto
-
-        fun getInstance(): Logto {
-            synchronized(Logto::class.java) {
-                if (!::instance.isInitialized) {
-                    instance = Logto()
-                }
-                return instance
-            }
         }
     }
 }
