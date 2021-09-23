@@ -65,14 +65,14 @@ class Logto private constructor() {
     }
 
     companion object {
-        private lateinit var INSTANCE: Logto
+        private lateinit var instance: Logto
 
         fun getInstance(): Logto {
             synchronized(Logto::class.java) {
-                if (!::INSTANCE.isInitialized) {
-                    INSTANCE = Logto()
+                if (!::instance.isInitialized) {
+                    instance = Logto()
                 }
-                return INSTANCE
+                return instance
             }
         }
     }
