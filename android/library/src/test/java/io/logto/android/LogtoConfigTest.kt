@@ -1,5 +1,6 @@
 package io.logto.android
 
+import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.AuthConstant
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`

@@ -2,8 +2,8 @@ package io.logto.android.client
 
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
-import io.logto.android.LogtoConfig
 import io.logto.android.client.api.LogtoClient
+import io.logto.android.config.LogtoConfig
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
