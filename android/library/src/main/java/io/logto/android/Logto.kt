@@ -23,7 +23,7 @@ object Logto {
     fun init(
         application: Application,
         logtoConfig: LogtoConfig,
-        useStorage: Boolean = false
+        useStorage: Boolean = true
     ) {
         this.application = application
         this.logtoConfig = logtoConfig
