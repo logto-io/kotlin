@@ -3,9 +3,9 @@ package io.logto.android.authflow.webview
 import android.content.Context
 import android.net.Uri
 import io.logto.android.activity.WebViewAuthActivity
+import io.logto.android.api.LogtoService
 import io.logto.android.callback.AuthenticationCallback
 import io.logto.android.callback.AuthorizationCodeCallback
-import io.logto.android.client.LogtoClientBuilder
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.AuthConstant
 import io.logto.android.model.Credential
@@ -23,7 +23,7 @@ class WebViewAuthFlow(
 ) {
 
     private val codeVerifier: String = PkceUtil.generateCodeVerifier()
-    private val logtoClient = LogtoClientBuilder(logtoConfig).build()
+    private val logtoService = LogtoService.create(logtoConfig.oidcEndpoint)
 
     fun startAuth() {
         WebViewAuthActivity.setAuthorizationCodeCallback(object : AuthorizationCodeCallback {
@@ -77,7 +77,7 @@ class WebViewAuthFlow(
     private suspend fun fetchCredential(authorizationCode: String): Credential = withContext(
         Dispatchers.IO
     ) {
-        val response = logtoClient.getCredential(
+        val response = logtoService.getCredential(
             logtoConfig.redirectUri,
             authorizationCode,
             AuthConstant.GrantType.AUTHORIZATION_CODE,
