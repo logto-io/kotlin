@@ -2,7 +2,7 @@ package io.logto.android
 
 import android.app.Application
 import android.content.Context
-import io.logto.android.authflow.webview.WebViewAuthFlow
+import io.logto.android.authflow.browser.BrowserAuthFlow
 import io.logto.android.callback.AuthenticationCallback
 import io.logto.android.config.LogtoConfig
 import io.logto.android.model.Credential
@@ -32,13 +32,12 @@ object Logto {
         }
     }
 
-    fun loginWithWebView(
+    fun loginWithBrowser(
         context: Context,
         onComplete: (error: Error?, credential: Credential?) -> Unit
     ) {
         checkInitState()
-        WebViewAuthFlow(
-            context,
+        BrowserAuthFlow.init(
             logtoConfig,
             object : AuthenticationCallback {
                 override fun onSuccess(result: Credential) {
@@ -51,7 +50,7 @@ object Logto {
                     onComplete(error, null)
                 }
             }
-        ).startAuth()
+        ).startAuth(context)
     }
 
     private fun checkInitState() {
