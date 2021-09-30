@@ -2,7 +2,7 @@ package io.logto.android.storage
 
 import android.content.Context
 import com.google.gson.Gson
-import io.logto.android.constant.AuthConstant
+import io.logto.android.constant.StorageKey
 import io.logto.android.model.Credential
 
 class CredentialStorage(
@@ -18,11 +18,11 @@ class CredentialStorage(
 
     fun saveCredential(credential: Credential) {
         val credentialJson = Gson().toJson(credential)
-        save(AuthConstant.StorageKey.CREDENTIAL, credentialJson)
+        save(StorageKey.CREDENTIAL, credentialJson)
     }
 
     fun getCredential(): Credential? {
-        val credentialJson = get(AuthConstant.StorageKey.CREDENTIAL) ?: return null
+        val credentialJson = get(StorageKey.CREDENTIAL) ?: return null
         return Gson().fromJson(credentialJson, Credential::class.java)
     }
 

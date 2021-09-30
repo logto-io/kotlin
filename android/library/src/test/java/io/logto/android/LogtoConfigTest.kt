@@ -1,7 +1,7 @@
 package io.logto.android
 
 import io.logto.android.config.LogtoConfig
-import io.logto.android.constant.AuthConstant
+import io.logto.android.constant.ScopeValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Before
@@ -17,8 +17,8 @@ class LogtoConfigTest {
             clientId = "clientId",
             oidcEndpoint = "oidcEndpoint/",
             scopes = listOf(
-                AuthConstant.ScopeValue.OPEN_ID,
-                AuthConstant.ScopeValue.OFFLINE_ACCESS,
+                ScopeValue.OPEN_ID,
+                ScopeValue.OFFLINE_ACCESS,
             ),
             redirectUri = "redirectUri"
         )
