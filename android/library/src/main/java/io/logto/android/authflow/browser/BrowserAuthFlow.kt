@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 object BrowserAuthFlow {
 
-    private var flowProperty: BrowserAuthFlowProperty? = null
+    private var authConfig: BrowserAuthConfig? = null
 
     fun init(
         logtoConfig: LogtoConfig,
@@ -25,7 +25,7 @@ object BrowserAuthFlow {
         val codeVerifier = Util.generateCodeVerifier()
         val authUrl = generateAuthUrl(logtoConfig, codeVerifier)
 
-        flowProperty = BrowserAuthFlowProperty(
+        authConfig = BrowserAuthConfig(
             codeVerifier,
             authUrl,
             logtoConfig,
@@ -40,9 +40,9 @@ object BrowserAuthFlow {
     }
 
     fun onBrowserResult(redirectUri: Uri?) {
-        flowProperty?.let { property ->
+        authConfig?.let { config ->
             if (redirectUri == null) {
-                property.authenticationCallback
+                config.authenticationCallback
                     .onFailed(Error("onBrowserResult missing redirectUri!"))
                 resetFlow()
                 return
@@ -51,21 +51,21 @@ object BrowserAuthFlow {
             val authorizationCode = redirectUri.getQueryParameter(AuthConstant.QueryKey.CODE)
 
             if (authorizationCode == null) {
-                property.authenticationCallback.onFailed(Error("Get authorization code failed!"))
+                config.authenticationCallback.onFailed(Error("Get authorization code failed!"))
                 resetFlow()
                 return
             }
 
-            authorize(authorizationCode, property)
-        } ?: throw Error("Browser auth flow missing flowProperty")
+            authorize(authorizationCode, config)
+        } ?: throw Error("Browser auth flow missing config!")
     }
 
     private fun resetFlow() {
-        flowProperty = null
+        authConfig = null
     }
 
     private fun startAuthActivity(context: Context) {
-        flowProperty?.let {
+        authConfig?.let {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.authUrl))
             context.startActivity(intent)
         } ?: throw Exception("Browser auth flow is not initialized!")
@@ -89,9 +89,9 @@ object BrowserAuthFlow {
 
     private fun authorize(
         authorizationCode: String,
-        property: BrowserAuthFlowProperty
+        config: BrowserAuthConfig
     ) {
-        property.apply {
+        config.apply {
             val logtoService = LogtoService.create(logtoConfig.oidcEndpoint)
             MainScope().launch {
                 try {
