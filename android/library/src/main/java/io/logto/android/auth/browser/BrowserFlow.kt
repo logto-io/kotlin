@@ -6,7 +6,12 @@ import android.net.Uri
 import io.logto.android.api.LogtoService
 import io.logto.android.callback.AuthenticationCallback
 import io.logto.android.config.LogtoConfig
-import io.logto.android.constant.AuthConstant
+import io.logto.android.constant.CodeChallengeMethod
+import io.logto.android.constant.GrantType
+import io.logto.android.constant.PromptValue
+import io.logto.android.constant.QueryKey
+import io.logto.android.constant.ResourceValue
+import io.logto.android.constant.ResponseType
 import io.logto.android.pkce.Util
 import io.logto.android.utils.UrlUtil
 import kotlinx.coroutines.MainScope
@@ -48,7 +53,7 @@ object BrowserFlow {
                 return
             }
 
-            val authorizationCode = redirectUri.getQueryParameter(AuthConstant.QueryKey.CODE)
+            val authorizationCode = redirectUri.getQueryParameter(QueryKey.CODE)
 
             if (authorizationCode == null) {
                 config.authenticationCallback.onFailed(Error("Get authorization code failed!"))
@@ -75,14 +80,14 @@ object BrowserFlow {
         val codeChallenge = Util.generateCodeChallenge(codeVerifier)
         val baseUrl = Uri.parse(logtoConfig.authEndpoint)
         val parameters = mapOf(
-            AuthConstant.QueryKey.CLIENT_ID to logtoConfig.clientId,
-            AuthConstant.QueryKey.CODE_CHALLENGE to codeChallenge,
-            AuthConstant.QueryKey.CODE_CHALLENGE_METHOD to AuthConstant.CodeChallengeMethod.S256,
-            AuthConstant.QueryKey.PROMPT to AuthConstant.PromptValue.CONSENT,
-            AuthConstant.QueryKey.REDIRECT_URI to logtoConfig.redirectUri,
-            AuthConstant.QueryKey.RESPONSE_TYPE to AuthConstant.ResponseType.CODE,
-            AuthConstant.QueryKey.SCOPE to logtoConfig.encodedScopes,
-            AuthConstant.QueryKey.RESOURCE to AuthConstant.ResourceValue.LOGTO_API,
+            QueryKey.CLIENT_ID to logtoConfig.clientId,
+            QueryKey.CODE_CHALLENGE to codeChallenge,
+            QueryKey.CODE_CHALLENGE_METHOD to CodeChallengeMethod.S256,
+            QueryKey.PROMPT to PromptValue.CONSENT,
+            QueryKey.REDIRECT_URI to logtoConfig.redirectUri,
+            QueryKey.RESPONSE_TYPE to ResponseType.CODE,
+            QueryKey.SCOPE to logtoConfig.encodedScopes,
+            QueryKey.RESOURCE to ResourceValue.LOGTO_API,
         )
         return UrlUtil.appendQueryParameters(baseUrl.buildUpon(), parameters).toString()
     }
@@ -98,7 +103,7 @@ object BrowserFlow {
                     val credential = logtoService.getCredential(
                         logtoConfig.redirectUri,
                         authorizationCode,
-                        AuthConstant.GrantType.AUTHORIZATION_CODE,
+                        GrantType.AUTHORIZATION_CODE,
                         logtoConfig.clientId,
                         codeVerifier,
                     )
