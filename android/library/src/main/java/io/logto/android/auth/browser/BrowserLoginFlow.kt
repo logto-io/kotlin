@@ -17,20 +17,20 @@ import io.logto.android.utils.UrlUtil
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
-object BrowserFlow {
+object BrowserLoginFlow {
 
-    private var authConfig: BrowserAuthConfig? = null
+    private var loginConfig: BrowserLoginConfig? = null
 
     fun init(
         logtoConfig: LogtoConfig,
         authenticationCallback: AuthenticationCallback
-    ): BrowserFlow {
+    ): BrowserLoginFlow {
         resetFlow()
 
         val codeVerifier = Util.generateCodeVerifier()
         val authUrl = generateAuthUrl(logtoConfig, codeVerifier)
 
-        authConfig = BrowserAuthConfig(
+        loginConfig = BrowserLoginConfig(
             codeVerifier,
             authUrl,
             logtoConfig,
@@ -40,12 +40,12 @@ object BrowserFlow {
         return this
     }
 
-    fun startAuth(context: Context) {
+    fun login(context: Context) {
         startAuthActivity(context)
     }
 
     fun onBrowserResult(redirectUri: Uri?) {
-        authConfig?.let { config ->
+        loginConfig?.let { config ->
             if (redirectUri == null) {
                 config.authenticationCallback
                     .onFailed(Error("onBrowserResult missing redirectUri!"))
@@ -66,11 +66,11 @@ object BrowserFlow {
     }
 
     private fun resetFlow() {
-        authConfig = null
+        loginConfig = null
     }
 
     private fun startAuthActivity(context: Context) {
-        authConfig?.let {
+        loginConfig?.let {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.authUrl))
             context.startActivity(intent)
         } ?: throw Exception("Browser auth flow is not initialized!")
@@ -79,7 +79,7 @@ object BrowserFlow {
     private fun generateAuthUrl(logtoConfig: LogtoConfig, codeVerifier: String): String {
         val codeChallenge = Util.generateCodeChallenge(codeVerifier)
         val baseUrl = Uri.parse(logtoConfig.authEndpoint)
-        val parameters = mapOf(
+        val queries = mapOf(
             QueryKey.CLIENT_ID to logtoConfig.clientId,
             QueryKey.CODE_CHALLENGE to codeChallenge,
             QueryKey.CODE_CHALLENGE_METHOD to CodeChallengeMethod.S256,
@@ -89,12 +89,12 @@ object BrowserFlow {
             QueryKey.SCOPE to logtoConfig.encodedScopes,
             QueryKey.RESOURCE to ResourceValue.LOGTO_API,
         )
-        return UrlUtil.appendQueryParameters(baseUrl.buildUpon(), parameters).toString()
+        return UrlUtil.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
     }
 
     private fun authorize(
         authorizationCode: String,
-        config: BrowserAuthConfig
+        config: BrowserLoginConfig
     ) {
         config.apply {
             val logtoService = LogtoService.create(logtoConfig.oidcEndpoint)
