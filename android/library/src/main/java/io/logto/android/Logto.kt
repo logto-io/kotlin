@@ -2,7 +2,7 @@ package io.logto.android
 
 import android.app.Application
 import android.content.Context
-import io.logto.android.authflow.browser.BrowserAuthFlow
+import io.logto.android.auth.browser.BrowserFlow
 import io.logto.android.callback.AuthenticationCallback
 import io.logto.android.config.LogtoConfig
 import io.logto.android.model.Credential
@@ -37,7 +37,7 @@ object Logto {
         onComplete: (error: Error?, credential: Credential?) -> Unit
     ) {
         checkInitState()
-        BrowserAuthFlow.init(
+        BrowserFlow.init(
             logtoConfig,
             object : AuthenticationCallback {
                 override fun onSuccess(result: Credential) {

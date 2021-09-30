@@ -1,4 +1,4 @@
-package io.logto.android.authflow.browser
+package io.logto.android.auth.browser
 
 import android.content.Context
 import android.content.Intent
@@ -12,14 +12,14 @@ import io.logto.android.utils.UrlUtil
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
-object BrowserAuthFlow {
+object BrowserFlow {
 
     private var authConfig: BrowserAuthConfig? = null
 
     fun init(
         logtoConfig: LogtoConfig,
         authenticationCallback: AuthenticationCallback
-    ): BrowserAuthFlow {
+    ): BrowserFlow {
         resetFlow()
 
         val codeVerifier = Util.generateCodeVerifier()
