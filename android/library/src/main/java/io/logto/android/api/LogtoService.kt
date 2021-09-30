@@ -4,7 +4,6 @@ import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import io.logto.android.constant.AuthConstant
 import io.logto.android.model.Credential
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Field
@@ -20,7 +19,7 @@ interface LogtoService {
         @Field(AuthConstant.QueryKey.GRANT_TYPE) grantType: String,
         @Field(AuthConstant.QueryKey.CLIENT_ID) clientId: String,
         @Field(AuthConstant.QueryKey.CODE_VERIFIER) codeVerifier: String,
-    ): Response<Credential>
+    ): Credential
 
     companion object {
         fun create(endpoint: String): LogtoService {
