@@ -2,7 +2,7 @@ package io.logto.android.api
 
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
-import io.logto.android.constant.AuthConstant
+import io.logto.android.constant.QueryKey
 import io.logto.android.model.Credential
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -14,11 +14,11 @@ interface LogtoService {
     @FormUrlEncoded
     @POST("token")
     suspend fun getCredential(
-        @Field(AuthConstant.QueryKey.REDIRECT_URI) redirectUri: String,
-        @Field(AuthConstant.QueryKey.CODE) code: String,
-        @Field(AuthConstant.QueryKey.GRANT_TYPE) grantType: String,
-        @Field(AuthConstant.QueryKey.CLIENT_ID) clientId: String,
-        @Field(AuthConstant.QueryKey.CODE_VERIFIER) codeVerifier: String,
+        @Field(QueryKey.REDIRECT_URI) redirectUri: String,
+        @Field(QueryKey.CODE) code: String,
+        @Field(QueryKey.GRANT_TYPE) grantType: String,
+        @Field(QueryKey.CLIENT_ID) clientId: String,
+        @Field(QueryKey.CODE_VERIFIER) codeVerifier: String,
     ): Credential
 
     companion object {
