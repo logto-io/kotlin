@@ -3,6 +3,7 @@ package io.logto.android
 import android.app.Application
 import android.content.Context
 import io.logto.android.auth.browser.BrowserLoginFlow
+import io.logto.android.auth.browser.BrowserLogoutFlow
 import io.logto.android.callback.AuthenticationCallback
 import io.logto.android.config.LogtoConfig
 import io.logto.android.model.Credential
@@ -51,6 +52,16 @@ object Logto {
                 }
             }
         ).login(context)
+    }
+
+    fun logoutWithBrowser(context: Context) {
+        checkInitState()
+        credential?.let {
+            BrowserLogoutFlow.init(
+                logtoConfig,
+                it.idToken
+            ).logout(context)
+        }
     }
 
     private fun checkInitState() {

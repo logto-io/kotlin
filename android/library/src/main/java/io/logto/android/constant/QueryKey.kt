@@ -12,4 +12,6 @@ object QueryKey {
     const val RESOURCE = "resource"
     const val RESPONSE_TYPE = "response_type"
     const val SCOPE = "scope"
+    const val ID_TOKEN_HINT = "id_token_hint"
+    const val POST_LOGOUT_REDIRECT_URI = "post_logout_redirect_uri"
 }
