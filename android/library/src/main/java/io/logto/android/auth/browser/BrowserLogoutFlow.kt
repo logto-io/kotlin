@@ -14,12 +14,14 @@ object BrowserLogoutFlow {
     fun init(
         logtoConfig: LogtoConfig,
         idToken: String,
+        onComplete: (error: Error?) -> Unit,
     ): BrowserLogoutFlow {
         resetFlow()
 
         logoutConfig = BrowserLogoutConfig(
             logtoConfig,
-            idToken
+            idToken,
+            onComplete
         )
 
         return this
@@ -27,6 +29,21 @@ object BrowserLogoutFlow {
 
     fun logout(context: Context) {
         startLogoutActivity(context)
+    }
+
+    fun isInLogoutFlow(uri: Uri?): Boolean {
+        return logoutConfig?.let { config ->
+            return uri?.let {
+                it.toString().startsWith(config.logtoConfig.postLogoutRedirectUri)
+            } ?: false
+        } ?: false
+    }
+
+    fun onBrowserResult() {
+        logoutConfig?.let { config ->
+            config.onComplete(null)
+            resetFlow()
+        } ?: throw Error("Browser logout flow missing config!")
     }
 
     private fun resetFlow() {

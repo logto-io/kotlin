@@ -44,6 +44,15 @@ object BrowserLoginFlow {
         startAuthActivity(context)
     }
 
+    fun isInLoginFlow(uri: Uri?): Boolean {
+        return loginConfig?.let { config ->
+            uri?.let {
+                it.toString().startsWith(config.logtoConfig.redirectUri) &&
+                    it.getQueryParameter(QueryKey.CODE) !== null
+            } ?: false
+        } ?: false
+    }
+
     fun onBrowserResult(redirectUri: Uri?) {
         loginConfig?.let { config ->
             if (redirectUri == null) {
