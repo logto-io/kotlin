@@ -57,8 +57,7 @@ object Logto {
             BrowserLogoutFlow.init(
                 logtoConfig,
                 it.idToken,
-            ) {
-                error ->
+            ) { error ->
                 if (error == null) {
                     clearCredential()
                 }
