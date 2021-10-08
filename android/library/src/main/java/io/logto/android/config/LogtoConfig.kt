@@ -5,6 +5,7 @@ data class LogtoConfig(
     val oidcEndpoint: String,
     val scopes: List<String>,
     val redirectUri: String,
+    val postLogoutRedirectUri: String,
 ) {
     val encodedScopes: String
         get() = scopes.joinToString(" ")
@@ -15,8 +16,12 @@ data class LogtoConfig(
     val tokenEndpoint: String
         get() = "$oidcEndpoint$TOKEN_PATH"
 
+    val logoutEndpoint: String
+        get() = "$oidcEndpoint$LOGOUT_PATH"
+
     private companion object {
         const val AUTH_PATH = "auth"
         const val TOKEN_PATH = "token"
+        const val LOGOUT_PATH = "session/end"
     }
 }

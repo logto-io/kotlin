@@ -2,8 +2,8 @@ package io.logto.android
 
 import android.app.Application
 import android.content.Context
-import io.logto.android.auth.browser.BrowserFlow
-import io.logto.android.callback.AuthenticationCallback
+import io.logto.android.auth.browser.BrowserLoginFlow
+import io.logto.android.auth.browser.BrowserLogoutFlow
 import io.logto.android.config.LogtoConfig
 import io.logto.android.model.Credential
 import io.logto.android.storage.CredentialStorage
@@ -37,25 +37,43 @@ object Logto {
         onComplete: (error: Error?, credential: Credential?) -> Unit
     ) {
         checkInitState()
-        BrowserFlow.init(
+        BrowserLoginFlow.init(
             logtoConfig,
-            object : AuthenticationCallback {
-                override fun onSuccess(result: Credential) {
-                    credentialCache = result
-                    credentialStorage?.saveCredential(result)
-                    onComplete(null, result)
-                }
-
-                override fun onFailed(error: Error) {
-                    onComplete(error, null)
-                }
+        ) { error, credential ->
+            if (error == null && credential != null) {
+                credentialCache = credential
+                credentialStorage?.saveCredential(credential)
             }
-        ).startAuth(context)
+            onComplete(error, credential)
+        }.login(context)
+    }
+
+    fun logoutWithBrowser(
+        context: Context,
+        onComplete: (error: Error?) -> Unit
+    ) {
+        checkInitState()
+        credential?.let {
+            BrowserLogoutFlow.init(
+                logtoConfig,
+                it.idToken,
+            ) { error ->
+                if (error == null) {
+                    clearCredential()
+                }
+                onComplete(error)
+            }.logout(context)
+        }
     }
 
     private fun checkInitState() {
         if (!::application.isInitialized || !::logtoConfig.isInitialized) {
             throw Exception("Logto is not initialized!")
         }
+    }
+
+    private fun clearCredential() {
+        credentialStorage?.clearCredential()
+        credentialCache = null
     }
 }
