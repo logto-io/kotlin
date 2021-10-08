@@ -2,6 +2,7 @@ package io.logto.android
 
 import android.app.Application
 import android.content.Context
+import io.logto.android.auth.AuthManager
 import io.logto.android.auth.browser.BrowserLoginFlow
 import io.logto.android.auth.browser.BrowserLogoutFlow
 import io.logto.android.config.LogtoConfig
@@ -37,15 +38,19 @@ object Logto {
         onComplete: (error: Error?, credential: Credential?) -> Unit
     ) {
         checkInitState()
-        BrowserLoginFlow.init(
-            logtoConfig,
-        ) { error, credential ->
-            if (error == null && credential != null) {
-                credentialCache = credential
-                credentialStorage?.saveCredential(credential)
+        AuthManager.start(
+            context,
+            BrowserLoginFlow(
+                logtoConfig,
+            ) { error, credential ->
+                if (error == null && credential != null) {
+                    credentialCache = credential
+                    credentialStorage?.saveCredential(credential)
+                }
+                AuthManager.reset()
+                onComplete(error, credential)
             }
-            onComplete(error, credential)
-        }.login(context)
+        )
     }
 
     fun logoutWithBrowser(
@@ -54,15 +59,19 @@ object Logto {
     ) {
         checkInitState()
         credential?.let {
-            BrowserLogoutFlow.init(
-                logtoConfig,
-                it.idToken,
-            ) { error ->
-                if (error == null) {
-                    clearCredential()
+            AuthManager.start(
+                context,
+                BrowserLogoutFlow(
+                    logtoConfig,
+                    it.idToken,
+                ) { error ->
+                    if (error == null) {
+                        clearCredential()
+                    }
+                    AuthManager.reset()
+                    onComplete(error)
                 }
-                onComplete(error)
-            }.logout(context)
+            )
         }
     }
 
