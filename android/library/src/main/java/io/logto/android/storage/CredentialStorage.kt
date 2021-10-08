@@ -26,6 +26,10 @@ class CredentialStorage(
         return Gson().fromJson(credentialJson, Credential::class.java)
     }
 
+    fun clearCredential() {
+        sharedPreferences.edit().remove(StorageKey.CREDENTIAL).apply()
+    }
+
     private fun save(key: String, value: String?) {
         with(sharedPreferences.edit()) {
             if (value == null) {

@@ -54,13 +54,22 @@ object Logto {
         ).login(context)
     }
 
-    fun logoutWithBrowser(context: Context) {
+    fun logoutWithBrowser(
+        context: Context,
+        onComplete: (error: Error?) -> Unit
+    ) {
         checkInitState()
         credential?.let {
             BrowserLogoutFlow.init(
                 logtoConfig,
-                it.idToken
-            ).logout(context)
+                it.idToken,
+            ) {
+                error ->
+                if (error == null) {
+                    clearCredential()
+                }
+                onComplete(error)
+            }.logout(context)
         }
     }
 
@@ -68,5 +77,10 @@ object Logto {
         if (!::application.isInitialized || !::logtoConfig.isInitialized) {
             throw Exception("Logto is not initialized!")
         }
+    }
+
+    private fun clearCredential() {
+        credentialStorage?.clearCredential()
+        credentialCache = null
     }
 }
