@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import io.logto.android.auth.browser.BrowserLoginFlow
 import io.logto.android.auth.browser.BrowserLogoutFlow
-import io.logto.android.callback.AuthenticationCallback
 import io.logto.android.config.LogtoConfig
 import io.logto.android.model.Credential
 import io.logto.android.storage.CredentialStorage
@@ -40,18 +39,13 @@ object Logto {
         checkInitState()
         BrowserLoginFlow.init(
             logtoConfig,
-            object : AuthenticationCallback {
-                override fun onSuccess(result: Credential) {
-                    credentialCache = result
-                    credentialStorage?.saveCredential(result)
-                    onComplete(null, result)
-                }
-
-                override fun onFailed(error: Error) {
-                    onComplete(error, null)
-                }
+        ) { error, credential ->
+            if (error == null && credential != null) {
+                credentialCache = credential
+                credentialStorage?.saveCredential(credential)
             }
-        ).login(context)
+            onComplete(error, credential)
+        }.login(context)
     }
 
     fun logoutWithBrowser(

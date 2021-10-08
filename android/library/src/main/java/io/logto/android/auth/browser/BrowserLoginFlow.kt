@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import io.logto.android.api.LogtoService
-import io.logto.android.callback.AuthenticationCallback
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.CodeChallengeMethod
 import io.logto.android.constant.GrantType
@@ -12,6 +11,7 @@ import io.logto.android.constant.PromptValue
 import io.logto.android.constant.QueryKey
 import io.logto.android.constant.ResourceValue
 import io.logto.android.constant.ResponseType
+import io.logto.android.model.Credential
 import io.logto.android.pkce.Util
 import io.logto.android.utils.UrlUtil
 import kotlinx.coroutines.MainScope
@@ -23,7 +23,7 @@ object BrowserLoginFlow {
 
     fun init(
         logtoConfig: LogtoConfig,
-        authenticationCallback: AuthenticationCallback
+        onComplete: (error: Error?, credential: Credential?) -> Unit
     ): BrowserLoginFlow {
         resetFlow()
 
@@ -34,7 +34,7 @@ object BrowserLoginFlow {
             codeVerifier,
             authUrl,
             logtoConfig,
-            authenticationCallback
+            onComplete
         )
 
         return this
@@ -56,8 +56,7 @@ object BrowserLoginFlow {
     fun onBrowserResult(redirectUri: Uri?) {
         loginConfig?.let { config ->
             if (redirectUri == null) {
-                config.authenticationCallback
-                    .onFailed(Error("onBrowserResult missing redirectUri!"))
+                config.onComplete(Error("onBrowserResult missing redirectUri!"), null)
                 resetFlow()
                 return
             }
@@ -65,7 +64,7 @@ object BrowserLoginFlow {
             val authorizationCode = redirectUri.getQueryParameter(QueryKey.CODE)
 
             if (authorizationCode == null) {
-                config.authenticationCallback.onFailed(Error("Get authorization code failed!"))
+                config.onComplete(Error("Get authorization code failed!"), null)
                 resetFlow()
                 return
             }
@@ -116,9 +115,9 @@ object BrowserLoginFlow {
                         logtoConfig.clientId,
                         codeVerifier,
                     )
-                    authenticationCallback.onSuccess(credential)
+                    onComplete(null, credential)
                 } catch (error: Error) {
-                    authenticationCallback.onFailed(error)
+                    onComplete(error, null)
                 } finally {
                     resetFlow()
                 }
