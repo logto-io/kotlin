@@ -3,8 +3,8 @@ package io.logto.android
 import android.app.Application
 import android.content.Context
 import io.logto.android.auth.AuthManager
-import io.logto.android.auth.browser.BrowserLoginFlow
-import io.logto.android.auth.browser.BrowserLogoutFlow
+import io.logto.android.auth.browser.BrowserSignInFlow
+import io.logto.android.auth.browser.BrowserSignOutFlow
 import io.logto.android.config.LogtoConfig
 import io.logto.android.model.Credential
 import io.logto.android.storage.CredentialStorage
@@ -27,13 +27,13 @@ class Logto(
         }
     }
 
-    fun loginWithBrowser(
+    fun signInWithBrowser(
         context: Context,
         onComplete: (error: Error?, credential: Credential?) -> Unit
     ) {
         AuthManager.start(
             context,
-            BrowserLoginFlow(
+            BrowserSignInFlow(
                 logtoConfig,
             ) { error, credential ->
                 if (error == null && credential != null) {
@@ -46,14 +46,14 @@ class Logto(
         )
     }
 
-    fun logoutWithBrowser(
+    fun signOutWithBrowser(
         context: Context,
         onComplete: (error: Error?) -> Unit
     ) {
         credential?.let {
             AuthManager.start(
                 context,
-                BrowserLogoutFlow(
+                BrowserSignOutFlow(
                     logtoConfig,
                     it.idToken,
                 ) { error ->
