@@ -9,11 +9,11 @@ import io.logto.android.config.LogtoConfig
 import io.logto.android.model.Credential
 import io.logto.android.storage.CredentialStorage
 
-object Logto {
-    private lateinit var application: Application
-
-    private lateinit var logtoConfig: LogtoConfig
-
+class Logto(
+    private val logtoConfig: LogtoConfig,
+    application: Application,
+    useStorage: Boolean = true
+) {
     private var credentialStorage: CredentialStorage? = null
 
     private var credentialCache: Credential? = null
@@ -21,15 +21,9 @@ object Logto {
     val credential: Credential?
         get() = credentialStorage?.getCredential() ?: credentialCache
 
-    fun init(
-        application: Application,
-        logtoConfig: LogtoConfig,
-        useStorage: Boolean = true
-    ) {
-        this.application = application
-        this.logtoConfig = logtoConfig
+    init {
         if (useStorage) {
-            credentialStorage = CredentialStorage(application)
+            credentialStorage = CredentialStorage(application, logtoConfig)
         }
     }
 
@@ -37,7 +31,6 @@ object Logto {
         context: Context,
         onComplete: (error: Error?, credential: Credential?) -> Unit
     ) {
-        checkInitState()
         AuthManager.start(
             context,
             BrowserLoginFlow(
@@ -57,7 +50,6 @@ object Logto {
         context: Context,
         onComplete: (error: Error?) -> Unit
     ) {
-        checkInitState()
         credential?.let {
             AuthManager.start(
                 context,
@@ -72,13 +64,7 @@ object Logto {
                     onComplete(error)
                 }
             )
-        }
-    }
-
-    private fun checkInitState() {
-        if (!::application.isInitialized || !::logtoConfig.isInitialized) {
-            throw Exception("Logto is not initialized!")
-        }
+        } ?: onComplete(Error("You are not signed in!"))
     }
 
     private fun clearCredential() {
