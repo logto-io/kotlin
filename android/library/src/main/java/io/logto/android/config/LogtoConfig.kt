@@ -16,12 +16,12 @@ data class LogtoConfig(
     val tokenEndpoint: String
         get() = "$oidcEndpoint$TOKEN_PATH"
 
-    val logoutEndpoint: String
-        get() = "$oidcEndpoint$LOGOUT_PATH"
+    val signOutEndpoint: String
+        get() = "$oidcEndpoint$SIGN_OUT_PATH"
 
     private companion object {
         const val AUTH_PATH = "auth"
         const val TOKEN_PATH = "token"
-        const val LOGOUT_PATH = "session/end"
+        const val SIGN_OUT_PATH = "session/end"
     }
 }

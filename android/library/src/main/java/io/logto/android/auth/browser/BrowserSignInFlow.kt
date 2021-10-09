@@ -18,7 +18,7 @@ import io.logto.android.utils.UrlUtil
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
-class BrowserLoginFlow(
+class BrowserSignInFlow(
     private val logtoConfig: LogtoConfig,
     private val onComplete: (error: Error?, credential: Credential?) -> Unit
 ) : IFlow {
