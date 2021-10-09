@@ -2,18 +2,18 @@ package io.logto.android.storage
 
 import android.content.Context
 import com.google.gson.Gson
+import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.StorageKey
 import io.logto.android.model.Credential
 
 class CredentialStorage(
-    context: Context
+    context: Context,
+    logtoConfig: LogtoConfig,
 ) {
-    private val sharedPreferences by lazy {
-        context.getSharedPreferences(SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE)
-    }
+    private val sharedPreferenceName = "$SHARED_PREFERENCE_NAME_PREFIX-${logtoConfig.clientId}"
 
-    private companion object {
-        private const val SHARED_PREFERENCE_NAME = "io.logto.android"
+    private val sharedPreferences by lazy {
+        context.getSharedPreferences(sharedPreferenceName, Context.MODE_PRIVATE)
     }
 
     fun saveCredential(credential: Credential) {
@@ -42,4 +42,8 @@ class CredentialStorage(
     }
 
     private fun get(key: String): String? = sharedPreferences.getString(key, null)
+
+    private companion object {
+        private const val SHARED_PREFERENCE_NAME_PREFIX = "io.logto.android"
+    }
 }

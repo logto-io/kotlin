@@ -6,7 +6,7 @@
 
     <application>
         <activity
-            android:name="io.logto.android.auth.browser.RedirectUriActivity"
+            android:name="io.logto.android.auth.activity.RedirectUriActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
