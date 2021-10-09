@@ -1,17 +1,17 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-    id 'org.jlleitschuh.gradle.ktlint'
+    id 'org.jlleitschuh.gradle.ktlint' version '10.2.0'
 }
 
 android {
-    compileSdk 30
+    compileSdk rootProject.compileSdkVersion
 
     defaultConfig {
-        minSdk 21
-        targetSdk 30
-        versionCode 1
-        versionName "1.0"
+        minSdk rootProject.minSdkVersion
+        targetSdk rootProject.targetSdkVersion
+        versionCode rootProject.versionCode
+        versionName rootProject.versionName
 
         manifestPlaceholders= [logtoRedirectScheme: "logto"]
 
@@ -37,7 +37,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = rootProject.kotlinJvmTargetVersion
     }
 
     lintOptions {
@@ -48,24 +48,18 @@ android {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.6.0'
-    implementation 'androidx.appcompat:appcompat:1.3.1'
-    implementation 'com.google.android.material:material:1.4.0'
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0'
+    implementation "androidx.core:core-ktx:$rootProject.ktxVersion"
+    implementation "androidx.appcompat:appcompat:$rootProject.appcompatVersion"
+    implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofitVersion"
+    implementation "com.squareup.retrofit2:converter-gson:$rootProject.retrofitVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutinesVersion"
 
-    testImplementation "androidx.test:core-ktx:1.4.0"
-    testImplementation "androidx.test.ext:junit:1.1.2"
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.hamcrest:hamcrest-all:1.3'
-    testImplementation 'org.robolectric:robolectric:4.5.1'
+    testImplementation "androidx.test:core-ktx:$rootProject.testCoreKtxVersion"
+    testImplementation "androidx.test.ext:junit:$rootProject.testExtJunitVersion"
+    testImplementation "junit:junit:$rootProject.junitVersion"
+    testImplementation "org.hamcrest:hamcrest-all:$rootProject.hamcrestVersion"
+    testImplementation "org.robolectric:robolectric:$rootProject.robolectricVersion"
 
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-}
-
-ktlint {
-    android.set(true)
-    outputColorName.set("RED")
+    androidTestImplementation "androidx.test.ext:junit:$rootProject.testExtJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$rootProject.espressoVersion"
 }

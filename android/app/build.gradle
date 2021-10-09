@@ -1,18 +1,17 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
-    id 'org.jlleitschuh.gradle.ktlint'
 }
 
 android {
-    compileSdk 30
+    compileSdk rootProject.compileSdkVersion
 
     defaultConfig {
         applicationId "io.logto.demo"
-        minSdk 21
-        targetSdk 30
-        versionCode 1
-        versionName "1.0"
+        minSdk rootProject.minSdkVersion
+        targetSdk rootProject.targetSdkVersion
+        versionCode rootProject.versionCode
+        versionName rootProject.versionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -28,26 +27,21 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = rootProject.kotlinJvmTargetVersion
     }
 }
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.6.0'
-    implementation 'androidx.appcompat:appcompat:1.3.1'
-    implementation 'com.google.android.material:material:1.4.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
+    implementation "androidx.core:core-ktx:${rootProject.ktxVersion}"
+    implementation "androidx.appcompat:appcompat:${rootProject.appcompatVersion}"
+    implementation "com.google.android.material:material:${rootProject.materialVersion}"
+    implementation "androidx.constraintlayout:constraintlayout:${rootProject.constraintlayoutVersion}"
+
     implementation project(path: ':library')
 
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation "junit:junit:${rootProject.junitVersion}"
 
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-}
-
-
-ktlint {
-    android.set(true)
-    outputColorName.set("RED")
+    androidTestImplementation "androidx.test.ext:junit:${rootProject.testExtJunitVersion}"
+    androidTestImplementation "androidx.test.espresso:espresso-core:${rootProject.espressoVersion}"
 }
