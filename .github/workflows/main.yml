@@ -1,9 +1,9 @@
-name: android lint and ktlintCheck
+name: Main
 
 on: [ push ]
 
 jobs:
-  lint:
+  main:
     runs-on: ubuntu-latest
 
     steps:
