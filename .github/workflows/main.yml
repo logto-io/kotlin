@@ -2,9 +2,15 @@ name: Main
 
 on: [ push ]
 
+env:
+  working-directory: android
+
 jobs:
   main:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{env.working-directory}}
 
     steps:
       - uses: actions/checkout@v2
@@ -18,11 +24,17 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ~/android/.gradle/caches
-            ~/android/.gradle/wrapper
+            ~/${{env.working-directory}}/.gradle/caches
+            ~/${{env.working-directory}}/.gradle/wrapper
           key: ${{ runner.os }}-gradle-cache-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-cache-
+      
+      - name: Clean Project
+        run: ./gradlew clean
 
-      - name: Android Lint and Ktlint Check
-        run: cd ./android && ./gradlew clean lint ktlintCheck --continue
+      - name: Android Lint
+        run: ./gradlew lint --continue
+
+      - name: Ktlint Check
+        run: ./gradlew ktlintCheck --continue
