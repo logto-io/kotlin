@@ -7,7 +7,6 @@ import io.logto.android.api.LogtoService
 import io.logto.android.auth.IFlow
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.CodeChallengeMethod
-import io.logto.android.constant.GrantType
 import io.logto.android.constant.PromptValue
 import io.logto.android.constant.QueryKey
 import io.logto.android.constant.ResourceValue
@@ -20,6 +19,7 @@ import kotlinx.coroutines.launch
 
 class BrowserSignInFlow(
     private val logtoConfig: LogtoConfig,
+    private val logtoService: LogtoService,
     private val onComplete: (error: Error?, credential: Credential?) -> Unit
 ) : IFlow {
 
@@ -65,15 +65,13 @@ class BrowserSignInFlow(
     private fun authorize(
         authorizationCode: String,
     ) {
-        val logtoService = LogtoService.create(logtoConfig.oidcEndpoint)
         MainScope().launch {
             try {
-                val credential = logtoService.getCredential(
-                    logtoConfig.redirectUri,
-                    authorizationCode,
-                    GrantType.AUTHORIZATION_CODE,
-                    logtoConfig.clientId,
-                    codeVerifier,
+                val credential = logtoService.exchangeCredential(
+                    clientId = logtoConfig.clientId,
+                    redirectUri = logtoConfig.redirectUri,
+                    code = authorizationCode,
+                    codeVerifier = codeVerifier,
                 )
                 onComplete(null, credential)
             } catch (error: Error) {

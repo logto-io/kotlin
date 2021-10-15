@@ -2,30 +2,24 @@ package io.logto.android
 
 import android.app.Application
 import android.content.Context
+import io.logto.android.api.LogtoService
 import io.logto.android.auth.AuthManager
 import io.logto.android.auth.browser.BrowserSignInFlow
 import io.logto.android.auth.browser.BrowserSignOutFlow
 import io.logto.android.config.LogtoConfig
 import io.logto.android.model.Credential
 import io.logto.android.storage.CredentialStorage
+import io.logto.android.utils.TokenUtil
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 class Logto(
     private val logtoConfig: LogtoConfig,
     application: Application,
     useStorage: Boolean = true
 ) {
-    private var credentialStorage: CredentialStorage? = null
-
-    private var credentialCache: Credential? = null
-
     val credential: Credential?
         get() = credentialStorage?.getCredential() ?: credentialCache
-
-    init {
-        if (useStorage) {
-            credentialStorage = CredentialStorage(application, logtoConfig)
-        }
-    }
 
     fun signInWithBrowser(
         context: Context,
@@ -35,10 +29,10 @@ class Logto(
             context,
             BrowserSignInFlow(
                 logtoConfig,
+                logtoService,
             ) { error, credential ->
                 if (error == null && credential != null) {
-                    credentialCache = credential
-                    credentialStorage?.saveCredential(credential)
+                    updateCredential(credential)
                 }
                 AuthManager.reset()
                 onComplete(error, credential)
@@ -58,7 +52,7 @@ class Logto(
                     it.idToken,
                 ) { error ->
                     if (error == null) {
-                        clearCredential()
+                        updateCredential(null)
                     }
                     AuthManager.reset()
                     onComplete(error)
@@ -67,8 +61,82 @@ class Logto(
         } ?: onComplete(Error("You are not signed in!"))
     }
 
-    private fun clearCredential() {
-        credentialStorage?.clearCredential()
-        credentialCache = null
+    fun getAccessToken(
+        block: (error: Error?, accessToken: String?) -> Unit
+    ) {
+        if (credential == null) {
+            block(Error("Not Sign In!"), null)
+            return
+        }
+
+        if (System.currentTimeMillis() < accessTokenExpiredAt) {
+            block(null, credential?.accessToken)
+            return
+        }
+
+        refreshCredential { error, credential ->
+            block(error, credential?.accessToken)
+        }
+    }
+
+    fun refreshCredential(
+        block: (error: Error?, credential: Credential?) -> Unit
+    ) {
+        if (credential == null) {
+            block(Error("Not Sign In!"), null)
+            return
+        }
+
+        val refreshToken = credential?.refreshToken
+        if (refreshToken == null) {
+            block(Error("Not Support Token Refresh!"), null)
+            return
+        }
+
+        MainScope().launch {
+            try {
+                val updatedCredential = logtoService.refreshCredential(
+                    clientId = logtoConfig.clientId,
+                    redirectUri = logtoConfig.redirectUri,
+                    refreshToken = refreshToken
+                )
+                updateCredential(updatedCredential)
+                block(null, updatedCredential)
+            } catch (error: Error) {
+                block(error, null)
+            }
+        }
+    }
+
+    private val logtoService = LogtoService.create(logtoConfig.oidcEndpoint)
+
+    private var credentialStorage: CredentialStorage? = null
+
+    private var credentialCache: Credential? = null
+        set(value) {
+            if (value != null) {
+                field = credentialCache
+                accessTokenExpiredAt = TokenUtil.calcAccessTokenExpiredTime(value)
+            } else {
+                field = null
+                accessTokenExpiredAt = 0L
+            }
+        }
+
+    private var accessTokenExpiredAt: Long = 0L
+
+    private fun updateCredential(credential: Credential?) {
+        credentialCache = credential
+        if (credential == null) {
+            credentialStorage?.clearCredential()
+        } else {
+            credentialStorage?.saveCredential(credential)
+        }
+    }
+
+    init {
+        if (useStorage) {
+            credentialStorage = CredentialStorage(application, logtoConfig)
+        }
     }
 }

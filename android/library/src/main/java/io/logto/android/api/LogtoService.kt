@@ -2,6 +2,7 @@ package io.logto.android.api
 
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
+import io.logto.android.constant.GrantType
 import io.logto.android.constant.QueryKey
 import io.logto.android.model.Credential
 import retrofit2.Retrofit
@@ -13,12 +14,21 @@ import retrofit2.http.POST
 interface LogtoService {
     @FormUrlEncoded
     @POST("token")
-    suspend fun getCredential(
+    suspend fun exchangeCredential(
+        @Field(QueryKey.CLIENT_ID) clientId: String,
         @Field(QueryKey.REDIRECT_URI) redirectUri: String,
         @Field(QueryKey.CODE) code: String,
-        @Field(QueryKey.GRANT_TYPE) grantType: String,
-        @Field(QueryKey.CLIENT_ID) clientId: String,
         @Field(QueryKey.CODE_VERIFIER) codeVerifier: String,
+        @Field(QueryKey.GRANT_TYPE) grantType: String = GrantType.AUTHORIZATION_CODE,
+    ): Credential
+
+    @FormUrlEncoded
+    @POST("token")
+    suspend fun refreshCredential(
+        @Field(QueryKey.CLIENT_ID) clientId: String,
+        @Field(QueryKey.REDIRECT_URI) redirectUri: String,
+        @Field(QueryKey.REFRESH_TOKEN) refreshToken: String,
+        @Field(QueryKey.GRANT_TYPE) grantType: String = GrantType.REFRESH_TOKEN,
     ): Credential
 
     companion object {

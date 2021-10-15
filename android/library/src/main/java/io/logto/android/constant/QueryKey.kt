@@ -9,6 +9,7 @@ object QueryKey {
     const val GRANT_TYPE = "grant_type"
     const val PROMPT = "prompt"
     const val REDIRECT_URI = "redirect_uri"
+    const val REFRESH_TOKEN = "refresh_token"
     const val RESOURCE = "resource"
     const val RESPONSE_TYPE = "response_type"
     const val SCOPE = "scope"
