@@ -6,15 +6,28 @@
 
     <application>
         <activity
-            android:name="io.logto.android.auth.activity.RedirectUriActivity"
+            android:name=".auth.activity.AuthorizationActivity"
+            android:exported="true"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".auth.activity.RedirectUriActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data android:scheme="${logtoRedirectScheme}" />
             </intent-filter>
         </activity>
     </application>
+
+    <queries>
+        <intent>
+            <action android:name=
+                "android.support.customtabs.action.CustomTabsService" />
+        </intent>
+    </queries>
 
 </manifest>

@@ -13,7 +13,7 @@ android {
         versionCode rootProject.versionCode
         versionName rootProject.versionName
 
-        manifestPlaceholders= [logtoRedirectScheme: "logto"]
+        manifestPlaceholders= [logtoRedirectScheme: "io.logto.android"]
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -49,11 +49,12 @@ android {
 dependencies {
 
     implementation "androidx.core:core-ktx:$rootProject.ktxVersion"
+    implementation "androidx.browser:browser:$rootProject.browserVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.appcompatVersion"
     implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofitVersion"
     implementation "com.squareup.retrofit2:converter-gson:$rootProject.retrofitVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutinesVersion"
-
+    
     testImplementation "androidx.test:core-ktx:$rootProject.testCoreKtxVersion"
     testImplementation "androidx.test.ext:junit:$rootProject.testExtJunitVersion"
     testImplementation "junit:junit:$rootProject.junitVersion"
