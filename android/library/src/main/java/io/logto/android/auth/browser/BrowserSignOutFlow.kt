@@ -6,7 +6,7 @@ import android.net.Uri
 import io.logto.android.auth.IFlow
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.QueryKey
-import io.logto.android.utils.UrlUtil
+import io.logto.android.utils.Utils
 
 class BrowserSignOutFlow(
     private val logtoConfig: LogtoConfig,
@@ -36,6 +36,6 @@ class BrowserSignOutFlow(
             QueryKey.ID_TOKEN_HINT to idToken,
             QueryKey.POST_LOGOUT_REDIRECT_URI to logtoConfig.postLogoutRedirectUri,
         )
-        return UrlUtil.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
+        return Utils.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
     }
 }

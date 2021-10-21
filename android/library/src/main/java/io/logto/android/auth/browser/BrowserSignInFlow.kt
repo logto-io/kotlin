@@ -13,7 +13,7 @@ import io.logto.android.constant.ResourceValue
 import io.logto.android.constant.ResponseType
 import io.logto.android.model.Credential
 import io.logto.android.pkce.Util
-import io.logto.android.utils.UrlUtil
+import io.logto.android.utils.Utils
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -59,7 +59,7 @@ class BrowserSignInFlow(
             QueryKey.SCOPE to logtoConfig.encodedScopes,
             QueryKey.RESOURCE to ResourceValue.LOGTO_API,
         )
-        return UrlUtil.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
+        return Utils.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
     }
 
     private fun authorize(

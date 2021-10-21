@@ -9,7 +9,7 @@ import io.logto.android.auth.browser.BrowserSignOutFlow
 import io.logto.android.config.LogtoConfig
 import io.logto.android.model.Credential
 import io.logto.android.storage.CredentialStorage
-import io.logto.android.utils.TokenUtil
+import io.logto.android.utils.Utils
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -69,7 +69,7 @@ class Logto(
             return
         }
 
-        if (System.currentTimeMillis() < accessTokenExpiresAt) {
+        if (Utils.nowRoundToSec() < accessTokenExpiresAt) {
             block(null, credential?.accessToken)
             return
         }
@@ -116,7 +116,7 @@ class Logto(
         set(value) {
             if (value != null) {
                 field = credentialCache
-                accessTokenExpiresAt = TokenUtil.expiresAt(value)
+                accessTokenExpiresAt = Utils.expiresAt(value)
             } else {
                 field = null
                 accessTokenExpiresAt = 0L
