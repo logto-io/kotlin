@@ -69,7 +69,7 @@ class Logto(
             return
         }
 
-        if (System.currentTimeMillis() < accessTokenExpiredAt) {
+        if (System.currentTimeMillis() < accessTokenExpiresAt) {
             block(null, credential?.accessToken)
             return
         }
@@ -116,14 +116,14 @@ class Logto(
         set(value) {
             if (value != null) {
                 field = credentialCache
-                accessTokenExpiredAt = TokenUtil.calcAccessTokenExpiredTime(value)
+                accessTokenExpiresAt = TokenUtil.expiresAt(value)
             } else {
                 field = null
-                accessTokenExpiredAt = 0L
+                accessTokenExpiresAt = 0L
             }
         }
 
-    private var accessTokenExpiredAt: Long = 0L
+    private var accessTokenExpiresAt: Long = 0L
 
     private fun updateCredential(credential: Credential?) {
         credentialCache = credential
