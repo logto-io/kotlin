@@ -7,19 +7,19 @@ import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.CodeChallengeMethod
-import io.logto.android.constant.GrantType
 import io.logto.android.constant.PromptValue
 import io.logto.android.constant.QueryKey
 import io.logto.android.constant.ResourceValue
 import io.logto.android.constant.ResponseType
 import io.logto.android.model.Credential
 import io.logto.android.pkce.Util
-import io.logto.android.utils.UrlUtil
+import io.logto.android.utils.Utils
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 class BrowserSignInFlow(
     private val logtoConfig: LogtoConfig,
+    private val logtoService: LogtoService,
     private val onComplete: (error: Error?, credential: Credential?) -> Unit
 ) : IFlow {
 
@@ -58,21 +58,19 @@ class BrowserSignInFlow(
             QueryKey.SCOPE to logtoConfig.encodedScopes,
             QueryKey.RESOURCE to ResourceValue.LOGTO_API,
         )
-        return UrlUtil.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
+        return Utils.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
     }
 
     private fun authorize(
         authorizationCode: String,
     ) {
-        val logtoService = LogtoService.create(logtoConfig.oidcEndpoint)
         MainScope().launch {
             try {
-                val credential = logtoService.getCredential(
-                    logtoConfig.redirectUri,
-                    authorizationCode,
-                    GrantType.AUTHORIZATION_CODE,
-                    logtoConfig.clientId,
-                    codeVerifier,
+                val credential = logtoService.exchangeCredential(
+                    clientId = logtoConfig.clientId,
+                    redirectUri = logtoConfig.redirectUri,
+                    code = authorizationCode,
+                    codeVerifier = codeVerifier,
                 )
                 onComplete(null, credential)
             } catch (error: Error) {
