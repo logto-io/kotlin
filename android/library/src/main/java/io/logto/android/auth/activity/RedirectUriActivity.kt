@@ -7,10 +7,9 @@ import io.logto.android.auth.AuthManager
 class RedirectUriActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val data = intent.data
-        data?.let {
+        intent.data?.let {
+            startActivity(AuthorizationActivity.createHandleCompleteIntent(this))
             AuthManager.onResult(it)
-        }
-        finish()
+        } ?: finish()
     }
 }

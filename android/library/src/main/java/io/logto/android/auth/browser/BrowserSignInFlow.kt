@@ -1,10 +1,10 @@
 package io.logto.android.auth.browser
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import io.logto.android.api.LogtoService
 import io.logto.android.auth.IFlow
+import io.logto.android.auth.activity.AuthorizationActivity
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.CodeChallengeMethod
 import io.logto.android.constant.GrantType
@@ -26,7 +26,7 @@ class BrowserSignInFlow(
     private val codeVerifier: String = Util.generateCodeVerifier()
 
     override fun start(context: Context) {
-        startAuthActivity(context)
+        startAuthorizationActivity(context)
     }
 
     override fun onResult(data: Uri) {
@@ -40,9 +40,8 @@ class BrowserSignInFlow(
         authorize(authorizationCode)
     }
 
-    private fun startAuthActivity(context: Context) {
-        val authUrl = generateAuthUrl()
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(authUrl))
+    private fun startAuthorizationActivity(context: Context) {
+        val intent = AuthorizationActivity.createHandleStartIntent(context, generateAuthUrl())
         context.startActivity(intent)
     }
 

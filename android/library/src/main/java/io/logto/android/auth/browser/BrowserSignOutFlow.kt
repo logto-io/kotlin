@@ -1,9 +1,9 @@
 package io.logto.android.auth.browser
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import io.logto.android.auth.IFlow
+import io.logto.android.auth.activity.AuthorizationActivity
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.QueryKey
 import io.logto.android.utils.UrlUtil
@@ -27,7 +27,8 @@ class BrowserSignOutFlow(
     }
 
     private fun startSignOutActivity(context: Context) {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(generateSignOutUrl())))
+        val intent = AuthorizationActivity.createHandleStartIntent(context, generateSignOutUrl())
+        context.startActivity(intent)
     }
 
     private fun generateSignOutUrl(): String {
