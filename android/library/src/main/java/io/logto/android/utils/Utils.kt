@@ -1,7 +1,7 @@
 package io.logto.android.utils
 
 import android.net.Uri
-import io.logto.android.model.Credential
+import io.logto.android.model.TokenSet
 import kotlin.math.floor
 
 object Utils {
@@ -12,8 +12,8 @@ object Utils {
         return uriBuilder.build()
     }
 
-    fun expiresAt(credential: Credential): Long {
-        return nowRoundToSec() + credential.expiresIn
+    fun expiresAt(tokenSet: TokenSet): Long {
+        return nowRoundToSec() + tokenSet.expiresIn
     }
 
     fun nowRoundToSec() = floor((System.currentTimeMillis() / 1000L).toDouble()).toLong()

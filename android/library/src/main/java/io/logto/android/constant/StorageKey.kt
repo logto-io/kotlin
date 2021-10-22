@@ -1,5 +1,5 @@
 package io.logto.android.constant
 
 object StorageKey {
-    const val CREDENTIAL = "io.logto.credential"
+    const val TOKEN_SET = "io.logto.tokenset"
 }

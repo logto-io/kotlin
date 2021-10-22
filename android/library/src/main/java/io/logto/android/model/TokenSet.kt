@@ -1,6 +1,6 @@
 package io.logto.android.model
 
-data class Credential(
+data class TokenSet(
     val accessToken: String,
     val expiresIn: Long,
     val refreshToken: String?,
