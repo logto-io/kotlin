@@ -11,7 +11,7 @@ import io.logto.android.constant.PromptValue
 import io.logto.android.constant.QueryKey
 import io.logto.android.constant.ResourceValue
 import io.logto.android.constant.ResponseType
-import io.logto.android.model.Credential
+import io.logto.android.model.TokenSet
 import io.logto.android.pkce.Util
 import io.logto.android.utils.Utils
 import kotlinx.coroutines.MainScope
@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 class BrowserSignInFlow(
     private val logtoConfig: LogtoConfig,
     private val logtoService: LogtoService,
-    private val onComplete: (error: Error?, credential: Credential?) -> Unit
+    private val onComplete: (error: Error?, tokenSet: TokenSet?) -> Unit
 ) : IFlow {
 
     private val codeVerifier: String = Util.generateCodeVerifier()
@@ -66,13 +66,13 @@ class BrowserSignInFlow(
     ) {
         MainScope().launch {
             try {
-                val credential = logtoService.exchangeCredential(
+                val tokenSet = logtoService.grantTokenByAuthorizationCode(
                     clientId = logtoConfig.clientId,
                     redirectUri = logtoConfig.redirectUri,
                     code = authorizationCode,
                     codeVerifier = codeVerifier,
                 )
-                onComplete(null, credential)
+                onComplete(null, tokenSet)
             } catch (error: Error) {
                 onComplete(error, null)
             }

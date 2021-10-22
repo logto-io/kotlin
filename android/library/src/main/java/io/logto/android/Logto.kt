@@ -7,8 +7,8 @@ import io.logto.android.auth.AuthManager
 import io.logto.android.auth.browser.BrowserSignInFlow
 import io.logto.android.auth.browser.BrowserSignOutFlow
 import io.logto.android.config.LogtoConfig
-import io.logto.android.model.Credential
-import io.logto.android.storage.CredentialStorage
+import io.logto.android.model.TokenSet
+import io.logto.android.storage.TokenSetStorage
 import io.logto.android.utils.Utils
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -18,24 +18,24 @@ class Logto(
     application: Application,
     useStorage: Boolean = true
 ) {
-    val credential: Credential?
-        get() = credentialStorage?.getCredential() ?: credentialCache
+    val tokenSet: TokenSet?
+        get() = tokenSetStorage?.tokenSet ?: tokenSetCache
 
     fun signInWithBrowser(
         context: Context,
-        onComplete: (error: Error?, credential: Credential?) -> Unit
+        onComplete: (error: Error?, tokenSet: TokenSet?) -> Unit
     ) {
         AuthManager.start(
             context,
             BrowserSignInFlow(
                 logtoConfig,
                 logtoService,
-            ) { error, credential ->
-                if (error == null && credential != null) {
-                    updateCredential(credential)
+            ) { error, tokenSet ->
+                if (error == null && tokenSet != null) {
+                    updateTokenSet(tokenSet)
                 }
                 AuthManager.reset()
-                onComplete(error, credential)
+                onComplete(error, tokenSet)
             }
         )
     }
@@ -44,7 +44,7 @@ class Logto(
         context: Context,
         onComplete: (error: Error?) -> Unit
     ) {
-        credential?.let {
+        tokenSet?.let {
             AuthManager.start(
                 context,
                 BrowserSignOutFlow(
@@ -52,42 +52,42 @@ class Logto(
                     it.idToken,
                 ) { error ->
                     if (error == null) {
-                        updateCredential(null)
+                        updateTokenSet(null)
                     }
                     AuthManager.reset()
                     onComplete(error)
                 }
             )
-        } ?: onComplete(Error("You are not signed in!"))
+        } ?: onComplete(Error("Not authenticated"))
     }
 
     fun getAccessToken(
         block: (error: Error?, accessToken: String?) -> Unit
     ) {
-        if (credential == null) {
-            block(Error("Not Sign In!"), null)
+        if (tokenSet == null) {
+            block(Error("Not authenticated"), null)
             return
         }
 
         if (Utils.nowRoundToSec() < accessTokenExpiresAt) {
-            block(null, credential?.accessToken)
+            block(null, tokenSet?.accessToken)
             return
         }
 
-        refreshCredential { error, credential ->
-            block(error, credential?.accessToken)
+        refreshTokenSet { error, tokenSet ->
+            block(error, tokenSet?.accessToken)
         }
     }
 
-    fun refreshCredential(
-        block: (error: Error?, credential: Credential?) -> Unit
+    fun refreshTokenSet(
+        block: (error: Error?, tokenSet: TokenSet?) -> Unit
     ) {
-        if (credential == null) {
-            block(Error("Not Sign In!"), null)
+        if (tokenSet == null) {
+            block(Error("Not authenticated"), null)
             return
         }
 
-        val refreshToken = credential?.refreshToken
+        val refreshToken = tokenSet?.refreshToken
         if (refreshToken == null) {
             block(Error("Not Support Token Refresh!"), null)
             return
@@ -95,13 +95,13 @@ class Logto(
 
         MainScope().launch {
             try {
-                val updatedCredential = logtoService.refreshCredential(
+                val updatedTokenSet = logtoService.grantTokenByRefreshToken(
                     clientId = logtoConfig.clientId,
                     redirectUri = logtoConfig.redirectUri,
                     refreshToken = refreshToken
                 )
-                updateCredential(updatedCredential)
-                block(null, updatedCredential)
+                updateTokenSet(updatedTokenSet)
+                block(null, updatedTokenSet)
             } catch (error: Error) {
                 block(error, null)
             }
@@ -110,12 +110,12 @@ class Logto(
 
     private val logtoService = LogtoService.create(logtoConfig.oidcEndpoint)
 
-    private var credentialStorage: CredentialStorage? = null
+    private var tokenSetStorage: TokenSetStorage? = null
 
-    private var credentialCache: Credential? = null
+    private var tokenSetCache: TokenSet? = null
         set(value) {
             if (value != null) {
-                field = credentialCache
+                field = tokenSetCache
                 accessTokenExpiresAt = Utils.expiresAt(value)
             } else {
                 field = null
@@ -125,18 +125,14 @@ class Logto(
 
     private var accessTokenExpiresAt: Long = 0L
 
-    private fun updateCredential(credential: Credential?) {
-        credentialCache = credential
-        if (credential == null) {
-            credentialStorage?.clearCredential()
-        } else {
-            credentialStorage?.saveCredential(credential)
-        }
+    private fun updateTokenSet(tokenSet: TokenSet?) {
+        tokenSetCache = tokenSet
+        tokenSetStorage?.tokenSet = tokenSet
     }
 
     init {
         if (useStorage) {
-            credentialStorage = CredentialStorage(application, logtoConfig)
+            tokenSetStorage = TokenSetStorage(application, logtoConfig)
         }
     }
 }
