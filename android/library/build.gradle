@@ -51,8 +51,10 @@ dependencies {
     implementation "androidx.core:core-ktx:$rootProject.ktxVersion"
     implementation "androidx.browser:browser:$rootProject.browserVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.appcompatVersion"
-    implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofitVersion"
-    implementation "com.squareup.retrofit2:converter-gson:$rootProject.retrofitVersion"
+    implementation "io.ktor:ktor-client-core:${rootProject.ktorVersion}"
+    implementation "io.ktor:ktor-client-cio:${rootProject.ktorVersion}"
+    implementation "io.ktor:ktor-client-serialization:${rootProject.ktorVersion}"
+    implementation "io.ktor:ktor-client-gson:${rootProject.ktorVersion}"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutinesVersion"
     
     testImplementation "androidx.test:core-ktx:$rootProject.testCoreKtxVersion"

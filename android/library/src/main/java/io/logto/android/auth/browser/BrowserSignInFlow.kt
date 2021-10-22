@@ -2,15 +2,16 @@ package io.logto.android.auth.browser
 
 import android.content.Context
 import android.net.Uri
-import io.logto.android.api.LogtoService
 import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
+import io.logto.android.client.LogtoClient
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.CodeChallengeMethod
 import io.logto.android.constant.PromptValue
 import io.logto.android.constant.QueryKey
 import io.logto.android.constant.ResourceValue
 import io.logto.android.constant.ResponseType
+import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
 import io.logto.android.pkce.Util
 import io.logto.android.utils.Utils
@@ -19,7 +20,8 @@ import kotlinx.coroutines.launch
 
 class BrowserSignInFlow(
     private val logtoConfig: LogtoConfig,
-    private val logtoService: LogtoService,
+    private val oidcConfiguration: OidcConfiguration,
+    private val logtoClient: LogtoClient,
     private val onComplete: (error: Error?, tokenSet: TokenSet?) -> Unit
 ) : IFlow {
 
@@ -47,7 +49,7 @@ class BrowserSignInFlow(
 
     private fun generateAuthUrl(): String {
         val codeChallenge = Util.generateCodeChallenge(codeVerifier)
-        val baseUrl = Uri.parse(logtoConfig.authEndpoint)
+        val baseUrl = Uri.parse(oidcConfiguration.authorizationEndpoint)
         val queries = mapOf(
             QueryKey.CLIENT_ID to logtoConfig.clientId,
             QueryKey.CODE_CHALLENGE to codeChallenge,
@@ -66,7 +68,8 @@ class BrowserSignInFlow(
     ) {
         MainScope().launch {
             try {
-                val tokenSet = logtoService.grantTokenByAuthorizationCode(
+                val tokenSet = logtoClient.grantTokenByAuthorizationCode(
+                    tokenEndpoint = oidcConfiguration.tokenEndpoint,
                     clientId = logtoConfig.clientId,
                     redirectUri = logtoConfig.redirectUri,
                     code = authorizationCode,
