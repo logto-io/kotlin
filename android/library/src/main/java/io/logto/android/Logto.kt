@@ -122,7 +122,7 @@ class Logto(
     private var tokenSetCache: TokenSet? = null
         set(value) {
             if (value != null) {
-                field = tokenSetCache
+                field = value
                 accessTokenExpiresAt = Utils.expiresAt(value)
             } else {
                 field = null
