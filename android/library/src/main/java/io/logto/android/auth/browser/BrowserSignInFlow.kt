@@ -36,7 +36,7 @@ class BrowserSignInFlow(
             onComplete(Exception("Get authorization code failed!"), null)
             return
         }
-        authorize(authorizationCode)
+        grantTokenByAuthorizationCode(authorizationCode)
     }
 
     private fun startAuthorizationActivity(context: Context) {
@@ -66,7 +66,7 @@ class BrowserSignInFlow(
         return Utils.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
     }
 
-    private fun authorize(
+    private fun grantTokenByAuthorizationCode(
         authorizationCode: String,
     ) {
         logtoApiClient.grantTokenByAuthorizationCode(
