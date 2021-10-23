@@ -19,7 +19,7 @@ import io.logto.android.utils.Utils
 class BrowserSignInFlow(
     private val logtoConfig: LogtoConfig,
     private val logtoApiClient: LogtoApiClient,
-    private val onComplete: (error: Error?, tokenSet: TokenSet?) -> Unit
+    private val onComplete: (exception: Exception?, tokenSet: TokenSet?) -> Unit
 ) : IFlow {
 
     private val codeVerifier: String = Util.generateCodeVerifier()
@@ -33,7 +33,7 @@ class BrowserSignInFlow(
         if (authorizationCode == null ||
             !data.toString().startsWith(logtoConfig.redirectUri)
         ) {
-            onComplete(Error("Get authorization code failed!"), null)
+            onComplete(Exception("Get authorization code failed!"), null)
             return
         }
         authorize(authorizationCode)
@@ -74,8 +74,8 @@ class BrowserSignInFlow(
             redirectUri = logtoConfig.redirectUri,
             code = authorizationCode,
             codeVerifier = codeVerifier,
-        ) { error, tokenSet ->
-            onComplete(error, tokenSet)
+        ) { exception, tokenSet ->
+            onComplete(exception, tokenSet)
         }
     }
 }

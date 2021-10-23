@@ -6,7 +6,6 @@ import io.logto.android.model.TokenSet
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlin.Error
 
 class LogtoApiClient(private val logtoUrl: String) {
     fun grantTokenByAuthorizationCode(
@@ -14,7 +13,7 @@ class LogtoApiClient(private val logtoUrl: String) {
         redirectUri: String,
         code: String,
         codeVerifier: String,
-        block: (error: Error?, tokenSet: TokenSet?) -> Unit,
+        block: (exception: Exception?, tokenSet: TokenSet?) -> Unit,
     ) = MainScope().launch {
         val oidcConfiguration = getOidcConfig()
         try {
@@ -27,7 +26,7 @@ class LogtoApiClient(private val logtoUrl: String) {
             )
             block(null, tokenSet)
         } catch (exception: Exception) {
-            block(Error(exception.message), null)
+            block(exception, null)
         }
     }
 
@@ -35,7 +34,7 @@ class LogtoApiClient(private val logtoUrl: String) {
         clientId: String,
         redirectUri: String,
         refreshToken: String,
-        block: (error: Error?, tokenSet: TokenSet?) -> Unit,
+        block: (exception: Exception?, tokenSet: TokenSet?) -> Unit,
     ) = MainScope().launch {
         val oidcConfiguration = getOidcConfig()
         try {
@@ -47,7 +46,7 @@ class LogtoApiClient(private val logtoUrl: String) {
             )
             block(null, tokenSet)
         } catch (exception: Exception) {
-            block(Error(exception.message), null)
+            block(exception, null)
         }
     }
 
@@ -67,7 +66,7 @@ class LogtoApiClient(private val logtoUrl: String) {
             oidcConfigCache = oidcConfiguration
             return@coroutineScope oidcConfiguration
         } catch (exception: Exception) {
-            throw Error(exception.message)
+            throw exception
         }
     }
 

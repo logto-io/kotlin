@@ -12,7 +12,7 @@ class BrowserSignOutFlow(
     private val idToken: String,
     private val postLogoutRedirectUri: String,
     private val logtoApiClient: LogtoApiClient,
-    private val onComplete: (error: Error?) -> Unit,
+    private val onComplete: (exception: Exception?) -> Unit,
 ) : IFlow {
 
     override fun start(context: Context) {
@@ -21,7 +21,7 @@ class BrowserSignOutFlow(
 
     override fun onResult(data: Uri) {
         if (!data.toString().startsWith(postLogoutRedirectUri)) {
-            onComplete(Error("Sign out failed!"))
+            onComplete(Exception("Sign out failed!"))
             return
         }
         onComplete(null)
