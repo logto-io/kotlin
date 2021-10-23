@@ -5,18 +5,14 @@ import android.content.Context
 import io.logto.android.auth.AuthManager
 import io.logto.android.auth.browser.BrowserSignInFlow
 import io.logto.android.auth.browser.BrowserSignOutFlow
-import io.logto.android.client.LogtoClient
+import io.logto.android.client.LogtoApiClient
 import io.logto.android.config.LogtoConfig
-import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
 import io.logto.android.storage.TokenSetStorage
 import io.logto.android.utils.Utils
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 
 class Logto(
     private val logtoConfig: LogtoConfig,
-    private val logtoUrl: String,
     application: Application,
     useStorage: Boolean = true,
 ) {
@@ -26,44 +22,39 @@ class Logto(
     fun signInWithBrowser(
         context: Context,
         onComplete: (error: Error?, tokenSet: TokenSet?) -> Unit
-    ) = discoverIfNeeded { oidcConfiguration ->
-        AuthManager.start(
-            context,
-            BrowserSignInFlow(
-                logtoConfig,
-                oidcConfiguration,
-                logtoClient,
-            ) { error, tokenSet ->
-                if (error == null && tokenSet != null) {
-                    updateTokenSet(tokenSet)
-                }
-                AuthManager.reset()
-                onComplete(error, tokenSet)
+    ) = AuthManager.start(
+        context,
+        BrowserSignInFlow(
+            logtoConfig,
+            logtoApiClient,
+        ) { error, tokenSet ->
+            if (error == null && tokenSet != null) {
+                updateTokenSet(tokenSet)
             }
-        )
-    }
+            AuthManager.reset()
+            onComplete(error, tokenSet)
+        }
+    )
 
     fun signOutWithBrowser(
         context: Context,
         onComplete: (error: Error?) -> Unit
-    ) = discoverIfNeeded { oidcConfig ->
-        tokenSet?.let {
-            AuthManager.start(
-                context,
-                BrowserSignOutFlow(
-                    idToken = it.idToken,
-                    endSessionEndpoint = oidcConfig.endSessionEndpoint,
-                    postLogoutRedirectUri = logtoConfig.postLogoutRedirectUri,
-                ) { error ->
-                    if (error == null) {
-                        updateTokenSet(null)
-                    }
-                    AuthManager.reset()
-                    onComplete(error)
+    ) = tokenSet?.let {
+        AuthManager.start(
+            context,
+            BrowserSignOutFlow(
+                idToken = it.idToken,
+                postLogoutRedirectUri = logtoConfig.postLogoutRedirectUri,
+                logtoApiClient = logtoApiClient
+            ) { error ->
+                if (error == null) {
+                    updateTokenSet(null)
                 }
-            )
-        } ?: onComplete(Error("Not authenticated"))
-    }
+                AuthManager.reset()
+                onComplete(error)
+            }
+        )
+    } ?: onComplete(Error("Not authenticated"))
 
     fun getAccessToken(
         block: (error: Error?, accessToken: String?) -> Unit
@@ -97,25 +88,15 @@ class Logto(
             return
         }
 
-        discoverIfNeeded { oidcConfig ->
-            MainScope().launch {
-                try {
-                    val updatedTokenSet = logtoClient.grantTokenByRefreshToken(
-                        tokenEndpoint = oidcConfig.tokenEndpoint,
-                        clientId = logtoConfig.clientId,
-                        redirectUri = logtoConfig.redirectUri,
-                        refreshToken = refreshToken
-                    )
-                    updateTokenSet(updatedTokenSet)
-                    block(null, updatedTokenSet)
-                } catch (error: Error) {
-                    block(error, null)
-                }
-            }
+        logtoApiClient.grantTokenByRefreshToken(
+            clientId = logtoConfig.clientId,
+            redirectUri = logtoConfig.redirectUri,
+            refreshToken = refreshToken
+        ) { error, tokenSet ->
+            updateTokenSet(tokenSet)
+            block(error, tokenSet)
         }
     }
-
-    private val logtoClient = LogtoClient()
 
     private var tokenSetStorage: TokenSetStorage? = null
 
@@ -137,23 +118,7 @@ class Logto(
         tokenSetStorage?.tokenSet = tokenSet
     }
 
-    private var oidcConfigurationCache: OidcConfiguration? = null
-    private fun discoverIfNeeded(block: (oidcConfig: OidcConfiguration) -> Unit) {
-        oidcConfigurationCache?.let {
-            block(it)
-            return
-        }
-
-        MainScope().launch {
-            try {
-                val fetchedOidcConfig = logtoClient.discover(logtoUrl)
-                oidcConfigurationCache = fetchedOidcConfig
-                block(fetchedOidcConfig)
-            } catch (error: Error) {
-                throw error
-            }
-        }
-    }
+    private val logtoApiClient = LogtoApiClient(logtoConfig.logtoUrl)
 
     init {
         if (useStorage) {

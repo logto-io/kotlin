@@ -21,6 +21,7 @@ buildscript {
         materialVersion = '1.4.0'
         constraintlayoutVersion = '2.1.1'
         ktorVersion = '1.6.4'
+        logbackVersion = '1.2.6'
 
         // test
         testCoreKtxVersion = '1.4.0'

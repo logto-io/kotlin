@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
-import io.logto.android.client.LogtoClient
+import io.logto.android.client.LogtoApiClient
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.CodeChallengeMethod
 import io.logto.android.constant.PromptValue
@@ -15,13 +15,10 @@ import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
 import io.logto.android.pkce.Util
 import io.logto.android.utils.Utils
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 
 class BrowserSignInFlow(
     private val logtoConfig: LogtoConfig,
-    private val oidcConfiguration: OidcConfiguration,
-    private val logtoClient: LogtoClient,
+    private val logtoApiClient: LogtoApiClient,
     private val onComplete: (error: Error?, tokenSet: TokenSet?) -> Unit
 ) : IFlow {
 
@@ -43,11 +40,17 @@ class BrowserSignInFlow(
     }
 
     private fun startAuthorizationActivity(context: Context) {
-        val intent = AuthorizationActivity.createHandleStartIntent(context, generateAuthUrl())
-        context.startActivity(intent)
+        logtoApiClient.discover { oidcConfig ->
+            context.startActivity(
+                AuthorizationActivity.createHandleStartIntent(
+                    context,
+                    generateAuthUrl(oidcConfig),
+                )
+            )
+        }
     }
 
-    private fun generateAuthUrl(): String {
+    private fun generateAuthUrl(oidcConfiguration: OidcConfiguration): String {
         val codeChallenge = Util.generateCodeChallenge(codeVerifier)
         val baseUrl = Uri.parse(oidcConfiguration.authorizationEndpoint)
         val queries = mapOf(
@@ -66,19 +69,13 @@ class BrowserSignInFlow(
     private fun authorize(
         authorizationCode: String,
     ) {
-        MainScope().launch {
-            try {
-                val tokenSet = logtoClient.grantTokenByAuthorizationCode(
-                    tokenEndpoint = oidcConfiguration.tokenEndpoint,
-                    clientId = logtoConfig.clientId,
-                    redirectUri = logtoConfig.redirectUri,
-                    code = authorizationCode,
-                    codeVerifier = codeVerifier,
-                )
-                onComplete(null, tokenSet)
-            } catch (error: Error) {
-                onComplete(error, null)
-            }
+        logtoApiClient.grantTokenByAuthorizationCode(
+            clientId = logtoConfig.clientId,
+            redirectUri = logtoConfig.redirectUri,
+            code = authorizationCode,
+            codeVerifier = codeVerifier,
+        ) { error, tokenSet ->
+            onComplete(error, tokenSet)
         }
     }
 }
