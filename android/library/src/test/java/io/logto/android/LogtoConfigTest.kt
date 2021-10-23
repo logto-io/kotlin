@@ -14,6 +14,7 @@ class LogtoConfigTest {
     @Before
     fun setUp() {
         logtoConfig = LogtoConfig(
+            logtoUrl = "logtoUrl",
             clientId = "clientId",
             scopes = listOf(
                 ScopeValue.OPEN_ID,
@@ -22,6 +23,11 @@ class LogtoConfigTest {
             redirectUri = "redirectUri",
             postLogoutRedirectUri = "postLogoutRedirectUri",
         )
+    }
+
+    @Test
+    fun getLogtoUrl() {
+        assertThat(logtoConfig.logtoUrl, `is`("logtoUrl"))
     }
 
     @Test
