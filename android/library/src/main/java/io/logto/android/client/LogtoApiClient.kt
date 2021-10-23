@@ -15,8 +15,8 @@ class LogtoApiClient(private val logtoUrl: String) {
         codeVerifier: String,
         block: (exception: Exception?, tokenSet: TokenSet?) -> Unit,
     ) = MainScope().launch {
-        val oidcConfiguration = getOidcConfig()
         try {
+            val oidcConfiguration = getOidcConfig()
             val tokenSet = logtoService.grantTokenByAuthorizationCode(
                 tokenEndpoint = oidcConfiguration.tokenEndpoint,
                 clientId = clientId,
@@ -36,8 +36,8 @@ class LogtoApiClient(private val logtoUrl: String) {
         refreshToken: String,
         block: (exception: Exception?, tokenSet: TokenSet?) -> Unit,
     ) = MainScope().launch {
-        val oidcConfiguration = getOidcConfig()
         try {
+            val oidcConfiguration = getOidcConfig()
             val tokenSet = logtoService.grantTokenByRefreshToken(
                 tokenEndpoint = oidcConfiguration.tokenEndpoint,
                 clientId = clientId,
