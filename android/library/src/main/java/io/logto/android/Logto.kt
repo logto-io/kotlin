@@ -44,7 +44,7 @@ class Logto(
             context,
             BrowserSignOutFlow(
                 idToken = it.idToken,
-                postLogoutRedirectUri = logtoConfig.postLogoutRedirectUri,
+                logtoConfig = logtoConfig,
                 logtoApiClient = logtoApiClient
             ) { exception ->
                 if (exception == null) {

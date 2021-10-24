@@ -5,12 +5,13 @@ import android.net.Uri
 import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
 import io.logto.android.client.LogtoApiClient
+import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.QueryKey
 import io.logto.android.utils.Utils
 
 class BrowserSignOutFlow(
     private val idToken: String,
-    private val postLogoutRedirectUri: String,
+    private val logtoConfig: LogtoConfig,
     private val logtoApiClient: LogtoApiClient,
     private val onComplete: (exception: Exception?) -> Unit,
 ) : IFlow {
@@ -20,7 +21,7 @@ class BrowserSignOutFlow(
     }
 
     override fun onResult(data: Uri) {
-        if (!data.toString().startsWith(postLogoutRedirectUri)) {
+        if (!data.toString().startsWith(logtoConfig.postLogoutRedirectUri)) {
             onComplete(Exception("Sign out failed!"))
             return
         }
@@ -35,7 +36,7 @@ class BrowserSignOutFlow(
                     generateSignOutUrl(
                         oidcConfig.endSessionEndpoint,
                         idToken,
-                        postLogoutRedirectUri,
+                        logtoConfig.postLogoutRedirectUri,
                     ),
                 )
             )
