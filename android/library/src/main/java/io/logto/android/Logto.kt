@@ -2,70 +2,65 @@ package io.logto.android
 
 import android.app.Application
 import android.content.Context
-import io.logto.android.api.LogtoService
 import io.logto.android.auth.AuthManager
 import io.logto.android.auth.browser.BrowserSignInFlow
 import io.logto.android.auth.browser.BrowserSignOutFlow
+import io.logto.android.client.LogtoApiClient
 import io.logto.android.config.LogtoConfig
 import io.logto.android.model.TokenSet
 import io.logto.android.storage.TokenSetStorage
 import io.logto.android.utils.Utils
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 
 class Logto(
     private val logtoConfig: LogtoConfig,
     application: Application,
-    useStorage: Boolean = true
+    useStorage: Boolean = true,
 ) {
     val tokenSet: TokenSet?
         get() = tokenSetStorage?.tokenSet ?: tokenSetCache
 
     fun signInWithBrowser(
         context: Context,
-        onComplete: (error: Error?, tokenSet: TokenSet?) -> Unit
-    ) {
-        AuthManager.start(
-            context,
-            BrowserSignInFlow(
-                logtoConfig,
-                logtoService,
-            ) { error, tokenSet ->
-                if (error == null && tokenSet != null) {
-                    updateTokenSet(tokenSet)
-                }
-                AuthManager.reset()
-                onComplete(error, tokenSet)
+        onComplete: (exception: Exception?, tokenSet: TokenSet?) -> Unit
+    ) = AuthManager.start(
+        context,
+        BrowserSignInFlow(
+            logtoConfig,
+            logtoApiClient,
+        ) { exception, tokenSet ->
+            if (exception == null && tokenSet != null) {
+                updateTokenSet(tokenSet)
             }
-        )
-    }
+            AuthManager.reset()
+            onComplete(exception, tokenSet)
+        }
+    )
 
     fun signOutWithBrowser(
         context: Context,
-        onComplete: (error: Error?) -> Unit
-    ) {
-        tokenSet?.let {
-            AuthManager.start(
-                context,
-                BrowserSignOutFlow(
-                    logtoConfig,
-                    it.idToken,
-                ) { error ->
-                    if (error == null) {
-                        updateTokenSet(null)
-                    }
-                    AuthManager.reset()
-                    onComplete(error)
+        onComplete: (exception: Exception?) -> Unit
+    ) = tokenSet?.let {
+        AuthManager.start(
+            context,
+            BrowserSignOutFlow(
+                idToken = it.idToken,
+                logtoConfig = logtoConfig,
+                logtoApiClient = logtoApiClient
+            ) { exception ->
+                if (exception == null) {
+                    updateTokenSet(null)
                 }
-            )
-        } ?: onComplete(Error("Not authenticated"))
-    }
+                AuthManager.reset()
+                onComplete(exception)
+            }
+        )
+    } ?: onComplete(Exception("Not authenticated"))
 
     fun getAccessToken(
-        block: (error: Error?, accessToken: String?) -> Unit
+        block: (exception: Exception?, accessToken: String?) -> Unit
     ) {
         if (tokenSet == null) {
-            block(Error("Not authenticated"), null)
+            block(Exception("Not authenticated"), null)
             return
         }
 
@@ -74,48 +69,41 @@ class Logto(
             return
         }
 
-        refreshTokenSet { error, tokenSet ->
-            block(error, tokenSet?.accessToken)
+        refreshTokenSet { exception, tokenSet ->
+            block(exception, tokenSet?.accessToken)
         }
     }
 
     fun refreshTokenSet(
-        block: (error: Error?, tokenSet: TokenSet?) -> Unit
+        block: (exception: Exception?, tokenSet: TokenSet?) -> Unit
     ) {
         if (tokenSet == null) {
-            block(Error("Not authenticated"), null)
+            block(Exception("Not authenticated"), null)
             return
         }
 
         val refreshToken = tokenSet?.refreshToken
         if (refreshToken == null) {
-            block(Error("Not Support Token Refresh!"), null)
+            block(Exception("Not Support Token Refresh!"), null)
             return
         }
 
-        MainScope().launch {
-            try {
-                val updatedTokenSet = logtoService.grantTokenByRefreshToken(
-                    clientId = logtoConfig.clientId,
-                    redirectUri = logtoConfig.redirectUri,
-                    refreshToken = refreshToken
-                )
-                updateTokenSet(updatedTokenSet)
-                block(null, updatedTokenSet)
-            } catch (error: Error) {
-                block(error, null)
-            }
+        logtoApiClient.grantTokenByRefreshToken(
+            clientId = logtoConfig.clientId,
+            redirectUri = logtoConfig.redirectUri,
+            refreshToken = refreshToken
+        ) { exception, tokenSet ->
+            updateTokenSet(tokenSet)
+            block(exception, tokenSet)
         }
     }
-
-    private val logtoService = LogtoService.create(logtoConfig.oidcEndpoint)
 
     private var tokenSetStorage: TokenSetStorage? = null
 
     private var tokenSetCache: TokenSet? = null
         set(value) {
             if (value != null) {
-                field = tokenSetCache
+                field = value
                 accessTokenExpiresAt = Utils.expiresAt(value)
             } else {
                 field = null
@@ -129,6 +117,8 @@ class Logto(
         tokenSetCache = tokenSet
         tokenSetStorage?.tokenSet = tokenSet
     }
+
+    private val logtoApiClient = LogtoApiClient(logtoConfig.logtoUrl)
 
     init {
         if (useStorage) {

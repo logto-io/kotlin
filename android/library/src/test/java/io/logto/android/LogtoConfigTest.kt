@@ -14,24 +14,25 @@ class LogtoConfigTest {
     @Before
     fun setUp() {
         logtoConfig = LogtoConfig(
+            logtoUrl = "logtoUrl",
             clientId = "clientId",
-            oidcEndpoint = "oidcEndpoint/",
             scopes = listOf(
                 ScopeValue.OPEN_ID,
                 ScopeValue.OFFLINE_ACCESS,
             ),
-            redirectUri = "redirectUri"
+            redirectUri = "redirectUri",
+            postLogoutRedirectUri = "postLogoutRedirectUri",
         )
+    }
+
+    @Test
+    fun getLogtoUrl() {
+        assertThat(logtoConfig.logtoUrl, `is`("logtoUrl"))
     }
 
     @Test
     fun getClientId() {
         assertThat(logtoConfig.clientId, `is`("clientId"))
-    }
-
-    @Test
-    fun getOidcEndpoint() {
-        assertThat(logtoConfig.oidcEndpoint, `is`("oidcEndpoint/"))
     }
 
     @Test
@@ -45,17 +46,12 @@ class LogtoConfigTest {
     }
 
     @Test
+    fun getPostLogoutRedirectUri() {
+        assertThat(logtoConfig.postLogoutRedirectUri, `is`("postLogoutRedirectUri"))
+    }
+
+    @Test
     fun getEncodedScopes() {
         assertThat(logtoConfig.encodedScopes, `is`("openid offline_access"))
-    }
-
-    @Test
-    fun getAuthEndpoint() {
-        assertThat(logtoConfig.authEndpoint, `is`("oidcEndpoint/auth"))
-    }
-
-    @Test
-    fun getTokenEndpoint() {
-        assertThat(logtoConfig.tokenEndpoint, `is`("oidcEndpoint/token"))
     }
 }

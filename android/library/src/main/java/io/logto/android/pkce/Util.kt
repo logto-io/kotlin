@@ -22,10 +22,10 @@ object Util {
             digester.update(codeVerifier.toByteArray(Charsets.ISO_8859_1))
             val byteArray: ByteArray = digester.digest()
             return Base64.encodeToString(byteArray, CODE_ENCODE_FLAG)
-        } catch (error: NoSuchAlgorithmException) {
-            throw Exception(error)
-        } catch (error: UnsupportedEncodingException) {
-            throw Exception(error)
+        } catch (exception: NoSuchAlgorithmException) {
+            throw exception
+        } catch (exception: UnsupportedEncodingException) {
+            throw exception
         }
     }
 }

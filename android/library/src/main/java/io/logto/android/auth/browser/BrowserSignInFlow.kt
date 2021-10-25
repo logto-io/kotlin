@@ -2,25 +2,24 @@ package io.logto.android.auth.browser
 
 import android.content.Context
 import android.net.Uri
-import io.logto.android.api.LogtoService
 import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
+import io.logto.android.client.LogtoApiClient
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.CodeChallengeMethod
 import io.logto.android.constant.PromptValue
 import io.logto.android.constant.QueryKey
 import io.logto.android.constant.ResourceValue
 import io.logto.android.constant.ResponseType
+import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
 import io.logto.android.pkce.Util
 import io.logto.android.utils.Utils
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 
 class BrowserSignInFlow(
     private val logtoConfig: LogtoConfig,
-    private val logtoService: LogtoService,
-    private val onComplete: (error: Error?, tokenSet: TokenSet?) -> Unit
+    private val logtoApiClient: LogtoApiClient,
+    private val onComplete: (exception: Exception?, tokenSet: TokenSet?) -> Unit
 ) : IFlow {
 
     private val codeVerifier: String = Util.generateCodeVerifier()
@@ -34,20 +33,25 @@ class BrowserSignInFlow(
         if (authorizationCode == null ||
             !data.toString().startsWith(logtoConfig.redirectUri)
         ) {
-            onComplete(Error("Get authorization code failed!"), null)
+            onComplete(Exception("Get authorization code failed!"), null)
             return
         }
-        authorize(authorizationCode)
+        grantTokenByAuthorizationCode(authorizationCode)
     }
 
     private fun startAuthorizationActivity(context: Context) {
-        val intent = AuthorizationActivity.createHandleStartIntent(context, generateAuthUrl())
-        context.startActivity(intent)
+        logtoApiClient.discover { oidcConfig ->
+            val intent = AuthorizationActivity.createHandleStartIntent(
+                context,
+                generateAuthUrl(oidcConfig),
+            )
+            context.startActivity(intent)
+        }
     }
 
-    private fun generateAuthUrl(): String {
+    private fun generateAuthUrl(oidcConfiguration: OidcConfiguration): String {
         val codeChallenge = Util.generateCodeChallenge(codeVerifier)
-        val baseUrl = Uri.parse(logtoConfig.authEndpoint)
+        val baseUrl = Uri.parse(oidcConfiguration.authorizationEndpoint)
         val queries = mapOf(
             QueryKey.CLIENT_ID to logtoConfig.clientId,
             QueryKey.CODE_CHALLENGE to codeChallenge,
@@ -61,21 +65,16 @@ class BrowserSignInFlow(
         return Utils.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
     }
 
-    private fun authorize(
+    private fun grantTokenByAuthorizationCode(
         authorizationCode: String,
     ) {
-        MainScope().launch {
-            try {
-                val tokenSet = logtoService.grantTokenByAuthorizationCode(
-                    clientId = logtoConfig.clientId,
-                    redirectUri = logtoConfig.redirectUri,
-                    code = authorizationCode,
-                    codeVerifier = codeVerifier,
-                )
-                onComplete(null, tokenSet)
-            } catch (error: Error) {
-                onComplete(error, null)
-            }
+        logtoApiClient.grantTokenByAuthorizationCode(
+            clientId = logtoConfig.clientId,
+            redirectUri = logtoConfig.redirectUri,
+            code = authorizationCode,
+            codeVerifier = codeVerifier,
+        ) { exception, tokenSet ->
+            onComplete(exception, tokenSet)
         }
     }
 }

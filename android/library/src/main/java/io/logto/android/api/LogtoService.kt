@@ -1,48 +1,72 @@
 package io.logto.android.api
 
 import com.google.gson.FieldNamingPolicy
-import com.google.gson.GsonBuilder
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.features.json.GsonSerializer
+import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.features.logging.Logging
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
+import io.ktor.client.request.post
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.http.formUrlEncode
 import io.logto.android.constant.GrantType
 import io.logto.android.constant.QueryKey
+import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.POST
 
-interface LogtoService {
-    @FormUrlEncoded
-    @POST("token")
-    suspend fun grantTokenByAuthorizationCode(
-        @Field(QueryKey.CLIENT_ID) clientId: String,
-        @Field(QueryKey.REDIRECT_URI) redirectUri: String,
-        @Field(QueryKey.CODE) code: String,
-        @Field(QueryKey.CODE_VERIFIER) codeVerifier: String,
-        @Field(QueryKey.GRANT_TYPE) grantType: String = GrantType.AUTHORIZATION_CODE,
-    ): TokenSet
+class LogtoService {
 
-    @FormUrlEncoded
-    @POST("token")
-    suspend fun grantTokenByRefreshToken(
-        @Field(QueryKey.CLIENT_ID) clientId: String,
-        @Field(QueryKey.REDIRECT_URI) redirectUri: String,
-        @Field(QueryKey.REFRESH_TOKEN) refreshToken: String,
-        @Field(QueryKey.GRANT_TYPE) grantType: String = GrantType.REFRESH_TOKEN,
-    ): TokenSet
-
-    companion object {
-        fun create(endpoint: String): LogtoService {
-            val gson = GsonBuilder()
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .create()
-
-            return Retrofit
-                .Builder()
-                .baseUrl(endpoint)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build()
-                .create(LogtoService::class.java)
+    private val httpClient = HttpClient(Android) {
+        followRedirects = false
+        install(Logging)
+        install(JsonFeature) {
+            serializer = GsonSerializer() {
+                setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            }
         }
     }
+
+    suspend fun grantTokenByAuthorizationCode(
+        tokenEndpoint: String,
+        clientId: String,
+        redirectUri: String,
+        code: String,
+        codeVerifier: String,
+    ): TokenSet =
+        httpClient.post(tokenEndpoint) {
+            headers {
+                contentType(ContentType.Application.FormUrlEncoded)
+            }
+            body = listOf(
+                QueryKey.CLIENT_ID to clientId,
+                QueryKey.REDIRECT_URI to redirectUri,
+                QueryKey.CODE to code,
+                QueryKey.CODE_VERIFIER to codeVerifier,
+                QueryKey.GRANT_TYPE to GrantType.AUTHORIZATION_CODE,
+            ).formUrlEncode()
+        }
+
+    suspend fun grantTokenByRefreshToken(
+        tokenEndpoint: String,
+        clientId: String,
+        redirectUri: String,
+        refreshToken: String,
+    ): TokenSet =
+        httpClient.post(tokenEndpoint) {
+            headers {
+                contentType(ContentType.Application.FormUrlEncoded)
+            }
+            body = listOf(
+                QueryKey.CLIENT_ID to clientId,
+                QueryKey.REDIRECT_URI to redirectUri,
+                QueryKey.REFRESH_TOKEN to refreshToken,
+                QueryKey.GRANT_TYPE to GrantType.REFRESH_TOKEN,
+            ).formUrlEncode()
+        }
+
+    suspend fun discover(url: String): OidcConfiguration =
+        httpClient.get("$url/oidc/.well-known/openid-configuration")
 }
