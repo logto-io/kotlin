@@ -1,6 +1,7 @@
 package io.logto.android.utils
 
 import android.net.Uri
+import io.logto.android.exception.LogtoException
 import io.logto.android.model.TokenSet
 import org.jose4j.jwa.AlgorithmConstraints
 import org.jose4j.jwk.JsonWebKeySet
@@ -43,8 +44,7 @@ object Utils {
                 setVerificationKeyResolver(JwksVerificationKeyResolver(jwks.jsonWebKeys))
             }.build().process(idToken)
         } catch (exception: InvalidJwtException) {
-            // TODO LOG-80
-            throw exception
+            throw LogtoException(LogtoException.INVALID_JWT, exception)
         }
     }
 }

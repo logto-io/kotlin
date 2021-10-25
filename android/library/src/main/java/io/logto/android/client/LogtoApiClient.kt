@@ -1,6 +1,7 @@
 package io.logto.android.client
 
 import io.logto.android.api.LogtoService
+import io.logto.android.exception.LogtoException
 import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
 import kotlinx.coroutines.MainScope
@@ -14,7 +15,7 @@ class LogtoApiClient(private val logtoUrl: String) {
         redirectUri: String,
         code: String,
         codeVerifier: String,
-        block: (exception: Exception?, tokenSet: TokenSet?) -> Unit,
+        block: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit,
     ) = MainScope().launch {
         try {
             val oidcConfiguration = getOidcConfig()
@@ -29,7 +30,7 @@ class LogtoApiClient(private val logtoUrl: String) {
                 validateIdToken(clientId, jwks)
             }
             block(null, tokenSet)
-        } catch (exception: Exception) {
+        } catch (exception: LogtoException) {
             block(exception, null)
         }
     }
@@ -38,7 +39,7 @@ class LogtoApiClient(private val logtoUrl: String) {
         clientId: String,
         redirectUri: String,
         refreshToken: String,
-        block: (exception: Exception?, tokenSet: TokenSet?) -> Unit,
+        block: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit,
     ) = MainScope().launch {
         try {
             val oidcConfiguration = getOidcConfig()
@@ -52,46 +53,40 @@ class LogtoApiClient(private val logtoUrl: String) {
                 validateIdToken(clientId, jwks)
             }
             block(null, tokenSet)
-        } catch (exception: Exception) {
+        } catch (exception: LogtoException) {
             block(exception, null)
         }
     }
 
     fun discover(
-        block: (oidcConfig: OidcConfiguration) -> Unit
+        block: (exception: LogtoException?, oidcConfig: OidcConfiguration?) -> Unit
     ) = MainScope().launch {
-        val oidcConfig = getOidcConfig()
-        block(oidcConfig)
+        try {
+            val oidcConfig = getOidcConfig()
+            block(null, oidcConfig)
+        } catch (exception: LogtoException) {
+            block(exception, null)
+        }
     }
 
     private suspend fun getOidcConfig(): OidcConfiguration = coroutineScope {
         oidcConfigCache?.let {
             return@coroutineScope it
         }
-        try {
-            val oidcConfiguration = logtoService.discover(logtoUrl)
-            oidcConfigCache = oidcConfiguration
-            return@coroutineScope oidcConfiguration
-        } catch (exception: Exception) {
-            // TODO LOG-80
-            throw exception
-        }
+        val oidcConfiguration = logtoService.discover(logtoUrl)
+        oidcConfigCache = oidcConfiguration
+        return@coroutineScope oidcConfiguration
     }
 
     private suspend fun getJsonWebKeySet(): JsonWebKeySet = coroutineScope {
         jsonWebKeySetCache?.let {
             return@coroutineScope it
         }
-        try {
-            val oidcConfiguration = getOidcConfig()
-            val jsonWebKeySetString = logtoService.fetchJwks(oidcConfiguration.jwksUri)
-            val fetchedJsonWebKeySet = JsonWebKeySet(jsonWebKeySetString)
-            jsonWebKeySetCache = fetchedJsonWebKeySet
-            return@coroutineScope fetchedJsonWebKeySet
-        } catch (exception: Exception) {
-            // TODO LOG-80
-            throw exception
-        }
+        val oidcConfiguration = getOidcConfig()
+        val jsonWebKeySetString = logtoService.fetchJwks(oidcConfiguration.jwksUri)
+        val fetchedJsonWebKeySet = JsonWebKeySet(jsonWebKeySetString)
+        jsonWebKeySetCache = fetchedJsonWebKeySet
+        return@coroutineScope fetchedJsonWebKeySet
     }
 
     private val logtoService = LogtoService()

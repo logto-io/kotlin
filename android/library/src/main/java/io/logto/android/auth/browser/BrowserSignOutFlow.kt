@@ -7,13 +7,14 @@ import io.logto.android.auth.activity.AuthorizationActivity
 import io.logto.android.client.LogtoApiClient
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.QueryKey
+import io.logto.android.exception.LogtoException
 import io.logto.android.utils.Utils
 
 class BrowserSignOutFlow(
     private val idToken: String,
     private val logtoConfig: LogtoConfig,
     private val logtoApiClient: LogtoApiClient,
-    private val onComplete: (exception: Exception?) -> Unit,
+    private val onComplete: (exception: LogtoException?) -> Unit,
 ) : IFlow {
 
     override fun start(context: Context) {
@@ -21,15 +22,23 @@ class BrowserSignOutFlow(
     }
 
     override fun onResult(data: Uri) {
-        if (!data.toString().startsWith(logtoConfig.postLogoutRedirectUri)) {
-            onComplete(Exception("Sign out failed!"))
+        val redirectUri = data.toString()
+        if (redirectUri.isEmpty() ||
+            !redirectUri.startsWith(logtoConfig.postLogoutRedirectUri)
+        ) {
+            val error = data.getQueryParameter(QueryKey.ERROR)
+            onComplete(LogtoException("${LogtoException.SIGN_OUT_FAILED}: $error"))
             return
         }
         onComplete(null)
     }
 
     private fun startSignOutActivity(context: Context) {
-        logtoApiClient.discover { oidcConfig ->
+        logtoApiClient.discover { exception, oidcConfig ->
+            if (exception != null || oidcConfig == null) {
+                onComplete(exception)
+                return@discover
+            }
             val signOutUrl = generateSignOutUrl(
                 oidcConfig.endSessionEndpoint,
                 idToken,
