@@ -41,12 +41,11 @@ class BrowserSignInFlow(
 
     private fun startAuthorizationActivity(context: Context) {
         logtoApiClient.discover { oidcConfig ->
-            context.startActivity(
-                AuthorizationActivity.createHandleStartIntent(
-                    context,
-                    generateAuthUrl(oidcConfig),
-                )
+            val intent = AuthorizationActivity.createHandleStartIntent(
+                context,
+                generateAuthUrl(oidcConfig),
             )
+            context.startActivity(intent)
         }
     }
 
