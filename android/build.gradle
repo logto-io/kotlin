@@ -22,6 +22,7 @@ buildscript {
         constraintlayoutVersion = '2.1.1'
         ktorVersion = '1.6.4'
         logbackVersion = '1.2.6'
+        jose4jVersion = '0.7.9'
 
         // test
         testCoreKtxVersion = '1.4.0'

@@ -69,4 +69,7 @@ class LogtoService {
 
     suspend fun discover(url: String): OidcConfiguration =
         httpClient.get("$url/oidc/.well-known/openid-configuration")
+
+    suspend fun fetchJwks(jwksUri: String): String =
+        httpClient.get(jwksUri)
 }
