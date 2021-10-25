@@ -51,14 +51,17 @@ dependencies {
     implementation "androidx.core:core-ktx:$rootProject.ktxVersion"
     implementation "androidx.browser:browser:$rootProject.browserVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.appcompatVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutinesVersion"
+
     implementation "io.ktor:ktor-client-core:$rootProject.ktorVersion"
     implementation "io.ktor:ktor-client-android:$rootProject.ktorVersion"
     implementation "io.ktor:ktor-client-serialization:$rootProject.ktorVersion"
     implementation "io.ktor:ktor-client-gson:$rootProject.ktorVersion"
     implementation "io.ktor:ktor-client-logging:$rootProject.ktorVersion"
     implementation "ch.qos.logback:logback-classic:$rootProject.logbackVersion"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutinesVersion"
-    
+
+    implementation "org.bitbucket.b_c:jose4j:$rootProject.jose4jVersion"
+
     testImplementation "androidx.test:core-ktx:$rootProject.testCoreKtxVersion"
     testImplementation "androidx.test.ext:junit:$rootProject.testExtJunitVersion"
     testImplementation "junit:junit:$rootProject.junitVersion"

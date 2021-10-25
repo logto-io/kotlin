@@ -6,6 +6,7 @@ import io.logto.android.model.TokenSet
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import org.jose4j.jwk.JsonWebKeySet
 
 class LogtoApiClient(private val logtoUrl: String) {
     fun grantTokenByAuthorizationCode(
@@ -17,13 +18,16 @@ class LogtoApiClient(private val logtoUrl: String) {
     ) = MainScope().launch {
         try {
             val oidcConfiguration = getOidcConfig()
+            val jwks = getJsonWebKeySet()
             val tokenSet = logtoService.grantTokenByAuthorizationCode(
                 tokenEndpoint = oidcConfiguration.tokenEndpoint,
                 clientId = clientId,
                 redirectUri = redirectUri,
                 code = code,
                 codeVerifier = codeVerifier
-            )
+            ).apply {
+                validateIdToken(clientId, jwks)
+            }
             block(null, tokenSet)
         } catch (exception: Exception) {
             block(exception, null)
@@ -38,12 +42,15 @@ class LogtoApiClient(private val logtoUrl: String) {
     ) = MainScope().launch {
         try {
             val oidcConfiguration = getOidcConfig()
+            val jwks = getJsonWebKeySet()
             val tokenSet = logtoService.grantTokenByRefreshToken(
                 tokenEndpoint = oidcConfiguration.tokenEndpoint,
                 clientId = clientId,
                 redirectUri = redirectUri,
                 refreshToken = refreshToken,
-            )
+            ).apply {
+                validateIdToken(clientId, jwks)
+            }
             block(null, tokenSet)
         } catch (exception: Exception) {
             block(exception, null)
@@ -70,7 +77,24 @@ class LogtoApiClient(private val logtoUrl: String) {
         }
     }
 
+    private suspend fun getJsonWebKeySet(): JsonWebKeySet = coroutineScope {
+        jsonWebKeySetCache?.let {
+            return@coroutineScope it
+        }
+        try {
+            val oidcConfiguration = getOidcConfig()
+            val jsonWebKeySetString = logtoService.fetchJwks(oidcConfiguration.jwksUri)
+            val fetchedJsonWebKeySet = JsonWebKeySet(jsonWebKeySetString)
+            jsonWebKeySetCache = fetchedJsonWebKeySet
+            return@coroutineScope fetchedJsonWebKeySet
+        } catch (exception: Exception) {
+            throw exception
+        }
+    }
+
     private val logtoService = LogtoService()
 
     private var oidcConfigCache: OidcConfiguration? = null
+
+    private var jsonWebKeySetCache: JsonWebKeySet? = null
 }
