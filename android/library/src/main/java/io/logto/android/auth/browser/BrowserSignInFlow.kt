@@ -45,21 +45,28 @@ class BrowserSignInFlow(
     }
 
     private fun startAuthorizationActivity(context: Context) {
-        logtoApiClient.discover { exception, oidcConfig ->
-            if (exception != null || oidcConfig == null) {
-                onComplete(exception, null)
+        logtoApiClient.discover { discoverException, oidcConfig ->
+            if (discoverException != null || oidcConfig == null) {
+                onComplete(discoverException, null)
                 return@discover
             }
-            val intent = AuthorizationActivity.createHandleStartIntent(
-                context,
-                generateAuthUrl(oidcConfig),
-            )
-            context.startActivity(intent)
+            try {
+                val codeChallenge = Util.generateCodeChallenge(codeVerifier)
+                val intent = AuthorizationActivity.createHandleStartIntent(
+                    context,
+                    generateAuthUrl(oidcConfig, codeChallenge),
+                )
+                context.startActivity(intent)
+            } catch (exception: LogtoException) {
+                onComplete(exception, null)
+            }
         }
     }
 
-    private fun generateAuthUrl(oidcConfiguration: OidcConfiguration): String {
-        val codeChallenge = Util.generateCodeChallenge(codeVerifier)
+    private fun generateAuthUrl(
+        oidcConfiguration: OidcConfiguration,
+        codeChallenge: String,
+    ): String {
         val baseUrl = Uri.parse(oidcConfiguration.authorizationEndpoint)
         val queries = mapOf(
             QueryKey.CLIENT_ID to logtoConfig.clientId,
