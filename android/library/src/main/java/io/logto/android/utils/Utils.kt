@@ -43,6 +43,7 @@ object Utils {
                 setVerificationKeyResolver(JwksVerificationKeyResolver(jwks.jsonWebKeys))
             }.build().process(idToken)
         } catch (exception: InvalidJwtException) {
+            // TODO LOG-80
             throw exception
         }
     }

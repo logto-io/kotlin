@@ -73,6 +73,7 @@ class LogtoApiClient(private val logtoUrl: String) {
             oidcConfigCache = oidcConfiguration
             return@coroutineScope oidcConfiguration
         } catch (exception: Exception) {
+            // TODO LOG-80
             throw exception
         }
     }
@@ -88,6 +89,7 @@ class LogtoApiClient(private val logtoUrl: String) {
             jsonWebKeySetCache = fetchedJsonWebKeySet
             return@coroutineScope fetchedJsonWebKeySet
         } catch (exception: Exception) {
+            // TODO LOG-80
             throw exception
         }
     }

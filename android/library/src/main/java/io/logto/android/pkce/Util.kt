@@ -23,8 +23,10 @@ object Util {
             val byteArray: ByteArray = digester.digest()
             return Base64.encodeToString(byteArray, CODE_ENCODE_FLAG)
         } catch (exception: NoSuchAlgorithmException) {
+            // TODO LOG-80
             throw exception
         } catch (exception: UnsupportedEncodingException) {
+            // TODO LOG-80
             throw exception
         }
     }
