@@ -12,6 +12,9 @@ import org.jose4j.keys.resolvers.JwksVerificationKeyResolver
 import kotlin.math.floor
 
 object Utils {
+    private const val MILLIS_PER_SECOND = 1000L
+    private const val ALLOWED_CLOCK_SKEW_IN_SECONDS = 60
+
     fun appendQueryParameters(uriBuilder: Uri.Builder, parameters: Map<String, String>): Uri {
         for ((key, value) in parameters) {
             uriBuilder.appendQueryParameter(key, value)
@@ -23,7 +26,7 @@ object Utils {
         return nowRoundToSec() + tokenSet.expiresIn
     }
 
-    fun nowRoundToSec() = floor((System.currentTimeMillis() / 1000L).toDouble()).toLong()
+    fun nowRoundToSec() = floor((System.currentTimeMillis() / MILLIS_PER_SECOND).toDouble()).toLong()
 
     fun verifyIdToken(
         idToken: String,
@@ -36,7 +39,7 @@ object Utils {
                 setRequireExpirationTime()
                 setRequireIssuedAt()
                 setExpectedAudience(audience)
-                setAllowedClockSkewInSeconds(60)
+                setAllowedClockSkewInSeconds(ALLOWED_CLOCK_SKEW_IN_SECONDS)
                 setJwsAlgorithmConstraints(
                     AlgorithmConstraints.ConstraintType.PERMIT,
                     AlgorithmIdentifiers.RSA_USING_SHA256,

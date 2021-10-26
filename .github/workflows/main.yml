@@ -36,5 +36,5 @@ jobs:
       - name: Android Lint
         run: ./gradlew lint --continue
 
-      - name: Ktlint Check
-        run: ./gradlew ktlintCheck --continue
+      - name: Code Style Check
+        run: ./gradlew detekt --continue
