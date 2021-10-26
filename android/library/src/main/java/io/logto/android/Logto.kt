@@ -20,6 +20,11 @@ class Logto(
     val tokenSet: TokenSet?
         get() = tokenSetStorage?.tokenSet ?: tokenSetCache
 
+    val isAuthenticated: Boolean
+        get() = tokenSet?.let {
+            it.refreshToken != null
+        } ?: false
+
     fun signInWithBrowser(
         context: Context,
         onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
