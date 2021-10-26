@@ -22,7 +22,7 @@ class Logto(
 
     val isAuthenticated: Boolean
         get() = tokenSet?.let {
-            it.refreshToken != null
+            true
         } ?: false
 
     fun signInWithBrowser(
