@@ -68,8 +68,8 @@ class LogtoService {
         ).formUrlEncode()
     }
 
-    suspend fun discover(url: String): OidcConfiguration = httpGet(
-        "$url/oidc/.well-known/openid-configuration",
+    suspend fun discover(domain: String): OidcConfiguration = httpGet(
+        "https://$domain/oidc/.well-known/openid-configuration",
         LogtoException.REQUEST_OIDC_CONFIGURATION_FAILED,
     )
 

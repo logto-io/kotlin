@@ -119,7 +119,7 @@ class Logto(
         tokenSetStorage?.tokenSet = tokenSet
     }
 
-    private val logtoApiClient = LogtoApiClient(logtoConfig.logtoUrl)
+    private val logtoApiClient = LogtoApiClient(logtoConfig.domain)
 
     init {
         if (useStorage) {
