@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.StorageKey
 import io.logto.android.model.TokenSet
+import io.logto.android.utils.Utils
 
 class TokenSetStorage(
     context: Context,
@@ -22,7 +23,8 @@ class TokenSetStorage(
             } ?: setItem(StorageKey.TOKEN_SET, null)
         }
 
-    private val sharedPreferenceName = "$SHARED_PREFERENCE_NAME_PREFIX-${logtoConfig.clientId}"
+    private val sharedPreferenceName =
+        "$SHARED_PREFERENCE_NAME_PREFIX:${Utils.generateHash(logtoConfig.toString())}"
 
     private val sharedPreferences by lazy {
         context.getSharedPreferences(sharedPreferenceName, Context.MODE_PRIVATE)

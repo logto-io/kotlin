@@ -9,6 +9,8 @@ import org.jose4j.jws.AlgorithmIdentifiers
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver
+import java.math.BigInteger
+import java.security.MessageDigest
 import kotlin.math.floor
 
 object Utils {
@@ -49,5 +51,17 @@ object Utils {
         } catch (exception: InvalidJwtException) {
             throw LogtoException(LogtoException.INVALID_JWT, exception)
         }
+    }
+
+    fun generateHash(input: String, length: Int = 6): String {
+        val hashStr = MessageDigest.getInstance("SHA-256")
+            .digest(input.toByteArray())
+            .fold("") { str, it ->
+                str + "%02x".format(it)
+            }
+        if (hashStr.length < length) {
+            return hashStr
+        }
+        return hashStr.substring(0, length)
     }
 }
