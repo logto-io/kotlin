@@ -1,7 +1,7 @@
 package io.logto.android.config
 
 data class LogtoConfig(
-    val logtoUrl: String,
+    val domain: String,
     val clientId: String,
     val scopes: List<String>,
     val redirectUri: String,
@@ -11,7 +11,7 @@ data class LogtoConfig(
         get() = scopes.joinToString(" ")
 
     private fun validate() {
-        require(logtoUrl.isNotEmpty()) { "LogtoConfig: logtoUrl should not be empty"}
+        require(domain.isNotEmpty()) { "LogtoConfig: domain should not be empty"}
         require(clientId.isNotEmpty()) { "LogtoConfig: clientId should not be empty"}
         require(scopes.isNotEmpty()) { "LogtoConfig: scope list should not be empty" }
         require(redirectUri.isNotEmpty()) { "LogtoConfig: redirectUri should not be empty" }

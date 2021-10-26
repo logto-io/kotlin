@@ -14,7 +14,7 @@ class LogtoConfigTest {
     @Before
     fun setUp() {
         logtoConfig = LogtoConfig(
-            logtoUrl = "logtoUrl",
+            domain = "logto.dev",
             clientId = "clientId",
             scopes = listOf(
                 ScopeValue.OPEN_ID,
@@ -27,7 +27,7 @@ class LogtoConfigTest {
 
     @Test
     fun getLogtoUrl() {
-        assertThat(logtoConfig.logtoUrl, `is`("logtoUrl"))
+        assertThat(logtoConfig.domain, `is`("logto.dev"))
     }
 
     @Test
