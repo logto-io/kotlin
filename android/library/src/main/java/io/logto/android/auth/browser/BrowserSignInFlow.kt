@@ -11,6 +11,7 @@ import io.logto.android.constant.PromptValue
 import io.logto.android.constant.QueryKey
 import io.logto.android.constant.ResourceValue
 import io.logto.android.constant.ResponseType
+import io.logto.android.exception.LogtoException
 import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
 import io.logto.android.pkce.Util
@@ -19,7 +20,7 @@ import io.logto.android.utils.Utils
 class BrowserSignInFlow(
     private val logtoConfig: LogtoConfig,
     private val logtoApiClient: LogtoApiClient,
-    private val onComplete: (exception: Exception?, tokenSet: TokenSet?) -> Unit
+    private val onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
 ) : IFlow {
 
     private val codeVerifier: String = Util.generateCodeVerifier()
@@ -30,27 +31,42 @@ class BrowserSignInFlow(
 
     override fun onResult(data: Uri) {
         val authorizationCode = data.getQueryParameter(QueryKey.CODE)
-        if (authorizationCode == null ||
+        if (authorizationCode.isNullOrEmpty() ||
             !data.toString().startsWith(logtoConfig.redirectUri)
         ) {
-            onComplete(Exception("Get authorization code failed!"), null)
+            val error = data.getQueryParameter(QueryKey.ERROR)
+            onComplete(
+                LogtoException("${LogtoException.SIGN_IN_FAILED}: $error"),
+                null,
+            )
             return
         }
         grantTokenByAuthorizationCode(authorizationCode)
     }
 
     private fun startAuthorizationActivity(context: Context) {
-        logtoApiClient.discover { oidcConfig ->
-            val intent = AuthorizationActivity.createHandleStartIntent(
-                context,
-                generateAuthUrl(oidcConfig),
-            )
-            context.startActivity(intent)
+        logtoApiClient.discover { discoverException, oidcConfiguration ->
+            if (discoverException != null || oidcConfiguration == null) {
+                onComplete(discoverException, null)
+                return@discover
+            }
+            try {
+                val codeChallenge = Util.generateCodeChallenge(codeVerifier)
+                val intent = AuthorizationActivity.createHandleStartIntent(
+                    context,
+                    generateAuthUrl(oidcConfiguration, codeChallenge),
+                )
+                context.startActivity(intent)
+            } catch (exception: LogtoException) {
+                onComplete(exception, null)
+            }
         }
     }
 
-    private fun generateAuthUrl(oidcConfiguration: OidcConfiguration): String {
-        val codeChallenge = Util.generateCodeChallenge(codeVerifier)
+    private fun generateAuthUrl(
+        oidcConfiguration: OidcConfiguration,
+        codeChallenge: String,
+    ): String {
         val baseUrl = Uri.parse(oidcConfiguration.authorizationEndpoint)
         val queries = mapOf(
             QueryKey.CLIENT_ID to logtoConfig.clientId,

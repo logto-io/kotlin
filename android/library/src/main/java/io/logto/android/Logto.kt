@@ -7,6 +7,7 @@ import io.logto.android.auth.browser.BrowserSignInFlow
 import io.logto.android.auth.browser.BrowserSignOutFlow
 import io.logto.android.client.LogtoApiClient
 import io.logto.android.config.LogtoConfig
+import io.logto.android.exception.LogtoException
 import io.logto.android.model.TokenSet
 import io.logto.android.storage.TokenSetStorage
 import io.logto.android.utils.Utils
@@ -21,7 +22,7 @@ class Logto(
 
     fun signInWithBrowser(
         context: Context,
-        onComplete: (exception: Exception?, tokenSet: TokenSet?) -> Unit
+        onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
     ) = AuthManager.start(
         context,
         BrowserSignInFlow(
@@ -38,7 +39,7 @@ class Logto(
 
     fun signOutWithBrowser(
         context: Context,
-        onComplete: (exception: Exception?) -> Unit
+        onComplete: (exception: LogtoException?) -> Unit
     ) = tokenSet?.let {
         AuthManager.start(
             context,
@@ -54,13 +55,13 @@ class Logto(
                 onComplete(exception)
             }
         )
-    } ?: onComplete(Exception("Not authenticated"))
+    } ?: onComplete(LogtoException(LogtoException.NOT_AUTHENTICATED))
 
     fun getAccessToken(
-        block: (exception: Exception?, accessToken: String?) -> Unit
+        block: (exception: LogtoException?, accessToken: String?) -> Unit
     ) {
         if (tokenSet == null) {
-            block(Exception("Not authenticated"), null)
+            block(LogtoException(LogtoException.NOT_AUTHENTICATED), null)
             return
         }
 
@@ -75,16 +76,16 @@ class Logto(
     }
 
     fun refreshTokenSet(
-        block: (exception: Exception?, tokenSet: TokenSet?) -> Unit
+        block: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
     ) {
         if (tokenSet == null) {
-            block(Exception("Not authenticated"), null)
+            block(LogtoException(LogtoException.NOT_AUTHENTICATED), null)
             return
         }
 
         val refreshToken = tokenSet?.refreshToken
         if (refreshToken == null) {
-            block(Exception("Not Support Token Refresh!"), null)
+            block(LogtoException(LogtoException.REFRESH_TOKEN_IS_NOT_SUPPORTED), null)
             return
         }
 
