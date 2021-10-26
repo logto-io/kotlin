@@ -7,6 +7,7 @@ import io.ktor.client.features.ResponseException
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.logging.Logging
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
@@ -37,24 +38,17 @@ class LogtoService {
         redirectUri: String,
         code: String,
         codeVerifier: String,
-    ): TokenSet {
-        try {
-            val tokenSet: TokenSet = httpClient.post(tokenEndpoint) {
-                headers {
-                    contentType(ContentType.Application.FormUrlEncoded)
-                }
-                body = listOf(
-                    QueryKey.CLIENT_ID to clientId,
-                    QueryKey.REDIRECT_URI to redirectUri,
-                    QueryKey.CODE to code,
-                    QueryKey.CODE_VERIFIER to codeVerifier,
-                    QueryKey.GRANT_TYPE to GrantType.AUTHORIZATION_CODE,
-                ).formUrlEncode()
-            }
-            return tokenSet
-        } catch (exception: ResponseException) {
-            throw LogtoException(LogtoException.REQUEST_TOKEN_FAILED, exception)
+    ): TokenSet = httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
+        headers {
+            contentType(ContentType.Application.FormUrlEncoded)
         }
+        body = listOf(
+            QueryKey.CLIENT_ID to clientId,
+            QueryKey.REDIRECT_URI to redirectUri,
+            QueryKey.CODE to code,
+            QueryKey.CODE_VERIFIER to codeVerifier,
+            QueryKey.GRANT_TYPE to GrantType.AUTHORIZATION_CODE,
+        ).formUrlEncode()
     }
 
     suspend fun grantTokenByRefreshToken(
@@ -62,38 +56,48 @@ class LogtoService {
         clientId: String,
         redirectUri: String,
         refreshToken: String,
-    ): TokenSet {
+    ): TokenSet = httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
+        headers {
+            contentType(ContentType.Application.FormUrlEncoded)
+        }
+        body = listOf(
+            QueryKey.CLIENT_ID to clientId,
+            QueryKey.REDIRECT_URI to redirectUri,
+            QueryKey.REFRESH_TOKEN to refreshToken,
+            QueryKey.GRANT_TYPE to GrantType.REFRESH_TOKEN,
+        ).formUrlEncode()
+    }
+
+    suspend fun discover(url: String): OidcConfiguration = httpGet(
+        "$url/oidc/.well-known/openid-configuration",
+        LogtoException.REQUEST_OIDC_CONFIGURATION_FAILED,
+    )
+
+    suspend fun fetchJwks(jwksUri: String): String = httpGet(
+        jwksUri,
+        LogtoException.REQUEST_JWKS_FAILED,
+    )
+
+    private suspend inline fun <reified T> httpGet(
+        urlString: String,
+        exceptLogtoExceptionDesc: String,
+    ): T {
         try {
-            val tokenSet: TokenSet = httpClient.post(tokenEndpoint) {
-                headers {
-                    contentType(ContentType.Application.FormUrlEncoded)
-                }
-                body = listOf(
-                    QueryKey.CLIENT_ID to clientId,
-                    QueryKey.REDIRECT_URI to redirectUri,
-                    QueryKey.REFRESH_TOKEN to refreshToken,
-                    QueryKey.GRANT_TYPE to GrantType.REFRESH_TOKEN,
-                ).formUrlEncode()
-            }
-            return tokenSet
+            return httpClient.get(urlString)
         } catch (exception: ResponseException) {
-            throw LogtoException(LogtoException.REQUEST_TOKEN_FAILED, exception)
+            throw LogtoException(exceptLogtoExceptionDesc, exception)
         }
     }
 
-    suspend fun discover(url: String): OidcConfiguration {
+    private suspend inline fun <reified T> httpPost(
+        urlString: String,
+        exceptLogtoExceptionDesc: String,
+        block: HttpRequestBuilder.() -> Unit
+    ): T {
         try {
-            return httpClient.get("$url/oidc/.well-known/openid-configuration")
+            return httpClient.post(urlString, block)
         } catch (exception: ResponseException) {
-            throw LogtoException(LogtoException.REQUEST_OIDC_CONFIGURATION_FAILED, exception)
-        }
-    }
-
-    suspend fun fetchJwks(jwksUri: String): String {
-        try {
-            return httpClient.get(jwksUri)
-        } catch (exception: ResponseException) {
-            throw LogtoException(LogtoException.REQUEST_JWKS_FAILED, exception)
+            throw LogtoException(exceptLogtoExceptionDesc, exception)
         }
     }
 }
