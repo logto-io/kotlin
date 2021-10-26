@@ -21,9 +21,7 @@ class Logto(
         get() = tokenSetStorage?.tokenSet ?: tokenSetCache
 
     val isAuthenticated: Boolean
-        get() = tokenSet?.let {
-            true
-        } ?: false
+        get() = tokenSet != null
 
     fun signInWithBrowser(
         context: Context,
