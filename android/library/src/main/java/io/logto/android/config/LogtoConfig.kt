@@ -11,8 +11,8 @@ data class LogtoConfig(
         get() = scopes.joinToString(" ")
 
     private fun validate() {
-        require(domain.isNotEmpty()) { "LogtoConfig: domain should not be empty"}
-        require(clientId.isNotEmpty()) { "LogtoConfig: clientId should not be empty"}
+        require(domain.isNotEmpty()) { "LogtoConfig: domain should not be empty" }
+        require(clientId.isNotEmpty()) { "LogtoConfig: clientId should not be empty" }
         require(scopes.isNotEmpty()) { "LogtoConfig: scope list should not be empty" }
         require(redirectUri.isNotEmpty()) { "LogtoConfig: redirectUri should not be empty" }
         require(postLogoutRedirectUri.isNotEmpty()) {
