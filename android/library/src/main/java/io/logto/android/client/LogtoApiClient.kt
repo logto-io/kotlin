@@ -59,11 +59,11 @@ class LogtoApiClient(private val logtoUrl: String) {
     }
 
     fun discover(
-        block: (exception: LogtoException?, oidcConfig: OidcConfiguration?) -> Unit
+        block: (exception: LogtoException?, oidcConfiguration: OidcConfiguration?) -> Unit
     ) = MainScope().launch {
         try {
-            val oidcConfig = getOidcConfig()
-            block(null, oidcConfig)
+            val oidcConfiguration = getOidcConfig()
+            block(null, oidcConfiguration)
         } catch (exception: LogtoException) {
             block(exception, null)
         }

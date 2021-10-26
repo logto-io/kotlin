@@ -45,8 +45,8 @@ class BrowserSignInFlow(
     }
 
     private fun startAuthorizationActivity(context: Context) {
-        logtoApiClient.discover { discoverException, oidcConfig ->
-            if (discoverException != null || oidcConfig == null) {
+        logtoApiClient.discover { discoverException, oidcConfiguration ->
+            if (discoverException != null || oidcConfiguration == null) {
                 onComplete(discoverException, null)
                 return@discover
             }
@@ -54,7 +54,7 @@ class BrowserSignInFlow(
                 val codeChallenge = Util.generateCodeChallenge(codeVerifier)
                 val intent = AuthorizationActivity.createHandleStartIntent(
                     context,
-                    generateAuthUrl(oidcConfig, codeChallenge),
+                    generateAuthUrl(oidcConfiguration, codeChallenge),
                 )
                 context.startActivity(intent)
             } catch (exception: LogtoException) {

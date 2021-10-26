@@ -34,13 +34,13 @@ class BrowserSignOutFlow(
     }
 
     private fun startSignOutActivity(context: Context) {
-        logtoApiClient.discover { exception, oidcConfig ->
-            if (exception != null || oidcConfig == null) {
+        logtoApiClient.discover { exception, oidcConfiguration ->
+            if (exception != null || oidcConfiguration == null) {
                 onComplete(exception)
                 return@discover
             }
             val signOutUrl = generateSignOutUrl(
-                oidcConfig.endSessionEndpoint,
+                oidcConfiguration.endSessionEndpoint,
                 idToken,
                 logtoConfig.postLogoutRedirectUri,
             )
