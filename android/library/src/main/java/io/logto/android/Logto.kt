@@ -25,24 +25,27 @@ class Logto(
 
     fun signInWithBrowser(
         context: Context,
-        onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
+        onComplete: (tokenSet: TokenSet) -> Unit,
     ) = AuthManager.start(
         context,
         BrowserSignInFlow(
             logtoConfig,
             logtoApiClient,
         ) { exception, tokenSet ->
-            if (exception == null && tokenSet != null) {
-                updateTokenSet(tokenSet)
+            if (exception != null) {
+                throw exception
             }
+            if (tokenSet == null) {
+                throw LogtoException(LogtoException.UNKNOWN_ERROR)
+            }
+            updateTokenSet(tokenSet)
             AuthManager.reset()
-            onComplete(exception, tokenSet)
+            onComplete(tokenSet)
         }
     )
 
     fun signOutWithBrowser(
         context: Context,
-        onComplete: (exception: LogtoException?) -> Unit
     ) = tokenSet?.let {
         AuthManager.start(
             context,
@@ -51,54 +54,43 @@ class Logto(
                 logtoConfig = logtoConfig,
                 logtoApiClient = logtoApiClient
             ) { exception ->
-                if (exception == null) {
-                    updateTokenSet(null)
-                }
+                updateTokenSet(null)
                 AuthManager.reset()
-                onComplete(exception)
+                exception?.let { logtoException ->
+                    throw logtoException
+                }
             }
         )
-    } ?: onComplete(LogtoException(LogtoException.NOT_AUTHENTICATED))
+    } ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
 
-    fun getAccessToken(
-        block: (exception: LogtoException?, accessToken: String?) -> Unit
-    ) {
-        if (tokenSet == null) {
-            block(LogtoException(LogtoException.NOT_AUTHENTICATED), null)
-            return
-        }
+    fun getAccessToken(block: (accessToken: String) -> Unit) {
+        val currentTokenSet = tokenSet ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
 
         if (Utils.nowRoundToSec() < accessTokenExpiresAt) {
-            block(null, tokenSet?.accessToken)
+            block(currentTokenSet.accessToken)
             return
         }
 
-        refreshTokenSet { exception, tokenSet ->
-            block(exception, tokenSet?.accessToken)
+        refreshTokenSet {
+            block(it.accessToken)
         }
     }
 
     fun refreshTokenSet(
-        block: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
+        block: (tokenSet: TokenSet) -> Unit,
     ) {
-        if (tokenSet == null) {
-            block(LogtoException(LogtoException.NOT_AUTHENTICATED), null)
-            return
-        }
+        val currentTokenSet = tokenSet ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
 
-        val refreshToken = tokenSet?.refreshToken
-        if (refreshToken == null) {
-            block(LogtoException(LogtoException.REFRESH_TOKEN_IS_NOT_SUPPORTED), null)
-            return
-        }
+        val refreshToken = currentTokenSet.refreshToken
+            ?: throw LogtoException(LogtoException.REFRESH_TOKEN_IS_NOT_SUPPORTED)
 
         logtoApiClient.grantTokenByRefreshToken(
             clientId = logtoConfig.clientId,
             redirectUri = logtoConfig.redirectUri,
             refreshToken = refreshToken
-        ) { exception, tokenSet ->
+        ) { tokenSet ->
             updateTokenSet(tokenSet)
-            block(exception, tokenSet)
+            block(tokenSet)
         }
     }
 

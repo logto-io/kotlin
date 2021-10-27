@@ -41,16 +41,24 @@ class BrowserSignInFlow(
             )
             return
         }
-        grantTokenByAuthorizationCode(authorizationCode)
+
+        try {
+            logtoApiClient.grantTokenByAuthorizationCode(
+                clientId = logtoConfig.clientId,
+                redirectUri = logtoConfig.redirectUri,
+                code = authorizationCode,
+                codeVerifier = codeVerifier,
+            ) {
+                onComplete(null, it)
+            }
+        } catch (exception: LogtoException) {
+            onComplete(exception, null)
+        }
     }
 
     private fun startAuthorizationActivity(context: Context) {
-        logtoApiClient.discover { discoverException, oidcConfiguration ->
-            if (discoverException != null || oidcConfiguration == null) {
-                onComplete(discoverException, null)
-                return@discover
-            }
-            try {
+        try {
+            logtoApiClient.discover { oidcConfiguration ->
                 val codeChallenge = Util.generateCodeChallenge(codeVerifier)
                 val intent = AuthorizationActivity.createHandleStartIntent(
                     context = context,
@@ -58,9 +66,9 @@ class BrowserSignInFlow(
                     redirectUri = logtoConfig.redirectUri,
                 )
                 context.startActivity(intent)
-            } catch (exception: LogtoException) {
-                onComplete(exception, null)
             }
+        } catch (exception: LogtoException) {
+            onComplete(exception, null)
         }
     }
 
@@ -80,18 +88,5 @@ class BrowserSignInFlow(
             QueryKey.RESOURCE to ResourceValue.LOGTO_API,
         )
         return Utils.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
-    }
-
-    private fun grantTokenByAuthorizationCode(
-        authorizationCode: String,
-    ) {
-        logtoApiClient.grantTokenByAuthorizationCode(
-            clientId = logtoConfig.clientId,
-            redirectUri = logtoConfig.redirectUri,
-            code = authorizationCode,
-            codeVerifier = codeVerifier,
-        ) { exception, tokenSet ->
-            onComplete(exception, tokenSet)
-        }
     }
 }
