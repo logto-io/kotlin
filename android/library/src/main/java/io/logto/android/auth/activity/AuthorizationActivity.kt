@@ -60,19 +60,15 @@ class AuthorizationActivity : AppCompatActivity() {
 
     private fun handleFlowStart(endpoint: String) {
         val redirectUri = intent.getStringExtra(EXTRA_FLOW_REDIRECT_URI)
-        redirectUri?.let {
-            if (it.startsWith("http")) {
-                startFlowWithBrowser(endpoint)
-                flowStarted = true
-                return
-            }
+        if (redirectUri?.startsWith("http") == true ||
+            !customTabsAvailable
+        ) {
+            startFlowWithBrowser(endpoint)
+            flowStarted = true
+            return
         }
 
-        if (customTabsAvailable) {
-            startFlowWithCustomTabs(endpoint)
-        } else {
-            startFlowWithBrowser(endpoint)
-        }
+        startFlowWithCustomTabs(endpoint)
         flowStarted = true
     }
 
