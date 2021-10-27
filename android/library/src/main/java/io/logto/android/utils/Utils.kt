@@ -52,16 +52,4 @@ object Utils {
             throw LogtoException(LogtoException.INVALID_JWT, exception)
         }
     }
-
-    fun generateHash(input: String, length: Int = 6): String {
-        val hashStr = MessageDigest.getInstance("SHA-256")
-            .digest(input.toByteArray())
-            .fold("") { str, it ->
-                str + "%02x".format(it)
-            }
-        if (hashStr.length < length) {
-            return hashStr
-        }
-        return hashStr.substring(0, length)
-    }
 }

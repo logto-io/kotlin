@@ -24,7 +24,7 @@ class TokenSetStorage(
         }
 
     private val sharedPreferenceName =
-        "$SHARED_PREFERENCE_NAME_PREFIX:${Utils.generateHash(logtoConfig.toString())}"
+        "$SHARED_PREFERENCE_NAME_PREFIX:${logtoConfig.cacheKey}"
 
     private val sharedPreferences by lazy {
         context.getSharedPreferences(sharedPreferenceName, Context.MODE_PRIVATE)

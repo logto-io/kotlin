@@ -10,6 +10,9 @@ data class LogtoConfig(
     val encodedScopes: String
         get() = scopes.joinToString(" ")
 
+    val cacheKey: String
+        get() = "$clientId:$encodedScopes"
+
     private fun validate() {
         require(domain.isNotEmpty()) { "LogtoConfig: domain should not be empty" }
         require(clientId.isNotEmpty()) { "LogtoConfig: clientId should not be empty" }
