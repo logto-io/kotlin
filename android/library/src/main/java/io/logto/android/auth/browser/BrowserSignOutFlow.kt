@@ -45,8 +45,9 @@ class BrowserSignOutFlow(
                 logtoConfig.postLogoutRedirectUri,
             )
             val intent = AuthorizationActivity.createHandleStartIntent(
-                context,
-                signOutUrl,
+                context= context,
+                endpoint = signOutUrl,
+                redirectUri = logtoConfig.postLogoutRedirectUri,
             )
             context.startActivity(intent)
         }
