@@ -23,6 +23,7 @@ buildscript {
         ktorVersion = '1.6.4'
         logbackVersion = '1.2.6'
         jose4jVersion = '0.7.9'
+        detektVersion = '1.18.1'
 
         // test
         testCoreKtxVersion = '1.4.0'

@@ -5,7 +5,6 @@ import com.google.gson.Gson
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.StorageKey
 import io.logto.android.model.TokenSet
-import io.logto.android.utils.Utils
 
 class TokenSetStorage(
     context: Context,
