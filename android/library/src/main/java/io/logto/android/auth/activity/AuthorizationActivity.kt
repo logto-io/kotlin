@@ -59,11 +59,16 @@ class AuthorizationActivity : AppCompatActivity() {
     }
 
     private fun handleFlowStart(endpoint: String) {
-        if (customTabsAvailable) {
-            startFlowWithCustomTabs(endpoint)
-        } else {
+        val redirectUri = intent.getStringExtra(EXTRA_FLOW_REDIRECT_URI)
+        if (redirectUri?.startsWith("http") == true ||
+            !customTabsAvailable
+        ) {
             startFlowWithBrowser(endpoint)
+            flowStarted = true
+            return
         }
+
+        startFlowWithCustomTabs(endpoint)
         flowStarted = true
     }
 
@@ -84,14 +89,17 @@ class AuthorizationActivity : AppCompatActivity() {
 
     companion object {
         private const val EXTRA_FLOW_ENDPOINT = "EXTRA_FLOW_ENDPOINT"
+        private const val EXTRA_FLOW_REDIRECT_URI = "EXTRA_FLOW_REDIRECT_URI"
 
         fun createHandleStartIntent(
             context: Context,
             endpoint: String,
+            redirectUri: String,
         ): Intent {
             return Intent(context, AuthorizationActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 putExtra(EXTRA_FLOW_ENDPOINT, endpoint)
+                putExtra(EXTRA_FLOW_REDIRECT_URI, redirectUri)
             }
         }
 

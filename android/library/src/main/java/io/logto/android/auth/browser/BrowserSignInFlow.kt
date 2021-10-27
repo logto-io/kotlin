@@ -53,8 +53,9 @@ class BrowserSignInFlow(
             try {
                 val codeChallenge = Util.generateCodeChallenge(codeVerifier)
                 val intent = AuthorizationActivity.createHandleStartIntent(
-                    context,
-                    generateAuthUrl(oidcConfiguration, codeChallenge),
+                    context = context,
+                    endpoint = generateAuthUrl(oidcConfiguration, codeChallenge),
+                    redirectUri = logtoConfig.redirectUri,
                 )
                 context.startActivity(intent)
             } catch (exception: LogtoException) {
