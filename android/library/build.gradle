@@ -47,6 +47,8 @@ android {
 }
 
 dependencies {
+    detekt "io.gitlab.arturbosch.detekt:detekt-formatting:${rootProject.detektVersion}"
+    detekt "io.gitlab.arturbosch.detekt:detekt-cli:${rootProject.detektVersion}"
 
     implementation "androidx.core:core-ktx:$rootProject.ktxVersion"
     implementation "androidx.browser:browser:$rootProject.browserVersion"
