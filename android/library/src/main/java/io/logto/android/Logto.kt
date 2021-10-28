@@ -100,7 +100,7 @@ class Logto(
         set(value) {
             if (value != null) {
                 field = value
-                accessTokenExpiresAt = Utils.expiresAt(value)
+                accessTokenExpiresAt = Utils.expiresAtFromNow(value.expiresIn)
             } else {
                 field = null
                 accessTokenExpiresAt = 0L

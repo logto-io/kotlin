@@ -38,3 +38,6 @@ jobs:
 
       - name: Code Style Check
         run: ./gradlew detekt --continue
+      
+      - name: Unit Test
+        run: ./gradlew test --continue

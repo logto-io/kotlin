@@ -2,7 +2,6 @@ package io.logto.android.utils
 
 import android.net.Uri
 import io.logto.android.exception.LogtoException
-import io.logto.android.model.TokenSet
 import org.jose4j.jwa.AlgorithmConstraints
 import org.jose4j.jwk.JsonWebKeySet
 import org.jose4j.jws.AlgorithmIdentifiers
@@ -15,15 +14,20 @@ object Utils {
     private const val MILLIS_PER_SECOND = 1000L
     private const val ALLOWED_CLOCK_SKEW_IN_SECONDS = 60
 
-    fun appendQueryParameters(uriBuilder: Uri.Builder, parameters: Map<String, String>): Uri {
+    fun buildUriWithQueries(baseUrl: String, parameters: Map<String, String>): Uri {
+        val uriBuilder = Uri.parse(baseUrl).buildUpon()
         for ((key, value) in parameters) {
             uriBuilder.appendQueryParameter(key, value)
         }
         return uriBuilder.build()
     }
 
-    fun expiresAt(tokenSet: TokenSet): Long {
-        return nowRoundToSec() + tokenSet.expiresIn
+    fun expiresAtFrom(startTime: Long, lifetime: Long): Long {
+        return startTime + lifetime
+    }
+
+    fun expiresAtFromNow(lifetime: Long): Long {
+        return expiresAtFrom(nowRoundToSec(), lifetime)
     }
 
     fun nowRoundToSec() = floor((System.currentTimeMillis() / MILLIS_PER_SECOND).toDouble()).toLong()

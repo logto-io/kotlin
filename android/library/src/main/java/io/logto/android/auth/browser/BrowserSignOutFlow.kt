@@ -58,11 +58,10 @@ class BrowserSignOutFlow(
         idToken: String,
         postLogoutRedirectUri: String,
     ): String {
-        val baseUrl = Uri.parse(endSessionEndpoint)
         val queries = mapOf(
             QueryKey.ID_TOKEN_HINT to idToken,
             QueryKey.POST_LOGOUT_REDIRECT_URI to postLogoutRedirectUri,
         )
-        return Utils.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
+        return Utils.buildUriWithQueries(endSessionEndpoint, queries).toString()
     }
 }

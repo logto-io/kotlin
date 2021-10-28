@@ -14,7 +14,7 @@ import io.logto.android.constant.ResponseType
 import io.logto.android.exception.LogtoException
 import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
-import io.logto.android.pkce.Util
+import io.logto.android.pkce.Pkce
 import io.logto.android.utils.Utils
 
 class BrowserSignInFlow(
@@ -23,7 +23,7 @@ class BrowserSignInFlow(
     private val onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
 ) : IFlow {
 
-    private val codeVerifier: String = Util.generateCodeVerifier()
+    private val codeVerifier: String = Pkce.generateCodeVerifier()
 
     override fun start(context: Context) {
         startAuthorizationActivity(context)
@@ -59,7 +59,7 @@ class BrowserSignInFlow(
     private fun startAuthorizationActivity(context: Context) {
         try {
             logtoApiClient.discover { oidcConfiguration ->
-                val codeChallenge = Util.generateCodeChallenge(codeVerifier)
+                val codeChallenge = Pkce.generateCodeChallenge(codeVerifier)
                 val intent = AuthorizationActivity.createHandleStartIntent(
                     context = context,
                     endpoint = generateAuthUrl(oidcConfiguration, codeChallenge),
@@ -76,7 +76,7 @@ class BrowserSignInFlow(
         oidcConfiguration: OidcConfiguration,
         codeChallenge: String,
     ): String {
-        val baseUrl = Uri.parse(oidcConfiguration.authorizationEndpoint)
+        val endpoint = oidcConfiguration.authorizationEndpoint
         val queries = mapOf(
             QueryKey.CLIENT_ID to logtoConfig.clientId,
             QueryKey.CODE_CHALLENGE to codeChallenge,
@@ -87,6 +87,6 @@ class BrowserSignInFlow(
             QueryKey.SCOPE to logtoConfig.encodedScopes,
             QueryKey.RESOURCE to ResourceValue.LOGTO_API,
         )
-        return Utils.appendQueryParameters(baseUrl.buildUpon(), queries).toString()
+        return Utils.buildUriWithQueries(endpoint, queries).toString()
     }
 }
