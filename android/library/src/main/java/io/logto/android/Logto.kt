@@ -56,8 +56,8 @@ class Logto(
             ) { exception ->
                 updateTokenSet(null)
                 AuthManager.reset()
-                exception?.let { logtoException ->
-                    throw logtoException
+                if (exception != null) {
+                    throw exception
                 }
             }
         )
