@@ -1,7 +1,6 @@
 package io.logto.android.client
 
 import io.logto.android.api.LogtoService
-import io.logto.android.exception.LogtoException
 import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
 import kotlinx.coroutines.MainScope
@@ -15,61 +14,48 @@ class LogtoApiClient(private val domain: String) {
         redirectUri: String,
         code: String,
         codeVerifier: String,
-        block: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit,
+        block: (tokenSet: TokenSet) -> Unit,
     ) = MainScope().launch {
-        try {
-            val oidcConfiguration = getOidcConfig()
-            val jwks = getJsonWebKeySet()
-            val tokenSet = logtoService.grantTokenByAuthorizationCode(
-                tokenEndpoint = oidcConfiguration.tokenEndpoint,
-                clientId = clientId,
-                redirectUri = redirectUri,
-                code = code,
-                codeVerifier = codeVerifier
-            ).apply {
-                validateIdToken(clientId, jwks)
-            }
-            block(null, tokenSet)
-        } catch (exception: LogtoException) {
-            block(exception, null)
+        val oidcConfiguration = getOidcConfig()
+        val jwks = getJsonWebKeySet()
+        val tokenSet = logtoService.grantTokenByAuthorizationCode(
+            tokenEndpoint = oidcConfiguration.tokenEndpoint,
+            clientId = clientId,
+            redirectUri = redirectUri,
+            code = code,
+            codeVerifier = codeVerifier
+        ).apply {
+            validateIdToken(clientId, jwks)
         }
+        block(tokenSet)
     }
 
     fun grantTokenByRefreshToken(
         clientId: String,
         redirectUri: String,
         refreshToken: String,
-        block: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit,
+        block: (tokenSet: TokenSet) -> Unit,
     ) = MainScope().launch {
-        try {
-            val oidcConfiguration = getOidcConfig()
-            val jwks = getJsonWebKeySet()
-            val tokenSet = logtoService.grantTokenByRefreshToken(
-                tokenEndpoint = oidcConfiguration.tokenEndpoint,
-                clientId = clientId,
-                redirectUri = redirectUri,
-                refreshToken = refreshToken,
-            ).apply {
-                validateIdToken(clientId, jwks)
-            }
-            block(null, tokenSet)
-        } catch (exception: LogtoException) {
-            block(exception, null)
+        val oidcConfiguration = getOidcConfig()
+        val jwks = getJsonWebKeySet()
+        val tokenSet = logtoService.grantTokenByRefreshToken(
+            tokenEndpoint = oidcConfiguration.tokenEndpoint,
+            clientId = clientId,
+            redirectUri = redirectUri,
+            refreshToken = refreshToken,
+        ).apply {
+            validateIdToken(clientId, jwks)
         }
+        block(tokenSet)
     }
 
     fun discover(
-        block: (exception: LogtoException?, oidcConfiguration: OidcConfiguration?) -> Unit
+        block: (oidcConfiguration: OidcConfiguration) -> Unit
     ) = MainScope().launch {
-        try {
-            val oidcConfiguration = getOidcConfig()
-            block(null, oidcConfiguration)
-        } catch (exception: LogtoException) {
-            block(exception, null)
-        }
+        block(getOidcConfig())
     }
 
-    private suspend fun getOidcConfig(): OidcConfiguration = coroutineScope {
+    suspend fun getOidcConfig(): OidcConfiguration = coroutineScope {
         oidcConfigCache?.let {
             return@coroutineScope it
         }

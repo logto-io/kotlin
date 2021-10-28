@@ -5,6 +5,7 @@ class LogtoException(
     cause: Throwable? = null,
 ) : RuntimeException(message, cause) {
     companion object {
+        const val UNKNOWN_ERROR = "Unknown Error"
         const val NOT_AUTHENTICATED = "Not authenticated"
         const val REFRESH_TOKEN_IS_NOT_SUPPORTED = "Refresh token is not supported"
         const val SIGN_IN_FAILED = "Sign in failed"
