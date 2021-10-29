@@ -35,7 +35,10 @@ class LogtoConfigTest {
 
     @Test
     fun constructWithEmptyScopesShouldThrow() {
-        val exceptedException = assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(
+            "LogtoConfig: scope list should not be empty",
+            IllegalArgumentException::class.java,
+        ) {
             LogtoConfig(
                 domain = TEST_DOMAIN,
                 clientId = TEST_CLIENT_ID,
@@ -44,14 +47,14 @@ class LogtoConfigTest {
                 postLogoutRedirectUri = TEST_POST_LOGOUT_REDIRE_URI,
             )
         }
-        assertThat(exceptedException)
-            .hasMessageThat()
-            .isEqualTo("LogtoConfig: scope list should not be empty")
     }
 
     @Test
     fun constructWithEmptyRedirectUriShouldThrow() {
-        val exceptedException = assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(
+            "LogtoConfig: redirectUri should not be empty",
+            IllegalArgumentException::class.java,
+        ) {
             LogtoConfig(
                 domain = TEST_DOMAIN,
                 clientId = TEST_CLIENT_ID,
@@ -60,14 +63,14 @@ class LogtoConfigTest {
                 postLogoutRedirectUri = TEST_POST_LOGOUT_REDIRE_URI,
             )
         }
-        assertThat(exceptedException)
-            .hasMessageThat()
-            .isEqualTo("LogtoConfig: redirectUri should not be empty")
     }
 
     @Test
     fun constructWithEmptyPostLogoutRedirectUriShouldThrow() {
-        val exceptedException = assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(
+            "LogtoConfig: postLogoutRedirectUri should not be empty",
+            IllegalArgumentException::class.java,
+        ) {
             LogtoConfig(
                 domain = TEST_DOMAIN,
                 clientId = TEST_CLIENT_ID,
@@ -76,14 +79,14 @@ class LogtoConfigTest {
                 postLogoutRedirectUri = "",
             )
         }
-        assertThat(exceptedException)
-            .hasMessageThat()
-            .isEqualTo("LogtoConfig: postLogoutRedirectUri should not be empty")
     }
 
     @Test
     fun constructorWithEmptyDomainShouldThrow() {
-        val exceptedException = assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(
+            "LogtoConfig: domain should not be empty",
+            IllegalArgumentException::class.java,
+        ) {
             LogtoConfig(
                 domain = "",
                 clientId = TEST_CLIENT_ID,
@@ -92,9 +95,6 @@ class LogtoConfigTest {
                 postLogoutRedirectUri = TEST_POST_LOGOUT_REDIRE_URI,
             )
         }
-        assertThat(exceptedException)
-            .hasMessageThat()
-            .isEqualTo("LogtoConfig: domain should not be empty")
     }
 
     @Test
