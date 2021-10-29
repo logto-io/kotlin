@@ -139,7 +139,7 @@ class UtilsTest {
         jws.payload = claims.toJson()
         jws.key = rsaJsonWebKey.privateKey
         jws.keyIdHeaderValue = rsaJsonWebKey.keyId
-        jws.algorithmHeaderValue = AlgorithmIdentifiers.RSA_USING_SHA256;
+        jws.algorithmHeaderValue = AlgorithmIdentifiers.RSA_USING_SHA256
         return jws.compactSerialization
     }
 
