@@ -37,4 +37,10 @@ class PkceTest {
 
         assertThat(codeChallenge1).isNotEqualTo(codeChallenge2)
     }
+
+    @Test
+    fun generateCodeChallengeWithSpecificCodeShouldBeTheSame() {
+        val code = Pkce.generateCodeVerifier()
+        assertThat(Pkce.generateCodeChallenge(code)).isEqualTo(Pkce.generateCodeChallenge(code))
+    }
 }
