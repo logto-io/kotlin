@@ -1,22 +1,27 @@
 package io.logto.android.pkce
 
 import android.util.Base64
+import com.aventrix.jnanoid.jnanoid.NanoIdUtils
 import io.logto.android.exception.LogtoException
 import java.io.UnsupportedEncodingException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.security.SecureRandom
 
 object Util {
-    private const val CODE_VERIFIER_LENGTH = 64
-    private const val DEFAULT_ALGORITHM = "SHA-256"
+
+    private const val CODE_VERIFIER_ALPHABET =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
+    private const val CODE_VERIFIER_LEN = 64
     private const val CODE_ENCODE_FLAG = Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
+    private const val DEFAULT_ALGORITHM = "SHA-256"
 
     fun generateCodeVerifier(): String {
-        val secureRandom = SecureRandom()
-        val codeBytes = ByteArray(CODE_VERIFIER_LENGTH)
-        secureRandom.nextBytes(codeBytes)
-        return Base64.encodeToString(codeBytes, CODE_ENCODE_FLAG)
+        val randomString = NanoIdUtils.randomNanoId(
+            NanoIdUtils.DEFAULT_NUMBER_GENERATOR,
+            CODE_VERIFIER_ALPHABET.toCharArray(),
+            CODE_VERIFIER_LEN
+        )
+        return Base64.encodeToString(randomString.toByteArray(), CODE_ENCODE_FLAG)
     }
 
     fun generateCodeChallenge(codeVerifier: String): String {
