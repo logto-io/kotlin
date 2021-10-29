@@ -63,6 +63,7 @@ dependencies {
     implementation "ch.qos.logback:logback-classic:$rootProject.logbackVersion"
 
     implementation "org.bitbucket.b_c:jose4j:$rootProject.jose4jVersion"
+    implementation "com.aventrix.jnanoid:jnanoid:$rootProject.jnanoidVersion"
 
     testImplementation "androidx.test:core-ktx:$rootProject.testCoreKtxVersion"
     testImplementation "androidx.test.ext:junit:$rootProject.testExtJunitVersion"
