@@ -75,4 +75,5 @@ dependencies {
     testImplementation "androidx.test:core:$rootProject.androidXTestCoreVersion"
     testImplementation "com.google.truth:truth:$rootProject.truthVersion"
     testImplementation "org.robolectric:robolectric:$rootProject.robolectricVersion"
+    testImplementation "org.mockito:mockito-core:$rootProject.mockitoVersion"
 }

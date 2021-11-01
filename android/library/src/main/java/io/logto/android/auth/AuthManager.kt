@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 
 object AuthManager {
-    private var currentFlow: IFlow? = null
+    internal var currentFlow: IFlow? = null
 
     fun start(context: Context, flow: IFlow) {
         currentFlow = flow
