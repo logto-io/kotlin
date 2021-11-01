@@ -2,13 +2,12 @@ package io.logto.android.storage
 
 import android.content.Context
 import com.google.gson.Gson
-import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.StorageKey
 import io.logto.android.model.TokenSet
 
 class TokenSetStorage(
     context: Context,
-    logtoConfig: LogtoConfig,
+    sharedPreferencesName: String,
 ) {
     var tokenSet: TokenSet?
         get() {
@@ -17,16 +16,13 @@ class TokenSetStorage(
         }
         set(value) {
             value?.let {
-                val tokenSetJson = Gson().toJson(tokenSet)
+                val tokenSetJson = Gson().toJson(value)
                 setItem(StorageKey.TOKEN_SET, tokenSetJson)
             } ?: setItem(StorageKey.TOKEN_SET, null)
         }
 
-    private val sharedPreferenceName =
-        "$SHARED_PREFERENCE_NAME_PREFIX:${logtoConfig.cacheKey}"
-
     private val sharedPreferences by lazy {
-        context.getSharedPreferences(sharedPreferenceName, Context.MODE_PRIVATE)
+        context.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE)
     }
 
     private fun getItem(key: String): String? = sharedPreferences.getString(key, null)
@@ -40,9 +36,5 @@ class TokenSetStorage(
             }
             apply()
         }
-    }
-
-    private companion object {
-        private const val SHARED_PREFERENCE_NAME_PREFIX = "io.logto.android"
     }
 }

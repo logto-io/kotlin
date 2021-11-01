@@ -72,6 +72,7 @@ dependencies {
     implementation "com.aventrix.jnanoid:jnanoid:$rootProject.jnanoidVersion"
 
     testImplementation "junit:junit:$rootProject.junitVersion"
+    testImplementation "androidx.test:core:$rootProject.androidXTestCoreVersion"
     testImplementation "com.google.truth:truth:$rootProject.truthVersion"
     testImplementation "org.robolectric:robolectric:$rootProject.robolectricVersion"
 }

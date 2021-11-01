@@ -11,7 +11,7 @@ data class LogtoConfig(
         get() = scopes.joinToString(" ")
 
     val cacheKey: String
-        get() = "$clientId:$encodedScopes"
+        get() = "$clientId::$encodedScopes"
 
     private fun validate() {
         require(domain.isNotEmpty()) { "LogtoConfig: domain should not be empty" }

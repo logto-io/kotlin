@@ -108,7 +108,7 @@ class LogtoConfigTest {
     fun cacheKeyValidation() {
         val logtoConfig = createTestLogtoConfig()
         assertThat(logtoConfig.cacheKey)
-            .isEqualTo("$TEST_CLIENT_ID:${logtoConfig.encodedScopes}")
+            .isEqualTo("$TEST_CLIENT_ID::${logtoConfig.encodedScopes}")
     }
 
     private val TEST_DOMAIN = "logto.dev"
