@@ -22,7 +22,6 @@ class BrowserSignInFlow(
     private val logtoApiClient: LogtoApiClient,
     private val onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
 ) : IFlow {
-
     private val codeVerifier: String = Pkce.generateCodeVerifier()
 
     override fun start(context: Context) {
@@ -30,29 +29,15 @@ class BrowserSignInFlow(
     }
 
     override fun onResult(data: Uri) {
-        val authorizationCode = data.getQueryParameter(QueryKey.CODE)
-        if (authorizationCode.isNullOrEmpty() ||
-            !data.toString().startsWith(logtoConfig.redirectUri)
-        ) {
-            val error = data.getQueryParameter(QueryKey.ERROR)
-            onComplete(
-                LogtoException("${LogtoException.SIGN_IN_FAILED}: $error"),
-                null,
-            )
+        val validAuthorizationCode = ensureValidAuthorizationCode(data, logtoConfig.redirectUri)
+        if (validAuthorizationCode == null) {
+            val errorDesc = data.getQueryParameter(QueryKey.ERROR_DESCRIPTION)
+            onComplete(LogtoException("${LogtoException.SIGN_IN_FAILED}: $errorDesc"), null)
             return
         }
 
-        try {
-            logtoApiClient.grantTokenByAuthorizationCode(
-                clientId = logtoConfig.clientId,
-                redirectUri = logtoConfig.redirectUri,
-                code = authorizationCode,
-                codeVerifier = codeVerifier,
-            ) {
-                onComplete(null, it)
-            }
-        } catch (exception: LogtoException) {
-            onComplete(exception, null)
+        grantTokenByAuthorizationCode(validAuthorizationCode) { exception, tokenSet ->
+            onComplete(exception, tokenSet)
         }
     }
 
@@ -69,6 +54,34 @@ class BrowserSignInFlow(
             }
         } catch (exception: LogtoException) {
             onComplete(exception, null)
+        }
+    }
+
+    private fun ensureValidAuthorizationCode(data: Uri, redirectUri: String): String? {
+        val authorizationCode = data.getQueryParameter(QueryKey.CODE)
+        if (authorizationCode.isNullOrEmpty() ||
+            !data.toString().startsWith(redirectUri)
+        ) {
+            return null
+        }
+        return authorizationCode
+    }
+
+    private fun grantTokenByAuthorizationCode(
+        authorizationCode: String,
+        block: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit,
+    ) {
+        try {
+            logtoApiClient.grantTokenByAuthorizationCode(
+                clientId = logtoConfig.clientId,
+                redirectUri = logtoConfig.redirectUri,
+                code = authorizationCode,
+                codeVerifier = codeVerifier,
+            ) {
+                block(null, it)
+            }
+        } catch (exception: LogtoException) {
+            block(exception, null)
         }
     }
 
