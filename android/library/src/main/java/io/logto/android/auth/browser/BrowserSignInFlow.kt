@@ -32,6 +32,7 @@ class BrowserSignInFlow(
         val validAuthorizationCode = ensureValidAuthorizationCode(data, logtoConfig.redirectUri)
         if (validAuthorizationCode == null) {
             val errorDesc = data.getQueryParameter(QueryKey.ERROR_DESCRIPTION)
+                ?: LogtoException.UNKNOWN_ERROR
             onComplete(LogtoException("${LogtoException.SIGN_IN_FAILED}: $errorDesc"), null)
             return
         }

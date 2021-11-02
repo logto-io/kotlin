@@ -27,6 +27,7 @@ class BrowserSignOutFlow(
             !redirectUri.startsWith(logtoConfig.postLogoutRedirectUri)
         ) {
             val error = data.getQueryParameter(QueryKey.ERROR_DESCRIPTION)
+                ?: LogtoException.UNKNOWN_ERROR
             onComplete(LogtoException("${LogtoException.SIGN_OUT_FAILED}: $error"))
             return
         }

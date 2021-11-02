@@ -99,14 +99,30 @@ class BrowserSignInFlowTest {
         val invalidUri: Uri = mock()
         `when`(invalidUri.getQueryParameter(eq(QueryKey.CODE))).thenReturn(null)
         `when`(invalidUri.getQueryParameter(eq(QueryKey.ERROR_DESCRIPTION)))
-            .thenReturn("mock error description")
+            .thenReturn("mocked sign in error description")
 
         browserSignInFlow.onResult(invalidUri)
 
         verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
             .hasMessageThat()
-            .contains("mock error description")
+            .contains("mocked sign in error description")
+        assertThat(tokenSetCaptor.firstValue).isNull()
+    }
+
+    @Test
+    fun onResultShouldCompleteWithLogtoExceptionWithEmptyUri() {
+        val browserSignInFlow = BrowserSignInFlow(
+            logtoConfig,
+            logtoApiClient,
+            onComplete,
+        )
+        val empty: Uri = mock()
+        browserSignInFlow.onResult(empty)
+        verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
+        assertThat(logtoExceptionCaptor.firstValue)
+            .hasMessageThat()
+            .contains(LogtoException.UNKNOWN_ERROR)
         assertThat(tokenSetCaptor.firstValue).isNull()
     }
 
