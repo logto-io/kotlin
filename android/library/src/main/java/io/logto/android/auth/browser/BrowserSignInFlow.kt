@@ -36,8 +36,17 @@ class BrowserSignInFlow(
             return
         }
 
-        grantTokenByAuthorizationCode(validAuthorizationCode) { exception, tokenSet ->
-            onComplete(exception, tokenSet)
+        try {
+            logtoApiClient.grantTokenByAuthorizationCode(
+                clientId = logtoConfig.clientId,
+                redirectUri = logtoConfig.redirectUri,
+                code = validAuthorizationCode,
+                codeVerifier = codeVerifier,
+            ) {
+                onComplete(null, it)
+            }
+        } catch (exception: LogtoException) {
+            onComplete(exception, null)
         }
     }
 
@@ -65,24 +74,6 @@ class BrowserSignInFlow(
             return null
         }
         return authorizationCode
-    }
-
-    private fun grantTokenByAuthorizationCode(
-        authorizationCode: String,
-        block: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit,
-    ) {
-        try {
-            logtoApiClient.grantTokenByAuthorizationCode(
-                clientId = logtoConfig.clientId,
-                redirectUri = logtoConfig.redirectUri,
-                code = authorizationCode,
-                codeVerifier = codeVerifier,
-            ) {
-                block(null, it)
-            }
-        } catch (exception: LogtoException) {
-            block(exception, null)
-        }
     }
 
     private fun generateAuthUrl(
