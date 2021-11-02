@@ -4,13 +4,14 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import kotlin.math.ceil
 
 @RunWith(RobolectricTestRunner::class)
 class PkceTest {
     @Test
-    fun generateCodeVerifier() {
+    fun generateCodeVerifierShouldBeFixedLength() {
         val codeVerifier = Pkce.generateCodeVerifier()
-        assertThat(codeVerifier).isNotEmpty()
+        assertThat(codeVerifier.length).isEqualTo(ceil(64 * 1.34).toInt())
     }
 
     @Test
@@ -21,10 +22,10 @@ class PkceTest {
     }
 
     @Test
-    fun generateCodeChallenge() {
+    fun generateCodeChallengeShouldBeFixedLength() {
         val codeVerifier = Pkce.generateCodeVerifier()
         val codeChallenge = Pkce.generateCodeChallenge(codeVerifier)
-        assertThat(codeChallenge).isNotEmpty()
+        assertThat(codeChallenge.length).isEqualTo(ceil(32 * 1.34).toInt())
     }
 
     @Test
