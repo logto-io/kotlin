@@ -77,6 +77,7 @@ class BrowserSignInFlowTest {
     }
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun shouldStartSignIn() {
         doAnswer {
             val block = it.arguments[0] as (OidcConfiguration) -> Unit
