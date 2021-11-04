@@ -8,7 +8,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.jose4j.jwk.JsonWebKeySet
 
-class LogtoApiClient(private val domain: String) {
+class LogtoApiClient(
+    private val domain: String,
+    private val logtoService: LogtoService,
+) {
     fun grantTokenByAuthorizationCode(
         clientId: String,
         redirectUri: String,
@@ -55,7 +58,7 @@ class LogtoApiClient(private val domain: String) {
         block(getOidcConfig())
     }
 
-    suspend fun getOidcConfig(): OidcConfiguration = coroutineScope {
+    private suspend fun getOidcConfig(): OidcConfiguration = coroutineScope {
         oidcConfigCache?.let {
             return@coroutineScope it
         }
@@ -74,8 +77,6 @@ class LogtoApiClient(private val domain: String) {
         jsonWebKeySetCache = fetchedJsonWebKeySet
         return@coroutineScope fetchedJsonWebKeySet
     }
-
-    private val logtoService = LogtoService()
 
     private var oidcConfigCache: OidcConfiguration? = null
 

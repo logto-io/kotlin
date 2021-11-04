@@ -12,6 +12,10 @@ import io.logto.android.constant.QueryKey
 import io.logto.android.constant.ResourceValue
 import io.logto.android.constant.ResponseType
 import io.logto.android.exception.LogtoException
+import io.logto.android.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
+import io.logto.android.exception.LogtoException.Companion.INVALID_REDIRECT_URI
+import io.logto.android.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
+import io.logto.android.exception.LogtoException.Companion.SIGN_IN_FAILED
 import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
 import io.logto.android.pkce.Pkce
@@ -22,23 +26,35 @@ class BrowserSignInFlow(
     private val logtoApiClient: LogtoApiClient,
     private val onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
 ) : IFlow {
-
     private val codeVerifier: String = Pkce.generateCodeVerifier()
 
     override fun start(context: Context) {
-        startAuthorizationActivity(context)
+        try {
+            logtoApiClient.discover { oidcConfiguration ->
+                val codeChallenge = Pkce.generateCodeChallenge(codeVerifier)
+                val intent = AuthorizationActivity.createHandleStartIntent(
+                    context = context,
+                    endpoint = generateAuthUrl(oidcConfiguration, codeChallenge),
+                    redirectUri = logtoConfig.redirectUri,
+                )
+                context.startActivity(intent)
+            }
+        } catch (exception: LogtoException) {
+            onComplete(exception, null)
+        }
     }
 
-    override fun onResult(data: Uri) {
-        val authorizationCode = data.getQueryParameter(QueryKey.CODE)
-        if (authorizationCode.isNullOrEmpty() ||
-            !data.toString().startsWith(logtoConfig.redirectUri)
-        ) {
-            val error = data.getQueryParameter(QueryKey.ERROR)
-            onComplete(
-                LogtoException("${LogtoException.SIGN_IN_FAILED}: $error"),
-                null,
-            )
+    override fun onResult(callbackUri: Uri) {
+        try {
+            validateRedirectUri(callbackUri)
+        } catch (exceptionOnValidate: LogtoException) {
+            onComplete(exceptionOnValidate, null)
+            return
+        }
+
+        val authorizationCode = callbackUri.getQueryParameter(QueryKey.CODE)
+        if (authorizationCode.isNullOrEmpty()) {
+            onComplete(LogtoException("$SIGN_IN_FAILED: $MISSING_AUTHORIZATION_CODE"), null)
             return
         }
 
@@ -56,19 +72,24 @@ class BrowserSignInFlow(
         }
     }
 
-    private fun startAuthorizationActivity(context: Context) {
-        try {
-            logtoApiClient.discover { oidcConfiguration ->
-                val codeChallenge = Pkce.generateCodeChallenge(codeVerifier)
-                val intent = AuthorizationActivity.createHandleStartIntent(
-                    context = context,
-                    endpoint = generateAuthUrl(oidcConfiguration, codeChallenge),
-                    redirectUri = logtoConfig.redirectUri,
-                )
-                context.startActivity(intent)
-            }
-        } catch (exception: LogtoException) {
-            onComplete(exception, null)
+    @Suppress("ThrowsCount")
+    private fun validateRedirectUri(uri: Uri) {
+        if (uri.toString().isEmpty()) {
+            throw LogtoException("$SIGN_IN_FAILED: $EMPTY_REDIRECT_URI")
+        }
+
+        val errorDescription = uri.getQueryParameter(QueryKey.ERROR_DESCRIPTION)
+        if (errorDescription != null) {
+            throw LogtoException("$SIGN_IN_FAILED: $errorDescription")
+        }
+
+        val error = uri.getQueryParameter(QueryKey.ERROR)
+        if (error != null) {
+            throw LogtoException("$SIGN_IN_FAILED: $error")
+        }
+
+        if (!uri.toString().startsWith(logtoConfig.redirectUri)) {
+            throw LogtoException("$SIGN_IN_FAILED: $INVALID_REDIRECT_URI")
         }
     }
 

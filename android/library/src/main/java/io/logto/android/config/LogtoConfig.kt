@@ -7,11 +7,9 @@ data class LogtoConfig(
     val redirectUri: String,
     val postLogoutRedirectUri: String,
 ) {
-    val encodedScopes: String
-        get() = scopes.joinToString(" ")
+    val encodedScopes: String = scopes.joinToString(" ")
 
-    val cacheKey: String
-        get() = "$clientId:$encodedScopes"
+    val cacheKey: String = "$clientId::$encodedScopes"
 
     private fun validate() {
         require(domain.isNotEmpty()) { "LogtoConfig: domain should not be empty" }

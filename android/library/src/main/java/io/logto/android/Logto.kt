@@ -2,6 +2,7 @@ package io.logto.android
 
 import android.app.Application
 import android.content.Context
+import io.logto.android.api.LogtoService
 import io.logto.android.auth.AuthManager
 import io.logto.android.auth.browser.BrowserSignInFlow
 import io.logto.android.auth.browser.BrowserSignOutFlow
@@ -96,6 +97,9 @@ class Logto(
 
     private var tokenSetStorage: TokenSetStorage? = null
 
+    private val tokenSetStorageSharedPreferencesName =
+        "$STORAGE_SHAREDPREFERENCES_NAME_PREFIX::${logtoConfig.cacheKey}"
+
     private var tokenSetCache: TokenSet? = null
         set(value) {
             if (value != null) {
@@ -114,11 +118,15 @@ class Logto(
         tokenSetStorage?.tokenSet = tokenSet
     }
 
-    private val logtoApiClient = LogtoApiClient(logtoConfig.domain)
+    private val logtoApiClient = LogtoApiClient(logtoConfig.domain, LogtoService())
+
+    private companion object {
+        private const val STORAGE_SHAREDPREFERENCES_NAME_PREFIX = "io.logto.android"
+    }
 
     init {
         if (useStorage) {
-            tokenSetStorage = TokenSetStorage(application, logtoConfig)
+            tokenSetStorage = TokenSetStorage(application, tokenSetStorageSharedPreferencesName)
         }
     }
 }
