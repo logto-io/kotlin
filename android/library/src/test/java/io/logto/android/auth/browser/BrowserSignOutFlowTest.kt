@@ -35,8 +35,6 @@ import org.robolectric.RobolectricTestRunner
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
 class BrowserSignOutFlowTest {
-    private val mainThreadSurrogate = newSingleThreadContext("UI thread")
-
     @Mock
     private lateinit var logtoConfig: LogtoConfig
 
@@ -44,7 +42,12 @@ class BrowserSignOutFlowTest {
     private lateinit var logtoApiClient: LogtoApiClient
 
     @Mock
+    private lateinit var oidcConfiguration: OidcConfiguration
+
+    @Mock
     private lateinit var onComplete: (exception: LogtoException?) -> Unit
+
+    private val mainThreadSurrogate = newSingleThreadContext("UI thread")
 
     private lateinit var browserSignOutFlow: BrowserSignOutFlow
 
@@ -53,8 +56,10 @@ class BrowserSignOutFlowTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(mainThreadSurrogate)
+
         MockitoAnnotations.openMocks(this)
         `when`(logtoConfig.postLogoutRedirectUri).thenReturn("postLogoutRedirectUri")
+        `when`(oidcConfiguration.endSessionEndpoint).thenReturn("endSessionEndpoint")
 
         browserSignOutFlow = BrowserSignOutFlow(
             "idToken",
@@ -72,9 +77,6 @@ class BrowserSignOutFlowTest {
     @Test
     @Suppress("UNCHECKED_CAST")
     fun shouldStartSignOut() {
-        val oidcConfiguration: OidcConfiguration = mock()
-        `when`(oidcConfiguration.endSessionEndpoint).thenReturn("endSessionEndpoint")
-
         doAnswer {
             val block = it.arguments[0] as (OidcConfiguration) -> Unit
             block(oidcConfiguration)
@@ -88,9 +90,30 @@ class BrowserSignOutFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithInvalidUri() {
+    fun startShouldInvokeCompleteWithLogtoExceptionOnDiscoverFailed() {
+        val mockLogtoException: LogtoException = mock()
+        doAnswer {
+            throw mockLogtoException
+        }.`when`(logtoApiClient).discover(anyOrNull())
+        val activity: Activity = spy(Robolectric.buildActivity(Activity::class.java).get())
+        browserSignOutFlow.start(activity)
+        verify(onComplete).invoke(logtoExceptionCaptor.capture())
+        assertThat(logtoExceptionCaptor.firstValue).isEqualTo(mockLogtoException)
+    }
+
+    @Test
+    fun onResultShouldCompleteWithLogtoExceptionWithEmptyUri() {
+        val invalidUri: Uri = Uri.parse("")
+        browserSignOutFlow.onResult(invalidUri)
+        verify(onComplete).invoke(logtoExceptionCaptor.capture())
+        assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
+            .contains(LogtoException.EMPTY_REDIRECT_URI)
+    }
+
+    @Test
+    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsErrorDescription() {
         val invalidUri: Uri = Utils.buildUriWithQueries(
-            "invalidBaseUri",
+            logtoConfig.postLogoutRedirectUri,
             mapOf(
                 QueryKey.ERROR_DESCRIPTION to "mocked sign out error description"
             )
@@ -102,12 +125,26 @@ class BrowserSignOutFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithEmptyUri() {
-        val invalidUri: Uri = mock()
+    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsError() {
+        val invalidUri: Uri = Utils.buildUriWithQueries(
+            logtoConfig.postLogoutRedirectUri,
+            mapOf(
+                QueryKey.ERROR to "mocked sign out error"
+            )
+        )
         browserSignOutFlow.onResult(invalidUri)
         verify(onComplete).invoke(logtoExceptionCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
-            .contains(LogtoException.UNKNOWN_ERROR)
+            .contains("mocked sign out error")
+    }
+
+    @Test
+    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsInvalidRedirectUri() {
+        val invalidUri: Uri = Uri.parse("invalidRedirectUri")
+        browserSignOutFlow.onResult(invalidUri)
+        verify(onComplete).invoke(logtoExceptionCaptor.capture())
+        assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
+            .contains(LogtoException.INVALID_REDIRECT_URI)
     }
 
     @Test

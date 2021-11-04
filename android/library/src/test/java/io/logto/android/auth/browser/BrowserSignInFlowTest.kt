@@ -37,8 +37,6 @@ import org.robolectric.RobolectricTestRunner
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
 class BrowserSignInFlowTest {
-    private val mainThreadSurrogate = newSingleThreadContext("UI thread")
-
     @Mock
     private lateinit var logtoConfig: LogtoConfig
 
@@ -46,7 +44,14 @@ class BrowserSignInFlowTest {
     private lateinit var logtoApiClient: LogtoApiClient
 
     @Mock
+    private lateinit var oidcConfiguration: OidcConfiguration
+
+    @Mock
     private lateinit var onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
+
+    private lateinit var browserSignInFlow: BrowserSignInFlow
+
+    private val mainThreadSurrogate = newSingleThreadContext("UI thread")
 
     private val logtoExceptionCaptor = argumentCaptor<LogtoException>()
     private val tokenSetCaptor = argumentCaptor<TokenSet>()
@@ -56,6 +61,13 @@ class BrowserSignInFlowTest {
         Dispatchers.setMain(mainThreadSurrogate)
         MockitoAnnotations.openMocks(this)
         `when`(logtoConfig.redirectUri).thenReturn("redirectUri")
+        `when`(oidcConfiguration.authorizationEndpoint).thenReturn("authorizationEndpoint")
+
+        browserSignInFlow = BrowserSignInFlow(
+            logtoConfig,
+            logtoApiClient,
+            onComplete
+        )
     }
 
     @After
@@ -65,11 +77,7 @@ class BrowserSignInFlowTest {
     }
 
     @Test
-    @Suppress("UNCHECKED_CAST")
     fun shouldStartSignIn() {
-        val oidcConfiguration: OidcConfiguration = mock()
-        `when`(oidcConfiguration.authorizationEndpoint).thenReturn("authorizationEndpoint")
-
         doAnswer {
             val block = it.arguments[0] as (OidcConfiguration) -> Unit
             block(oidcConfiguration)
@@ -77,32 +85,41 @@ class BrowserSignInFlowTest {
         }.`when`(logtoApiClient).discover(anyOrNull())
 
         val activity: Activity = spy(Robolectric.buildActivity(Activity::class.java).get())
-
-        val browserSignInFlow = BrowserSignInFlow(
-            logtoConfig,
-            logtoApiClient,
-            onComplete
-        )
-
         browserSignInFlow.start(activity)
         verify(activity).startActivity(anyOrNull())
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithInvalidUri() {
-        val browserSignInFlow = BrowserSignInFlow(
-            logtoConfig,
-            logtoApiClient,
-            onComplete,
-        )
+    fun startShouldInvokeCompleteWithLogtoExceptionOnDiscoverFailed() {
+        val mockLogtoException: LogtoException = mock()
+        doAnswer {
+            throw mockLogtoException
+        }.`when`(logtoApiClient).discover(anyOrNull())
 
+        val activity: Activity = spy(Robolectric.buildActivity(Activity::class.java).get())
+        browserSignInFlow.start(activity)
+        verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
+        assertThat(logtoExceptionCaptor.firstValue).isEqualTo(mockLogtoException)
+        assertThat(tokenSetCaptor.firstValue).isNull()
+    }
+
+    @Test
+    fun onResultShouldCompleteWithLogtoExceptionWithEmptyUri() {
+        val emptyUri = Uri.parse("")
+        browserSignInFlow.onResult(emptyUri)
+        verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
+        assertThat(logtoExceptionCaptor.firstValue)
+            .hasMessageThat()
+            .contains(LogtoException.EMPTY_REDIRECT_URI)
+        assertThat(tokenSetCaptor.firstValue).isNull()
+    }
+
+    @Test
+    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsErrorDescription() {
         val invalidUri: Uri = mock()
-        `when`(invalidUri.getQueryParameter(eq(QueryKey.CODE))).thenReturn(null)
         `when`(invalidUri.getQueryParameter(eq(QueryKey.ERROR_DESCRIPTION)))
             .thenReturn("mocked sign in error description")
-
         browserSignInFlow.onResult(invalidUri)
-
         verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
             .hasMessageThat()
@@ -111,18 +128,49 @@ class BrowserSignInFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithEmptyUri() {
-        val browserSignInFlow = BrowserSignInFlow(
-            logtoConfig,
-            logtoApiClient,
-            onComplete,
-        )
-        val empty: Uri = mock()
-        browserSignInFlow.onResult(empty)
+    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsError() {
+        val invalidUri: Uri = mock()
+        `when`(invalidUri.getQueryParameter(eq(QueryKey.ERROR))).thenReturn("mocked sign in error")
+        browserSignInFlow.onResult(invalidUri)
         verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
             .hasMessageThat()
-            .contains(LogtoException.UNKNOWN_ERROR)
+            .contains("mocked sign in error")
+        assertThat(tokenSetCaptor.firstValue).isNull()
+    }
+
+    @Test
+    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsInvalidRedirectUri() {
+        val invalidUri = Uri.parse("invalidRedirectUri")
+        browserSignInFlow.onResult(invalidUri)
+        verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
+        assertThat(logtoExceptionCaptor.firstValue)
+            .hasMessageThat()
+            .contains(LogtoException.INVALID_REDIRECT_URI)
+        assertThat(tokenSetCaptor.firstValue).isNull()
+    }
+
+    @Test
+    fun onResultShouldCompleteWithLogtoExceptionWithUriWithoutAuthCode() {
+        val invalidUri = Uri.parse(logtoConfig.redirectUri)
+        browserSignInFlow.onResult(invalidUri)
+        verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
+        assertThat(logtoExceptionCaptor.firstValue)
+            .hasMessageThat()
+            .contains(LogtoException.MISSING_AUTHORIZATION_CODE)
+        assertThat(tokenSetCaptor.firstValue).isNull()
+    }
+
+    @Test
+    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsEmptyAuthCode() {
+        val invalidUri = Utils.buildUriWithQueries(logtoConfig.redirectUri, mapOf(
+            QueryKey.CODE to ""
+        ))
+        browserSignInFlow.onResult(invalidUri)
+        verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
+        assertThat(logtoExceptionCaptor.firstValue)
+            .hasMessageThat()
+            .contains(LogtoException.MISSING_AUTHORIZATION_CODE)
         assertThat(tokenSetCaptor.firstValue).isNull()
     }
 
@@ -130,7 +178,6 @@ class BrowserSignInFlowTest {
     @Suppress("UNCHECKED_CAST")
     fun onResultShouldCompleteWithTokenSetWithValidUri() {
         val tokenSet: TokenSet = mock()
-
         doAnswer {
             val block = it.arguments[4] as (TokenSet) -> Unit
             block(tokenSet)
@@ -143,20 +190,33 @@ class BrowserSignInFlowTest {
             anyOrNull(),
         )
 
-        val browserSignInFlow = BrowserSignInFlow(
-            logtoConfig,
-            logtoApiClient,
-            onComplete,
-        )
-
         val validUri = Utils.buildUriWithQueries(logtoConfig.redirectUri, mapOf(
             QueryKey.CODE to "authorizationCode"
         ))
-
         browserSignInFlow.onResult(validUri)
-
         verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).isNull()
         assertThat(tokenSetCaptor.firstValue).isEqualTo(tokenSet)
+    }
+
+    @Test
+    fun onResultShouldCompleteWithLogtoExceptionOnGrantTokenByAuthorizationCodeFailed() {
+        val validUri = Utils.buildUriWithQueries(logtoConfig.redirectUri, mapOf(
+            QueryKey.CODE to "authorizationCode"
+        ))
+        val mockLogtoException: LogtoException = mock()
+        doAnswer {
+            throw mockLogtoException
+        }.`when`(logtoApiClient).grantTokenByAuthorizationCode(
+            anyOrNull(),
+            anyOrNull(),
+            anyOrNull(),
+            anyOrNull(),
+            anyOrNull(),
+        )
+        browserSignInFlow.onResult(validUri)
+        verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
+        assertThat(logtoExceptionCaptor.firstValue).isEqualTo(mockLogtoException)
+        assertThat(tokenSetCaptor.firstValue).isNull()
     }
 }

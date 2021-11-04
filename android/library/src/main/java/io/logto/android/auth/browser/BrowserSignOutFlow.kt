@@ -8,6 +8,9 @@ import io.logto.android.client.LogtoApiClient
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.QueryKey
 import io.logto.android.exception.LogtoException
+import io.logto.android.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
+import io.logto.android.exception.LogtoException.Companion.INVALID_REDIRECT_URI
+import io.logto.android.exception.LogtoException.Companion.SIGN_OUT_FAILED
 import io.logto.android.utils.Utils
 
 class BrowserSignOutFlow(
@@ -18,23 +21,6 @@ class BrowserSignOutFlow(
 ) : IFlow {
 
     override fun start(context: Context) {
-        startSignOutActivity(context)
-    }
-
-    override fun onResult(data: Uri) {
-        val redirectUri = data.toString()
-        if (redirectUri.isEmpty() ||
-            !redirectUri.startsWith(logtoConfig.postLogoutRedirectUri)
-        ) {
-            val error = data.getQueryParameter(QueryKey.ERROR_DESCRIPTION)
-                ?: LogtoException.UNKNOWN_ERROR
-            onComplete(LogtoException("${LogtoException.SIGN_OUT_FAILED}: $error"))
-            return
-        }
-        onComplete(null)
-    }
-
-    private fun startSignOutActivity(context: Context) {
         try {
             logtoApiClient.discover { oidcConfiguration ->
                 val signOutUrl = generateSignOutUrl(
@@ -54,6 +40,15 @@ class BrowserSignOutFlow(
         }
     }
 
+    override fun onResult(callbackUri: Uri) {
+        try {
+            validatePostLogoutRedirectUri(callbackUri)
+            onComplete(null)
+        } catch (exceptionOnValidate: LogtoException) {
+            onComplete(exceptionOnValidate)
+        }
+    }
+
     private fun generateSignOutUrl(
         endSessionEndpoint: String,
         idToken: String,
@@ -64,5 +59,26 @@ class BrowserSignOutFlow(
             QueryKey.POST_LOGOUT_REDIRECT_URI to postLogoutRedirectUri,
         )
         return Utils.buildUriWithQueries(endSessionEndpoint, queries).toString()
+    }
+
+    @Suppress("ThrowsCount")
+    private fun validatePostLogoutRedirectUri(uri: Uri) {
+        if (uri.toString().isEmpty()) {
+            throw LogtoException("$SIGN_OUT_FAILED: $EMPTY_REDIRECT_URI")
+        }
+
+        val errorDescription = uri.getQueryParameter(QueryKey.ERROR_DESCRIPTION)
+        if (errorDescription != null) {
+            throw LogtoException("$SIGN_OUT_FAILED: $errorDescription")
+        }
+
+        val error = uri.getQueryParameter(QueryKey.ERROR)
+        if (error != null) {
+            throw LogtoException("$SIGN_OUT_FAILED: $error")
+        }
+
+        if (!uri.toString().startsWith(logtoConfig.postLogoutRedirectUri)) {
+            throw LogtoException("$SIGN_OUT_FAILED: $INVALID_REDIRECT_URI")
+        }
     }
 }

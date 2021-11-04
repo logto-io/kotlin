@@ -5,5 +5,5 @@ import android.net.Uri
 
 interface IFlow {
     fun start(context: Context)
-    fun onResult(data: Uri)
+    fun onResult(callbackUri: Uri)
 }
