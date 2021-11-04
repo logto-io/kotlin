@@ -97,8 +97,8 @@ class Logto(
 
     private var tokenSetStorage: TokenSetStorage? = null
 
-    private fun getTokenSetStorageSharedPreferencesName(cacheKey: String) =
-        "$STORAGE_SHAREDPREFERENCES_NAME_PREFIX::$cacheKey"
+    private val tokenSetStorageSharedPreferencesName =
+        "$STORAGE_SHAREDPREFERENCES_NAME_PREFIX::${logtoConfig.cacheKey}"
 
     private var tokenSetCache: TokenSet? = null
         set(value) {
@@ -126,8 +126,7 @@ class Logto(
 
     init {
         if (useStorage) {
-            val spName = getTokenSetStorageSharedPreferencesName(logtoConfig.cacheKey)
-            tokenSetStorage = TokenSetStorage(application, spName)
+            tokenSetStorage = TokenSetStorage(application, tokenSetStorageSharedPreferencesName)
         }
     }
 }
