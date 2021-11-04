@@ -2,13 +2,12 @@ package io.logto.android.utils
 
 import com.google.common.truth.Truth.assertThat
 import io.logto.android.exception.LogtoException
-import org.jose4j.jwk.JsonWebKey
 import org.jose4j.jwk.JsonWebKeySet
-import org.jose4j.jwk.RsaJsonWebKey
 import org.jose4j.jwk.RsaJwkGenerator
 import org.jose4j.jws.AlgorithmIdentifiers
 import org.jose4j.jws.JsonWebSignature
 import org.jose4j.jwt.JwtClaims
+import org.jose4j.jwt.ReservedClaimNames
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,18 +45,9 @@ class UtilsTest {
 
     @Test
     fun verifyIdTokenWithValidIdToken() {
-        val claims = JwtClaims().apply {
-            issuer = testIssuer
-            setAudience(testAudience)
-            subject = testSubject
-            setIssuedAtToNow()
-            setExpirationTimeMinutesInTheFuture(60F)
-            setGeneratedJwtId()
-        }
-
-        val idToken = generateIdToken(testRsaJsonWebKey, claims)
-
-        val jwks = createJwks(testRsaJsonWebKey)
+        val claims = createTestIdTokenClaims()
+        val idToken = createTestIdToken(claims)
+        val jwks = createTestJwks()
 
         var logtoException: LogtoException? = null
 
@@ -72,78 +62,72 @@ class UtilsTest {
 
     @Test
     fun verifyIdTokenMissingSubjectShouldThrow() {
-        val claims = JwtClaims().apply {
-            issuer = testIssuer
-            setAudience(testAudience)
-            setIssuedAtToNow()
-            setExpirationTimeMinutesInTheFuture(60F)
-            setGeneratedJwtId()
-        }
-        val idToken = generateIdToken(testRsaJsonWebKey, claims)
-        val jwks = createJwks(testRsaJsonWebKey)
-        assertThrows(LogtoException::class.java) {
+        val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.SUBJECT)
+        val idToken = createTestIdToken(claims)
+        val jwks = createTestJwks()
+        val exception = assertThrows(LogtoException::class.java) {
             Utils.verifyIdToken(idToken, testAudience, jwks)
         }
+        assertThat(exception).hasMessageThat().contains("No Subject")
     }
 
     @Test
     fun verifyIdTokenMissingExpirationTimeShouldThrow() {
-        val claims = JwtClaims().apply {
-            issuer = testIssuer
-            setAudience(testAudience)
-            setIssuedAtToNow()
-            setExpirationTimeMinutesInTheFuture(60F)
-            setGeneratedJwtId()
-        }
-        val idToken = generateIdToken(testRsaJsonWebKey, claims)
-        val jwks = createJwks(testRsaJsonWebKey)
-        assertThrows(LogtoException::class.java) {
+        val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.EXPIRATION_TIME)
+        val idToken = createTestIdToken(claims)
+        val jwks = createTestJwks()
+        val exception = assertThrows(LogtoException::class.java) {
             Utils.verifyIdToken(idToken, testAudience, jwks)
         }
+        assertThat(exception).hasMessageThat().contains("No Expiration Time")
     }
 
     @Test
     fun verifyIdTokenMissingIssuedAtShouldThrow() {
-        val claims = JwtClaims().apply {
-            issuer = testIssuer
-            setAudience(testAudience)
-            subject = testSubject
-            setExpirationTimeMinutesInTheFuture(60F)
-            setGeneratedJwtId()
-        }
-        val idToken = generateIdToken(testRsaJsonWebKey, claims)
-        val jwks = createJwks(testRsaJsonWebKey)
-        assertThrows(LogtoException::class.java) {
+        val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.ISSUED_AT)
+        val idToken = createTestIdToken(claims)
+        val jwks = createTestJwks()
+        val exception = assertThrows(LogtoException::class.java) {
             Utils.verifyIdToken(idToken, testAudience, jwks)
         }
+        assertThat(exception).hasMessageThat().contains("No Issued At")
     }
 
     @Test
     fun verifyIdTokenMissingAudienceShouldThrow() {
-        val claims = JwtClaims().apply {
-            issuer = testIssuer
-            subject = testSubject
-            setIssuedAtToNow()
-            setExpirationTimeMinutesInTheFuture(60F)
-            setGeneratedJwtId()
-        }
-        val idToken = generateIdToken(testRsaJsonWebKey, claims)
-        val jwks = createJwks(testRsaJsonWebKey)
-        assertThrows(LogtoException::class.java) {
+        val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.AUDIENCE)
+        val idToken = createTestIdToken(claims)
+        val jwks = createTestJwks()
+        val exception = assertThrows(LogtoException::class.java) {
             Utils.verifyIdToken(idToken, testAudience, jwks)
         }
+        assertThat(exception).hasMessageThat().contains("No Audience")
     }
 
-    private fun generateIdToken(rsaJsonWebKey: RsaJsonWebKey, claims: JwtClaims): String {
+    private fun createTestIdTokenClaims() = JwtClaims().apply {
+        issuer = testIssuer
+        setAudience(testAudience)
+        subject = testSubject
+        setIssuedAtToNow()
+        setExpirationTimeMinutesInTheFuture(60F)
+        setGeneratedJwtId()
+    }
+
+    private fun createTestIdTokenClaimsWithoutDistinctClaim(unsetClaimName: String) =
+        createTestIdTokenClaims().apply {
+            unsetClaim(unsetClaimName)
+        }
+
+    private fun createTestIdToken(claims: JwtClaims): String {
         val jws = JsonWebSignature()
         jws.payload = claims.toJson()
-        jws.key = rsaJsonWebKey.privateKey
-        jws.keyIdHeaderValue = rsaJsonWebKey.keyId
+        jws.key = testRsaJsonWebKey.privateKey
+        jws.keyIdHeaderValue = testRsaJsonWebKey.keyId
         jws.algorithmHeaderValue = AlgorithmIdentifiers.RSA_USING_SHA256
         return jws.compactSerialization
     }
 
-    private fun createJwks(jsonWebKey: JsonWebKey) = JsonWebKeySet().apply {
-        addJsonWebKey(jsonWebKey)
+    private fun createTestJwks() = JsonWebKeySet().apply {
+        addJsonWebKey(testRsaJsonWebKey)
     }
 }
