@@ -7,6 +7,10 @@ import io.logto.android.client.LogtoApiClient
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.QueryKey
 import io.logto.android.exception.LogtoException
+import io.logto.android.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
+import io.logto.android.exception.LogtoException.Companion.INVALID_REDIRECT_URI
+import io.logto.android.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
+import io.logto.android.exception.LogtoException.Companion.SIGN_IN_FAILED
 import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
 import io.logto.android.utils.Utils
@@ -111,7 +115,7 @@ class BrowserSignInFlowTest {
         verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
             .hasMessageThat()
-            .contains(LogtoException.EMPTY_REDIRECT_URI)
+            .isEqualTo("$SIGN_IN_FAILED: $EMPTY_REDIRECT_URI")
         assertThat(tokenSetCaptor.firstValue).isNull()
     }
 
@@ -124,7 +128,7 @@ class BrowserSignInFlowTest {
         verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
             .hasMessageThat()
-            .contains("mocked sign in error description")
+            .isEqualTo("$SIGN_IN_FAILED: mocked sign in error description")
         assertThat(tokenSetCaptor.firstValue).isNull()
     }
 
@@ -136,7 +140,7 @@ class BrowserSignInFlowTest {
         verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
             .hasMessageThat()
-            .contains("mocked sign in error")
+            .isEqualTo("$SIGN_IN_FAILED: mocked sign in error")
         assertThat(tokenSetCaptor.firstValue).isNull()
     }
 
@@ -147,7 +151,7 @@ class BrowserSignInFlowTest {
         verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
             .hasMessageThat()
-            .contains(LogtoException.INVALID_REDIRECT_URI)
+            .isEqualTo("$SIGN_IN_FAILED: $INVALID_REDIRECT_URI")
         assertThat(tokenSetCaptor.firstValue).isNull()
     }
 
@@ -158,7 +162,7 @@ class BrowserSignInFlowTest {
         verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
             .hasMessageThat()
-            .contains(LogtoException.MISSING_AUTHORIZATION_CODE)
+            .isEqualTo("$SIGN_IN_FAILED: $MISSING_AUTHORIZATION_CODE")
         assertThat(tokenSetCaptor.firstValue).isNull()
     }
 
@@ -171,7 +175,7 @@ class BrowserSignInFlowTest {
         verify(onComplete).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
             .hasMessageThat()
-            .contains(LogtoException.MISSING_AUTHORIZATION_CODE)
+            .isEqualTo("$SIGN_IN_FAILED: $MISSING_AUTHORIZATION_CODE")
         assertThat(tokenSetCaptor.firstValue).isNull()
     }
 

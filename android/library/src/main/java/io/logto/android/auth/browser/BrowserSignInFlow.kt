@@ -16,7 +16,6 @@ import io.logto.android.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
 import io.logto.android.exception.LogtoException.Companion.INVALID_REDIRECT_URI
 import io.logto.android.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
 import io.logto.android.exception.LogtoException.Companion.SIGN_IN_FAILED
-import io.logto.android.exception.LogtoException.Companion.SIGN_OUT_FAILED
 import io.logto.android.model.OidcConfiguration
 import io.logto.android.model.TokenSet
 import io.logto.android.pkce.Pkce
@@ -76,7 +75,7 @@ class BrowserSignInFlow(
     @Suppress("ThrowsCount")
     private fun validateRedirectUri(uri: Uri) {
         if (uri.toString().isEmpty()) {
-            throw LogtoException("$SIGN_OUT_FAILED: $EMPTY_REDIRECT_URI")
+            throw LogtoException("$SIGN_IN_FAILED: $EMPTY_REDIRECT_URI")
         }
 
         val errorDescription = uri.getQueryParameter(QueryKey.ERROR_DESCRIPTION)

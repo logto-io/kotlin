@@ -7,6 +7,9 @@ import io.logto.android.client.LogtoApiClient
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.QueryKey
 import io.logto.android.exception.LogtoException
+import io.logto.android.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
+import io.logto.android.exception.LogtoException.Companion.INVALID_REDIRECT_URI
+import io.logto.android.exception.LogtoException.Companion.SIGN_OUT_FAILED
 import io.logto.android.model.OidcConfiguration
 import io.logto.android.utils.Utils
 import kotlinx.coroutines.Dispatchers
@@ -107,7 +110,7 @@ class BrowserSignOutFlowTest {
         browserSignOutFlow.onResult(invalidUri)
         verify(onComplete).invoke(logtoExceptionCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
-            .contains(LogtoException.EMPTY_REDIRECT_URI)
+            .isEqualTo("$SIGN_OUT_FAILED: $EMPTY_REDIRECT_URI")
     }
 
     @Test
@@ -121,7 +124,7 @@ class BrowserSignOutFlowTest {
         browserSignOutFlow.onResult(invalidUri)
         verify(onComplete).invoke(logtoExceptionCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
-            .contains("mocked sign out error description")
+            .isEqualTo("$SIGN_OUT_FAILED: mocked sign out error description")
     }
 
     @Test
@@ -135,7 +138,7 @@ class BrowserSignOutFlowTest {
         browserSignOutFlow.onResult(invalidUri)
         verify(onComplete).invoke(logtoExceptionCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
-            .contains("mocked sign out error")
+            .isEqualTo("$SIGN_OUT_FAILED: mocked sign out error")
     }
 
     @Test
@@ -144,7 +147,7 @@ class BrowserSignOutFlowTest {
         browserSignOutFlow.onResult(invalidUri)
         verify(onComplete).invoke(logtoExceptionCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
-            .contains(LogtoException.INVALID_REDIRECT_URI)
+            .isEqualTo("$SIGN_OUT_FAILED: $INVALID_REDIRECT_URI")
     }
 
     @Test
