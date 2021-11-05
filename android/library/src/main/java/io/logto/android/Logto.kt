@@ -11,18 +11,31 @@ import io.logto.android.config.LogtoConfig
 import io.logto.android.exception.LogtoException
 import io.logto.android.model.TokenSet
 import io.logto.android.storage.TokenSetStorage
-import io.logto.android.utils.Utils
+import org.jose4j.jwt.JwtClaims
 
 class Logto(
     private val logtoConfig: LogtoConfig,
     application: Application,
     useStorage: Boolean = true,
 ) {
-    val tokenSet: TokenSet?
-        get() = tokenSetStorage?.tokenSet ?: tokenSetCache
+    fun isAuthenticated(): Boolean = tokenSet != null
 
-    val isAuthenticated: Boolean
-        get() = tokenSet != null
+    fun getAccessToken(block: (accessToken: String) -> Unit) {
+        val cachedTokenSet = tokenSet ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
+        if (!cachedTokenSet.isExpired()) {
+            block(cachedTokenSet.accessToken)
+            return
+        }
+
+        refreshTokenSet { newTokenSet ->
+            block(newTokenSet.accessToken)
+        }
+    }
+
+    fun getIdTokenClaims(): JwtClaims {
+        return tokenSet?.getIdTokenClaims()
+            ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
+    }
 
     fun signInWithBrowser(
         context: Context,
@@ -64,25 +77,11 @@ class Logto(
         )
     } ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
 
-    fun getAccessToken(block: (accessToken: String) -> Unit) {
-        val currentTokenSet = tokenSet ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
-
-        if (Utils.nowRoundToSec() < accessTokenExpiresAt) {
-            block(currentTokenSet.accessToken)
-            return
-        }
-
-        refreshTokenSet {
-            block(it.accessToken)
-        }
-    }
-
     fun refreshTokenSet(
         block: (tokenSet: TokenSet) -> Unit,
     ) {
-        val currentTokenSet = tokenSet ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
-
-        val refreshToken = currentTokenSet.refreshToken
+        val cachedTokenSet = tokenSet ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
+        val refreshToken = cachedTokenSet.refreshToken
             ?: throw LogtoException(LogtoException.REFRESH_TOKEN_IS_NOT_SUPPORTED)
 
         logtoApiClient.grantTokenByRefreshToken(
@@ -100,22 +99,11 @@ class Logto(
     private val tokenSetStorageSharedPreferencesName =
         "$STORAGE_SHAREDPREFERENCES_NAME_PREFIX::${logtoConfig.cacheKey}"
 
-    private var tokenSetCache: TokenSet? = null
-        set(value) {
-            if (value != null) {
-                field = value
-                accessTokenExpiresAt = Utils.expiresAtFromNow(value.expiresIn)
-            } else {
-                field = null
-                accessTokenExpiresAt = 0L
-            }
-        }
+    private var tokenSet: TokenSet? = null
 
-    private var accessTokenExpiresAt: Long = 0L
-
-    private fun updateTokenSet(tokenSet: TokenSet?) {
-        tokenSetCache = tokenSet
-        tokenSetStorage?.tokenSet = tokenSet
+    private fun updateTokenSet(updatedTokenSet: TokenSet?) {
+        tokenSet = updatedTokenSet
+        tokenSetStorage?.tokenSet = updatedTokenSet
     }
 
     private val logtoApiClient = LogtoApiClient(logtoConfig.domain, LogtoService())
@@ -126,7 +114,9 @@ class Logto(
 
     init {
         if (useStorage) {
-            tokenSetStorage = TokenSetStorage(application, tokenSetStorageSharedPreferencesName)
+            val storage = TokenSetStorage(application, tokenSetStorageSharedPreferencesName)
+            tokenSetStorage = storage
+            tokenSet = storage.tokenSet
         }
     }
 }
