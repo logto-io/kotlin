@@ -12,6 +12,7 @@ import io.logto.android.exception.LogtoException
 import io.logto.android.model.TokenSet
 import io.logto.android.storage.TokenSetStorage
 import io.logto.android.utils.Utils
+import org.jose4j.jwt.JwtClaims
 
 class Logto(
     private val logtoConfig: LogtoConfig,
@@ -30,6 +31,11 @@ class Logto(
         refreshTokenSet { newTokenSet ->
             block(newTokenSet.accessToken)
         }
+    }
+
+    fun getIdTokenClaims(): JwtClaims {
+        return tokenSet?.getIdTokenClaims()
+            ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
     }
 
     fun signInWithBrowser(

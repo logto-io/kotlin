@@ -7,6 +7,7 @@ import org.jose4j.jwk.RsaJwkGenerator
 import org.jose4j.jws.AlgorithmIdentifiers
 import org.jose4j.jws.JsonWebSignature
 import org.jose4j.jwt.JwtClaims
+import org.jose4j.jwt.NumericDate
 import org.jose4j.jwt.ReservedClaimNames
 import org.junit.Assert.assertThrows
 import org.junit.Test
@@ -102,6 +103,44 @@ class UtilsTest {
             Utils.verifyIdToken(idToken, testAudience, jwks)
         }
         assertThat(exception).hasMessageThat().contains("No Audience")
+    }
+
+    @Test
+    fun decodeToken() {
+        val testIssueAt = NumericDate.now()
+        val testExpirationTime = NumericDate.fromSeconds(testIssueAt.value + 60L)
+        val expectedTokenClaims = JwtClaims().apply {
+            issuer = testIssuer
+            setAudience(testAudience)
+            subject = testSubject
+            issuedAt = testIssueAt
+            expirationTime = testExpirationTime
+        }
+        val testToken = createTestIdToken(expectedTokenClaims)
+        val decodedTestToken = Utils.decodeToken(testToken)
+        assertThat(decodedTestToken.issuer).isEqualTo(testIssuer)
+        assertThat(decodedTestToken.audience).contains(testAudience)
+        assertThat(decodedTestToken.subject).isEqualTo(testSubject)
+        assertThat(decodedTestToken.issuedAt).isEqualTo(testIssueAt)
+        assertThat(decodedTestToken.expirationTime).isEqualTo(testExpirationTime)
+    }
+
+    @Test
+    fun decodeTokenShouldThrowWithInvalidTokenFormat() {
+        val invalidToken = "invalidToken"
+        val expectedException = assertThrows(LogtoException::class.java) {
+            Utils.decodeToken(invalidToken)
+        }
+        assertThat(expectedException).hasMessageThat().isEqualTo(LogtoException.INVALID_JWT)
+    }
+
+    @Test
+    fun decodeTokenShouldThrowWithInvalideTokenPayloadSection() {
+        val invalidToken = "invalidToken.invalidSection"
+        val expectedException = assertThrows(LogtoException::class.java) {
+            Utils.decodeToken(invalidToken)
+        }
+        assertThat(expectedException).hasMessageThat().contains("Invalid JSON")
     }
 
     private fun createTestIdTokenClaims() = JwtClaims().apply {
