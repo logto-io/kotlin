@@ -22,7 +22,7 @@ class Logto(
 
     fun getAccessToken(block: (accessToken: String) -> Unit) {
         val cachedTokenSet = tokenSet ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
-        if (!cachedTokenSet.expired) {
+        if (!cachedTokenSet.isExpired()) {
             block(cachedTokenSet.accessToken)
             return
         }

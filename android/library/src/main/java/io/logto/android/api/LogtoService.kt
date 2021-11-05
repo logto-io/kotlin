@@ -18,7 +18,7 @@ import io.logto.android.constant.GrantType
 import io.logto.android.constant.QueryKey
 import io.logto.android.exception.LogtoException
 import io.logto.android.model.OidcConfiguration
-import io.logto.android.model.TokenSetParameters
+import io.logto.android.model.TokenSet
 
 class LogtoService {
 
@@ -38,7 +38,7 @@ class LogtoService {
         redirectUri: String,
         code: String,
         codeVerifier: String,
-    ): TokenSetParameters = httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
+    ): TokenSet = httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
         headers {
             contentType(ContentType.Application.FormUrlEncoded)
         }
@@ -56,7 +56,7 @@ class LogtoService {
         clientId: String,
         redirectUri: String,
         refreshToken: String,
-    ): TokenSetParameters = httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
+    ): TokenSet = httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
         headers {
             contentType(ContentType.Application.FormUrlEncoded)
         }
