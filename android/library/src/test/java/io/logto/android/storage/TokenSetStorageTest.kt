@@ -6,6 +6,7 @@ import com.google.common.truth.Truth.assertThat
 import io.logto.android.config.LogtoConfig
 import io.logto.android.constant.ScopeValue
 import io.logto.android.model.TokenSet
+import io.logto.android.model.TokenSetParameters
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -22,14 +23,14 @@ class TokenSetStorageTest {
         postLogoutRedirectUri = "postLogoutRedirectUri",
     )
 
-    private val testTokenSet = TokenSet(
+    private val testTokenSet = TokenSet(TokenSetParameters(
         accessToken = "accessToken",
-        expiresIn = 60L,
         refreshToken = "refreshToken",
         idToken = "idToken",
         scope = "offline_access openid",
-        tokenType = "Bearer"
-    )
+        tokenType = "Bearer",
+        expiresIn = 60L
+    ))
 
     private val sharedPreferencesName = "io.logto.android::${logtoConfig.cacheKey}"
 

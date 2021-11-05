@@ -11,7 +11,6 @@ import io.logto.android.config.LogtoConfig
 import io.logto.android.exception.LogtoException
 import io.logto.android.model.TokenSet
 import io.logto.android.storage.TokenSetStorage
-import io.logto.android.utils.Utils
 import org.jose4j.jwt.JwtClaims
 
 class Logto(
@@ -23,7 +22,7 @@ class Logto(
 
     fun getAccessToken(block: (accessToken: String) -> Unit) {
         val cachedTokenSet = tokenSet ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
-        if (Utils.nowRoundToSec() < accessTokenExpiresAt) {
+        if (!cachedTokenSet.expired) {
             block(cachedTokenSet.accessToken)
             return
         }
@@ -102,16 +101,9 @@ class Logto(
 
     private var tokenSet: TokenSet? = null
 
-    private var accessTokenExpiresAt: Long = 0L
-
     private fun updateTokenSet(updatedTokenSet: TokenSet?) {
         tokenSet = updatedTokenSet
         tokenSetStorage?.tokenSet = updatedTokenSet
-        if (updatedTokenSet == null) {
-            accessTokenExpiresAt = 0L
-        } else {
-            accessTokenExpiresAt = Utils.expiresAtFromNow(updatedTokenSet.expiresIn)
-        }
     }
 
     private val logtoApiClient = LogtoApiClient(logtoConfig.domain, LogtoService())
@@ -124,7 +116,7 @@ class Logto(
         if (useStorage) {
             val storage = TokenSetStorage(application, tokenSetStorageSharedPreferencesName)
             tokenSetStorage = storage
-            updateTokenSet(storage.tokenSet)
+            tokenSet = storage.tokenSet
         }
     }
 }

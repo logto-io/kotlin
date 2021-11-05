@@ -21,13 +21,14 @@ class LogtoApiClient(
     ) = MainScope().launch {
         val oidcConfiguration = getOidcConfig()
         val jwks = getJsonWebKeySet()
-        val tokenSet = logtoService.grantTokenByAuthorizationCode(
+        val tokenSetParameters = logtoService.grantTokenByAuthorizationCode(
             tokenEndpoint = oidcConfiguration.tokenEndpoint,
             clientId = clientId,
             redirectUri = redirectUri,
             code = code,
             codeVerifier = codeVerifier
-        ).apply {
+        )
+        val tokenSet = TokenSet(tokenSetParameters).apply {
             validateIdToken(clientId, jwks)
         }
         block(tokenSet)
@@ -41,12 +42,13 @@ class LogtoApiClient(
     ) = MainScope().launch {
         val oidcConfiguration = getOidcConfig()
         val jwks = getJsonWebKeySet()
-        val tokenSet = logtoService.grantTokenByRefreshToken(
+        val tokenSetParameters = logtoService.grantTokenByRefreshToken(
             tokenEndpoint = oidcConfiguration.tokenEndpoint,
             clientId = clientId,
             redirectUri = redirectUri,
             refreshToken = refreshToken,
-        ).apply {
+        )
+        val tokenSet = TokenSet(tokenSetParameters).apply {
             validateIdToken(clientId, jwks)
         }
         block(tokenSet)
