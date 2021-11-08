@@ -5,12 +5,12 @@ import android.net.Uri
 import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
 import io.logto.android.client.LogtoApiClient
-import io.logto.android.config.LogtoConfig
-import io.logto.android.constant.QueryKey
-import io.logto.android.exception.LogtoException
-import io.logto.android.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
-import io.logto.android.exception.LogtoException.Companion.INVALID_REDIRECT_URI
-import io.logto.android.exception.LogtoException.Companion.SIGN_OUT_FAILED
+import io.logto.client.config.LogtoConfig
+import io.logto.client.constant.QueryKey
+import io.logto.client.exception.LogtoException
+import io.logto.client.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
+import io.logto.client.exception.LogtoException.Companion.INVALID_REDIRECT_URI
+import io.logto.client.exception.LogtoException.Companion.SIGN_OUT_FAILED
 import io.logto.android.utils.Utils
 
 class BrowserSignOutFlow(

@@ -1,8 +1,8 @@
 package io.logto.android.client
 
-import io.logto.android.api.LogtoService
-import io.logto.android.model.OidcConfiguration
-import io.logto.android.model.TokenSet
+import io.logto.client.service.LogtoService
+import io.logto.client.model.OidcConfiguration
+import io.logto.client.model.TokenSet
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch

@@ -2,14 +2,17 @@ package io.logto.android
 
 import android.app.Application
 import android.content.Context
-import io.logto.android.api.LogtoService
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.features.logging.Logging
+import io.logto.client.service.LogtoService
 import io.logto.android.auth.AuthManager
 import io.logto.android.auth.browser.BrowserSignInFlow
 import io.logto.android.auth.browser.BrowserSignOutFlow
 import io.logto.android.client.LogtoApiClient
-import io.logto.android.config.LogtoConfig
-import io.logto.android.exception.LogtoException
-import io.logto.android.model.TokenSet
+import io.logto.client.config.LogtoConfig
+import io.logto.client.exception.LogtoException
+import io.logto.client.model.TokenSet
 import io.logto.android.storage.TokenSetStorage
 import org.jose4j.jwt.JwtClaims
 
@@ -106,7 +109,9 @@ class Logto(
         tokenSetStorage?.tokenSet = updatedTokenSet
     }
 
-    private val logtoApiClient = LogtoApiClient(logtoConfig.domain, LogtoService())
+    private val logtoApiClient = LogtoApiClient(logtoConfig.domain, LogtoService(HttpClient(Android) {
+        install(Logging)
+    }))
 
     private companion object {
         private const val STORAGE_SHAREDPREFERENCES_NAME_PREFIX = "io.logto.android"

@@ -1,7 +1,7 @@
-package io.logto.android.config
+package io.logto.client.config
 
 import com.google.common.truth.Truth.assertThat
-import io.logto.android.constant.ScopeValue
+import io.logto.client.constant.ScopeValue
 import org.junit.Assert.assertThrows
 import org.junit.Test
 

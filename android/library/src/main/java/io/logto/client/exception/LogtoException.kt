@@ -1,4 +1,4 @@
-package io.logto.android.exception
+package io.logto.client.exception
 
 class LogtoException(
     message: String,

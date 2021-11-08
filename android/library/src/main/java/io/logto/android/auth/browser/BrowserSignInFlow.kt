@@ -5,33 +5,33 @@ import android.net.Uri
 import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
 import io.logto.android.client.LogtoApiClient
-import io.logto.android.config.LogtoConfig
-import io.logto.android.constant.CodeChallengeMethod
-import io.logto.android.constant.PromptValue
-import io.logto.android.constant.QueryKey
-import io.logto.android.constant.ResourceValue
-import io.logto.android.constant.ResponseType
-import io.logto.android.exception.LogtoException
-import io.logto.android.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
-import io.logto.android.exception.LogtoException.Companion.INVALID_REDIRECT_URI
-import io.logto.android.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
-import io.logto.android.exception.LogtoException.Companion.SIGN_IN_FAILED
-import io.logto.android.model.OidcConfiguration
-import io.logto.android.model.TokenSet
-import io.logto.android.pkce.Pkce
+import io.logto.client.config.LogtoConfig
+import io.logto.client.constant.CodeChallengeMethod
+import io.logto.client.constant.PromptValue
+import io.logto.client.constant.QueryKey
+import io.logto.client.constant.ResourceValue
+import io.logto.client.constant.ResponseType
+import io.logto.client.exception.LogtoException
+import io.logto.client.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
+import io.logto.client.exception.LogtoException.Companion.INVALID_REDIRECT_URI
+import io.logto.client.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
+import io.logto.client.exception.LogtoException.Companion.SIGN_IN_FAILED
+import io.logto.client.model.OidcConfiguration
+import io.logto.client.model.TokenSet
 import io.logto.android.utils.Utils
+import io.logto.client.utils.PkceUtils
 
 class BrowserSignInFlow(
     private val logtoConfig: LogtoConfig,
     private val logtoApiClient: LogtoApiClient,
     private val onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
 ) : IFlow {
-    private val codeVerifier: String = Pkce.generateCodeVerifier()
+    private val codeVerifier: String = PkceUtils.generateCodeVerifier()
 
     override fun start(context: Context) {
         try {
             logtoApiClient.discover { oidcConfiguration ->
-                val codeChallenge = Pkce.generateCodeChallenge(codeVerifier)
+                val codeChallenge = PkceUtils.generateCodeChallenge(codeVerifier)
                 val intent = AuthorizationActivity.createHandleStartIntent(
                     context = context,
                     endpoint = generateAuthUrl(oidcConfiguration, codeChallenge),

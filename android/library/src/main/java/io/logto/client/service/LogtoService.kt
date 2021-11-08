@@ -1,12 +1,10 @@
-package io.logto.android.api
+package io.logto.client.service
 
 import com.google.gson.FieldNamingPolicy
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
 import io.ktor.client.features.ResponseException
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.logging.Logging
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -14,23 +12,13 @@ import io.ktor.client.request.post
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.formUrlEncode
-import io.logto.android.constant.GrantType
-import io.logto.android.constant.QueryKey
-import io.logto.android.exception.LogtoException
-import io.logto.android.model.OidcConfiguration
-import io.logto.android.model.TokenSet
+import io.logto.client.constant.GrantType
+import io.logto.client.constant.QueryKey
+import io.logto.client.exception.LogtoException
+import io.logto.client.model.OidcConfiguration
+import io.logto.client.model.TokenSet
 
-class LogtoService {
-
-    private val httpClient = HttpClient(Android) {
-        followRedirects = false
-        install(Logging)
-        install(JsonFeature) {
-            serializer = GsonSerializer() {
-                setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-            }
-        }
-    }
+class LogtoService(private val httpClient: HttpClient) {
 
     suspend fun grantTokenByAuthorizationCode(
         tokenEndpoint: String,
@@ -92,12 +80,23 @@ class LogtoService {
     private suspend inline fun <reified T> httpPost(
         urlString: String,
         exceptLogtoExceptionDesc: String,
-        block: HttpRequestBuilder.() -> Unit
+        block: HttpRequestBuilder.() -> Unit,
     ): T {
         try {
             return httpClient.post(urlString, block)
         } catch (exception: ResponseException) {
             throw LogtoException(exceptLogtoExceptionDesc, exception)
+        }
+    }
+
+    init {
+        httpClient.config {
+            followRedirects = false
+            install(JsonFeature) {
+                serializer = GsonSerializer() {
+                    setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                }
+            }
         }
     }
 }

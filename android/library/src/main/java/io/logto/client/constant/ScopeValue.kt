@@ -1,4 +1,4 @@
-package io.logto.android.constant
+package io.logto.client.constant
 
 object ScopeValue {
     const val OPEN_ID = "openid"

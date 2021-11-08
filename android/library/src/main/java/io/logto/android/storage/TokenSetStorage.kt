@@ -2,8 +2,8 @@ package io.logto.android.storage
 
 import android.content.Context
 import com.google.gson.Gson
-import io.logto.android.constant.StorageKey
-import io.logto.android.model.TokenSet
+import io.logto.client.constant.StorageKey
+import io.logto.client.model.TokenSet
 
 class TokenSetStorage(
     context: Context,
