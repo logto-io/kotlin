@@ -36,15 +36,15 @@ class BrowserSignInFlow(
         }
     }
 
-    override fun onResult(callbackUri: Uri) {
+    override fun handleRedirectUri(redirectUri: Uri) {
         try {
-            validateRedirectUri(callbackUri)
+            validateRedirectUri(redirectUri)
         } catch (exceptionOnValidate: LogtoException) {
             onComplete(exceptionOnValidate, null)
             return
         }
 
-        val authorizationCode = callbackUri.getQueryParameter(QueryKey.CODE)
+        val authorizationCode = redirectUri.getQueryParameter(QueryKey.CODE)
         if (authorizationCode.isNullOrEmpty()) {
             onComplete(LogtoException("$SIGN_IN_FAILED: $MISSING_AUTHORIZATION_CODE"), null)
             return

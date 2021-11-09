@@ -33,9 +33,9 @@ class BrowserSignOutFlow(
         }
     }
 
-    override fun onResult(callbackUri: Uri) {
+    override fun handleRedirectUri(redirectUri: Uri) {
         try {
-            validatePostLogoutRedirectUri(callbackUri)
+            validatePostLogoutRedirectUri(redirectUri)
             onComplete(null)
         } catch (exceptionOnValidate: LogtoException) {
             onComplete(exceptionOnValidate)

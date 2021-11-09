@@ -11,8 +11,8 @@ object AuthManager {
         flow.start(context)
     }
 
-    fun onResult(data: Uri) {
-        currentFlow?.onResult(data)
+    fun handleRedirectUri(redirectUri: Uri) {
+        currentFlow?.handleRedirectUri(redirectUri)
     }
 
     fun reset() {

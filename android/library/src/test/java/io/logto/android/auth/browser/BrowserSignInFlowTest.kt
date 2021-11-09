@@ -114,10 +114,10 @@ class BrowserSignInFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithEmptyUri() {
+    fun handleRedirectUriShouldCompleteWithLogtoExceptionWithEmptyUri() {
         val emptyUri = Uri.parse("")
 
-        browserSignInFlow.onResult(emptyUri)
+        browserSignInFlow.handleRedirectUri(emptyUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
@@ -127,12 +127,12 @@ class BrowserSignInFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsErrorDescription() {
+    fun handleRedirectUriShouldCompleteWithLogtoExceptionWithUriContainsErrorDescription() {
         val invalidUri: Uri = mock()
         `when`(invalidUri.getQueryParameter(eq(QueryKey.ERROR_DESCRIPTION)))
             .thenReturn("mocked sign in error description")
 
-        browserSignInFlow.onResult(invalidUri)
+        browserSignInFlow.handleRedirectUri(invalidUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
@@ -142,11 +142,11 @@ class BrowserSignInFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsError() {
+    fun handleRedirectUriShouldCompleteWithLogtoExceptionWithUriContainsError() {
         val invalidUri: Uri = mock()
         `when`(invalidUri.getQueryParameter(eq(QueryKey.ERROR))).thenReturn("mocked sign in error")
 
-        browserSignInFlow.onResult(invalidUri)
+        browserSignInFlow.handleRedirectUri(invalidUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
@@ -156,10 +156,10 @@ class BrowserSignInFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsInvalidRedirectUri() {
+    fun handleRedirectUriShouldCompleteWithLogtoExceptionWithUriContainsInvalidRedirectUri() {
         val invalidUri = Uri.parse("invalidRedirectUri")
 
-        browserSignInFlow.onResult(invalidUri)
+        browserSignInFlow.handleRedirectUri(invalidUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
@@ -169,10 +169,10 @@ class BrowserSignInFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithUriWithoutAuthCode() {
+    fun handleRedirectUriShouldCompleteWithLogtoExceptionWithUriWithoutAuthCode() {
         val invalidUri = Uri.parse(logtoConfigMock.redirectUri)
 
-        browserSignInFlow.onResult(invalidUri)
+        browserSignInFlow.handleRedirectUri(invalidUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
@@ -182,12 +182,12 @@ class BrowserSignInFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsEmptyAuthCode() {
+    fun handleRedirectUriShouldCompleteWithLogtoExceptionWithUriContainsEmptyAuthCode() {
         val invalidUri = Utils.buildUriWithQueries(logtoConfigMock.redirectUri, mapOf(
             QueryKey.CODE to ""
         ))
 
-        browserSignInFlow.onResult(invalidUri)
+        browserSignInFlow.handleRedirectUri(invalidUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue)
@@ -198,7 +198,7 @@ class BrowserSignInFlowTest {
 
     @Test
     @Suppress("UNCHECKED_CAST")
-    fun onResultShouldCompleteWithTokenSetWithValidUri() {
+    fun handleRedirectUriShouldCompleteWithTokenSetWithValidUri() {
         val tokenSet: TokenSet = mock()
         doAnswer {
             val block = it.arguments[2] as (TokenSet) -> Unit
@@ -213,7 +213,7 @@ class BrowserSignInFlowTest {
             QueryKey.CODE to "authorizationCode"
         ))
 
-        browserSignInFlow.onResult(validUri)
+        browserSignInFlow.handleRedirectUri(validUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).isNull()
@@ -221,7 +221,7 @@ class BrowserSignInFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionOnGrantTokenByAuthorizationCodeFailed() {
+    fun handleRedirectUriShouldCompleteWithLogtoExceptionOnGrantTokenByAuthorizationCodeFailed() {
         val validUri = Utils.buildUriWithQueries(logtoConfigMock.redirectUri, mapOf(
             QueryKey.CODE to "authorizationCode"
         ))
@@ -233,7 +233,7 @@ class BrowserSignInFlowTest {
             anyString(),
             anyOrNull(),
         )
-        browserSignInFlow.onResult(validUri)
+        browserSignInFlow.handleRedirectUri(validUri)
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).isEqualTo(mockLogtoException)
         assertThat(tokenSetCaptor.firstValue).isNull()

@@ -109,10 +109,10 @@ class BrowserSignOutFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithEmptyUri() {
+    fun handleRedirectUriShouldCompleteWithLogtoExceptionWithEmptyUri() {
         val invalidUri: Uri = Uri.parse("")
 
-        browserSignOutFlow.onResult(invalidUri)
+        browserSignOutFlow.handleRedirectUri(invalidUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
@@ -120,7 +120,7 @@ class BrowserSignOutFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsErrorDescription() {
+    fun handleRedirectUriShouldCompleteWithLogtoExceptionWithUriContainsErrorDescription() {
         val invalidUri: Uri = Utils.buildUriWithQueries(
             logtoConfigMock.postLogoutRedirectUri,
             mapOf(
@@ -128,7 +128,7 @@ class BrowserSignOutFlowTest {
             )
         )
 
-        browserSignOutFlow.onResult(invalidUri)
+        browserSignOutFlow.handleRedirectUri(invalidUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
@@ -136,7 +136,7 @@ class BrowserSignOutFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsError() {
+    fun handleRedirectUriShouldCompleteWithLogtoExceptionWithUriContainsError() {
         val invalidUri: Uri = Utils.buildUriWithQueries(
             logtoConfigMock.postLogoutRedirectUri,
             mapOf(
@@ -144,7 +144,7 @@ class BrowserSignOutFlowTest {
             )
         )
 
-        browserSignOutFlow.onResult(invalidUri)
+        browserSignOutFlow.handleRedirectUri(invalidUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
@@ -152,10 +152,10 @@ class BrowserSignOutFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithLogtoExceptionWithUriContainsInvalidRedirectUri() {
+    fun handleRedirectUriShouldCompleteWithLogtoExceptionWithUriContainsInvalidRedirectUri() {
         val invalidUri: Uri = Uri.parse("invalidRedirectUri")
 
-        browserSignOutFlow.onResult(invalidUri)
+        browserSignOutFlow.handleRedirectUri(invalidUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
@@ -163,10 +163,10 @@ class BrowserSignOutFlowTest {
     }
 
     @Test
-    fun onResultShouldCompleteWithoutLogtoExceptionWithValidUri() {
+    fun handleRedirectUrlShouldCompleteWithoutLogtoExceptionWithValidUri() {
         val validUri = Uri.parse(logtoConfigMock.postLogoutRedirectUri)
 
-        browserSignOutFlow.onResult(validUri)
+        browserSignOutFlow.handleRedirectUri(validUri)
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).isNull()

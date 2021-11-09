@@ -22,18 +22,18 @@ class AuthManagerTest {
         assertThat(AuthManager.currentFlow).isEqualTo(testFlow)
         verify(testFlow).start(context)
 
-        AuthManager.onResult(testUriData)
-        verify(testFlow).onResult(testUriData)
+        AuthManager.handleRedirectUri(testUriData)
+        verify(testFlow).handleRedirectUri(testUriData)
 
         AuthManager.reset()
         assertThat(AuthManager.currentFlow).isEqualTo(null)
     }
 
     @Test
-    fun authManagerOnResult() {
+    fun authManagerHandleRedirectUri() {
         AuthManager.start(context, testFlow)
-        AuthManager.onResult(testUriData)
-        verify(testFlow).onResult(testUriData)
+        AuthManager.handleRedirectUri(testUriData)
+        verify(testFlow).handleRedirectUri(testUriData)
     }
 
     @Test
