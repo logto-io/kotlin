@@ -10,6 +10,7 @@ import io.logto.client.constant.ResponseType
 import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
 import io.logto.client.service.LogtoService
+import org.jose4j.jwk.JsonWebKeySet
 
 open class LogtoClient(
     val logtoConfig: LogtoConfig,
@@ -70,6 +71,8 @@ open class LogtoClient(
         refreshToken = refreshToken
     )
 
-    suspend fun fetchJwks(oidcConfiguration: OidcConfiguration): String =
-        logtoService.fetchJwks(oidcConfiguration.jwksUri)
+    suspend fun fetchJwks(oidcConfiguration: OidcConfiguration): JsonWebKeySet {
+        val jsonWebKeySetString = logtoService.fetchJwks(oidcConfiguration.jwksUri)
+        return JsonWebKeySet(jsonWebKeySetString)
+    }
 }

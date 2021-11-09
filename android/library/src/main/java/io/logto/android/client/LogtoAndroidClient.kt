@@ -14,6 +14,13 @@ class LogtoAndroidClient(
     logtoConfig: LogtoConfig,
     logtoService: LogtoService,
 ) : LogtoClient(logtoConfig, logtoService) {
+
+    fun getOidcConfiguration(
+        block: (oidcConfiguration: OidcConfiguration) -> Unit
+    ) = MainScope().launch {
+        block(getOidcConfiguration())
+    }
+
     fun grantTokenByAuthorizationCode(
         authorizationCode: String,
         codeVerifier: String,
@@ -46,13 +53,7 @@ class LogtoAndroidClient(
         block(tokenSet)
     }
 
-    fun getOidcConfiguration(
-        block: (oidcConfiguration: OidcConfiguration) -> Unit
-    ) = MainScope().launch {
-        block(getOidcConfiguration())
-    }
-
-    private suspend fun getOidcConfiguration(): OidcConfiguration = coroutineScope {
+    internal suspend fun getOidcConfiguration(): OidcConfiguration = coroutineScope {
         oidcConfigCache?.let {
             return@coroutineScope it
         }
@@ -61,13 +62,12 @@ class LogtoAndroidClient(
         return@coroutineScope oidcConfiguration
     }
 
-    private suspend fun getJsonWebKeySet(): JsonWebKeySet = coroutineScope {
+    internal suspend fun getJsonWebKeySet(): JsonWebKeySet = coroutineScope {
         jsonWebKeySetCache?.let {
             return@coroutineScope it
         }
         val oidcConfiguration = getOidcConfiguration()
-        val jsonWebKeySetString = fetchJwks(oidcConfiguration)
-        val fetchedJsonWebKeySet = JsonWebKeySet(jsonWebKeySetString)
+        val fetchedJsonWebKeySet = fetchJwks(oidcConfiguration)
         jsonWebKeySetCache = fetchedJsonWebKeySet
         return@coroutineScope fetchedJsonWebKeySet
     }
