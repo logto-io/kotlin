@@ -4,38 +4,30 @@ import android.content.Context
 import android.net.Uri
 import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
-import io.logto.android.client.LogtoApiClient
-import io.logto.client.config.LogtoConfig
-import io.logto.client.constant.CodeChallengeMethod
-import io.logto.client.constant.PromptValue
+import io.logto.android.client.LogtoAndroidClient
 import io.logto.client.constant.QueryKey
-import io.logto.client.constant.ResourceValue
-import io.logto.client.constant.ResponseType
 import io.logto.client.exception.LogtoException
 import io.logto.client.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
 import io.logto.client.exception.LogtoException.Companion.INVALID_REDIRECT_URI
 import io.logto.client.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
 import io.logto.client.exception.LogtoException.Companion.SIGN_IN_FAILED
-import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
-import io.logto.android.utils.Utils
 import io.logto.client.utils.PkceUtils
 
 class BrowserSignInFlow(
-    private val logtoConfig: LogtoConfig,
-    private val logtoApiClient: LogtoApiClient,
+    private val logtoAndroidClient: LogtoAndroidClient,
     private val onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
 ) : IFlow {
     private val codeVerifier: String = PkceUtils.generateCodeVerifier()
 
     override fun start(context: Context) {
         try {
-            logtoApiClient.discover { oidcConfiguration ->
+            logtoAndroidClient.getOidcConfiguration { oidcConfiguration ->
                 val codeChallenge = PkceUtils.generateCodeChallenge(codeVerifier)
                 val intent = AuthorizationActivity.createHandleStartIntent(
                     context = context,
-                    endpoint = generateAuthUrl(oidcConfiguration, codeChallenge),
-                    redirectUri = logtoConfig.redirectUri,
+                    endpoint = logtoAndroidClient.getSignInUrl(oidcConfiguration, codeChallenge),
+                    redirectUri = logtoAndroidClient.logtoConfig.redirectUri,
                 )
                 context.startActivity(intent)
             }
@@ -59,10 +51,8 @@ class BrowserSignInFlow(
         }
 
         try {
-            logtoApiClient.grantTokenByAuthorizationCode(
-                clientId = logtoConfig.clientId,
-                redirectUri = logtoConfig.redirectUri,
-                code = authorizationCode,
+            logtoAndroidClient.grantTokenByAuthorizationCode(
+                authorizationCode = authorizationCode,
                 codeVerifier = codeVerifier,
             ) {
                 onComplete(null, it)
@@ -88,26 +78,8 @@ class BrowserSignInFlow(
             throw LogtoException("$SIGN_IN_FAILED: $error")
         }
 
-        if (!uri.toString().startsWith(logtoConfig.redirectUri)) {
+        if (!uri.toString().startsWith(logtoAndroidClient.logtoConfig.redirectUri)) {
             throw LogtoException("$SIGN_IN_FAILED: $INVALID_REDIRECT_URI")
         }
-    }
-
-    private fun generateAuthUrl(
-        oidcConfiguration: OidcConfiguration,
-        codeChallenge: String,
-    ): String {
-        val endpoint = oidcConfiguration.authorizationEndpoint
-        val queries = mapOf(
-            QueryKey.CLIENT_ID to logtoConfig.clientId,
-            QueryKey.CODE_CHALLENGE to codeChallenge,
-            QueryKey.CODE_CHALLENGE_METHOD to CodeChallengeMethod.S256,
-            QueryKey.PROMPT to PromptValue.CONSENT,
-            QueryKey.REDIRECT_URI to logtoConfig.redirectUri,
-            QueryKey.RESPONSE_TYPE to ResponseType.CODE,
-            QueryKey.SCOPE to logtoConfig.encodedScopes,
-            QueryKey.RESOURCE to ResourceValue.LOGTO_API,
-        )
-        return Utils.buildUriWithQueries(endpoint, queries).toString()
     }
 }

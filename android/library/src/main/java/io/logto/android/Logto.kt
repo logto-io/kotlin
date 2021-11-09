@@ -9,7 +9,7 @@ import io.logto.client.service.LogtoService
 import io.logto.android.auth.AuthManager
 import io.logto.android.auth.browser.BrowserSignInFlow
 import io.logto.android.auth.browser.BrowserSignOutFlow
-import io.logto.android.client.LogtoApiClient
+import io.logto.android.client.LogtoAndroidClient
 import io.logto.client.config.LogtoConfig
 import io.logto.client.exception.LogtoException
 import io.logto.client.model.TokenSet
@@ -17,11 +17,37 @@ import io.logto.android.storage.TokenSetStorage
 import org.jose4j.jwt.JwtClaims
 
 class Logto(
-    private val logtoConfig: LogtoConfig,
+    logtoConfig: LogtoConfig,
     application: Application,
     useStorage: Boolean = true,
 ) {
-    fun isAuthenticated(): Boolean = tokenSet != null
+    private companion object {
+        private const val STORAGE_SHAREDPREFERENCES_NAME_PREFIX = "io.logto.android"
+    }
+
+    private val logtoService = LogtoService(HttpClient(Android) {
+        install(Logging)
+    })
+
+    private val logtoAndroidClient = LogtoAndroidClient(logtoConfig, logtoService)
+
+    private var tokenSet: TokenSet? = null
+
+    private val tokenSetStorageSharedPreferencesName =
+        "$STORAGE_SHAREDPREFERENCES_NAME_PREFIX::${logtoConfig.cacheKey}"
+
+    private var tokenSetStorage: TokenSetStorage? = null
+
+    init {
+        if (useStorage) {
+            val storage = TokenSetStorage(application, tokenSetStorageSharedPreferencesName)
+            tokenSetStorage = storage
+            tokenSet = storage.tokenSet
+        }
+    }
+
+    val authenticated: Boolean
+        get() = tokenSet != null
 
     fun getAccessToken(block: (accessToken: String) -> Unit) {
         val cachedTokenSet = tokenSet ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
@@ -46,8 +72,7 @@ class Logto(
     ) = AuthManager.start(
         context,
         BrowserSignInFlow(
-            logtoConfig,
-            logtoApiClient,
+            logtoAndroidClient,
         ) { exception, tokenSet ->
             if (exception != null) {
                 throw exception
@@ -68,8 +93,7 @@ class Logto(
             context,
             BrowserSignOutFlow(
                 idToken = it.idToken,
-                logtoConfig = logtoConfig,
-                logtoApiClient = logtoApiClient
+                logtoAndroidClient = logtoAndroidClient,
             ) { exception ->
                 updateTokenSet(null)
                 AuthManager.reset()
@@ -87,41 +111,14 @@ class Logto(
         val refreshToken = cachedTokenSet.refreshToken
             ?: throw LogtoException(LogtoException.REFRESH_TOKEN_IS_NOT_SUPPORTED)
 
-        logtoApiClient.grantTokenByRefreshToken(
-            clientId = logtoConfig.clientId,
-            redirectUri = logtoConfig.redirectUri,
-            refreshToken = refreshToken
-        ) { tokenSet ->
+        logtoAndroidClient.grantTokenByRefreshToken(refreshToken) { tokenSet ->
             updateTokenSet(tokenSet)
             block(tokenSet)
         }
     }
 
-    private var tokenSetStorage: TokenSetStorage? = null
-
-    private val tokenSetStorageSharedPreferencesName =
-        "$STORAGE_SHAREDPREFERENCES_NAME_PREFIX::${logtoConfig.cacheKey}"
-
-    private var tokenSet: TokenSet? = null
-
     private fun updateTokenSet(updatedTokenSet: TokenSet?) {
         tokenSet = updatedTokenSet
         tokenSetStorage?.tokenSet = updatedTokenSet
-    }
-
-    private val logtoApiClient = LogtoApiClient(logtoConfig.domain, LogtoService(HttpClient(Android) {
-        install(Logging)
-    }))
-
-    private companion object {
-        private const val STORAGE_SHAREDPREFERENCES_NAME_PREFIX = "io.logto.android"
-    }
-
-    init {
-        if (useStorage) {
-            val storage = TokenSetStorage(application, tokenSetStorageSharedPreferencesName)
-            tokenSetStorage = storage
-            tokenSet = storage.tokenSet
-        }
     }
 }

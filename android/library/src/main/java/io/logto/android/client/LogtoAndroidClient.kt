@@ -1,5 +1,7 @@
 package io.logto.android.client
 
+import io.logto.client.LogtoClient
+import io.logto.client.config.LogtoConfig
 import io.logto.client.service.LogtoService
 import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
@@ -8,61 +10,53 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.jose4j.jwk.JsonWebKeySet
 
-class LogtoApiClient(
-    private val domain: String,
-    private val logtoService: LogtoService,
-) {
+class LogtoAndroidClient(
+    logtoConfig: LogtoConfig,
+    logtoService: LogtoService,
+) : LogtoClient(logtoConfig, logtoService) {
     fun grantTokenByAuthorizationCode(
-        clientId: String,
-        redirectUri: String,
-        code: String,
+        authorizationCode: String,
         codeVerifier: String,
         block: (tokenSet: TokenSet) -> Unit,
     ) = MainScope().launch {
-        val oidcConfiguration = getOidcConfig()
+        val oidcConfiguration = getOidcConfiguration()
         val jwks = getJsonWebKeySet()
-        val tokenSet = logtoService.grantTokenByAuthorizationCode(
-            tokenEndpoint = oidcConfiguration.tokenEndpoint,
-            clientId = clientId,
-            redirectUri = redirectUri,
-            code = code,
-            codeVerifier = codeVerifier
+        val tokenSet = grantTokenByAuthorizationCode(
+            oidcConfiguration,
+            authorizationCode,
+            codeVerifier
         ).apply {
-            validateIdToken(clientId, jwks)
+            validateIdToken(logtoConfig.clientId, jwks)
         }
         block(tokenSet)
     }
 
     fun grantTokenByRefreshToken(
-        clientId: String,
-        redirectUri: String,
         refreshToken: String,
         block: (tokenSet: TokenSet) -> Unit,
     ) = MainScope().launch {
-        val oidcConfiguration = getOidcConfig()
+        val oidcConfiguration = getOidcConfiguration()
         val jwks = getJsonWebKeySet()
-        val tokenSet = logtoService.grantTokenByRefreshToken(
-            tokenEndpoint = oidcConfiguration.tokenEndpoint,
-            clientId = clientId,
-            redirectUri = redirectUri,
-            refreshToken = refreshToken,
+        val tokenSet = grantTokenByRefreshToken(
+            oidcConfiguration,
+            refreshToken
         ).apply {
-            validateIdToken(clientId, jwks)
+            validateIdToken(logtoConfig.clientId, jwks)
         }
         block(tokenSet)
     }
 
-    fun discover(
+    fun getOidcConfiguration(
         block: (oidcConfiguration: OidcConfiguration) -> Unit
     ) = MainScope().launch {
-        block(getOidcConfig())
+        block(getOidcConfiguration())
     }
 
-    private suspend fun getOidcConfig(): OidcConfiguration = coroutineScope {
+    private suspend fun getOidcConfiguration(): OidcConfiguration = coroutineScope {
         oidcConfigCache?.let {
             return@coroutineScope it
         }
-        val oidcConfiguration = logtoService.fetchOidcConfiguration(domain)
+        val oidcConfiguration = fetchOidcConfiguration()
         oidcConfigCache = oidcConfiguration
         return@coroutineScope oidcConfiguration
     }
@@ -71,8 +65,8 @@ class LogtoApiClient(
         jsonWebKeySetCache?.let {
             return@coroutineScope it
         }
-        val oidcConfiguration = getOidcConfig()
-        val jsonWebKeySetString = logtoService.fetchJwks(oidcConfiguration.jwksUri)
+        val oidcConfiguration = getOidcConfiguration()
+        val jsonWebKeySetString = fetchJwks(oidcConfiguration)
         val fetchedJsonWebKeySet = JsonWebKeySet(jsonWebKeySetString)
         jsonWebKeySetCache = fetchedJsonWebKeySet
         return@coroutineScope fetchedJsonWebKeySet

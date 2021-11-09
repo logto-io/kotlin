@@ -11,8 +11,8 @@ import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
 import io.logto.client.service.LogtoService
 
-class LogtoClient(
-    private val logtoConfig: LogtoConfig,
+open class LogtoClient(
+    val logtoConfig: LogtoConfig,
     private val logtoService: LogtoService,
 ) {
     fun getSignInUrl(
