@@ -1,15 +1,13 @@
 package io.logto.android.client
 
-import io.logto.client.config.LogtoConfig
 import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
-import io.logto.client.service.LogtoService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.setMain
 import org.jose4j.jwk.JsonWebKeySet
 import org.junit.After
@@ -17,7 +15,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doNothing
@@ -58,7 +55,7 @@ class LogtoAndroidClientTest {
     }
 
     @Test
-    fun getOidcConfigurationShouldCallBlock() = runBlocking {
+    fun getOidcConfigurationShouldCallBlock() = runBlockingTest {
         doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).getOidcConfiguration()
         val oidcConfigurationBlockMock: (oidcConfiguration: OidcConfiguration) -> Unit = mock()
 
@@ -68,7 +65,7 @@ class LogtoAndroidClientTest {
     }
 
     @Test
-    fun getOidcConfigurationMoreThenOnceShouldJustFetchOnce(): Unit = runBlocking {
+    fun getOidcConfigurationMoreThenOnceShouldJustFetchOnce() = runBlockingTest {
         doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).fetchOidcConfiguration()
 
         logtoAndroidClientSpy.getOidcConfiguration()
@@ -78,7 +75,7 @@ class LogtoAndroidClientTest {
     }
 
     @Test
-    fun getgetJsonWebKeySetMoreThenOnceShouldJustFetchOnce(): Unit = runBlocking {
+    fun getgetJsonWebKeySetMoreThenOnceShouldJustFetchOnce() = runBlockingTest {
         doReturn(jsonWebKeySetMock).`when`(logtoAndroidClientSpy).fetchJwks(anyOrNull())
 
         logtoAndroidClientSpy.getJsonWebKeySet()
@@ -88,7 +85,7 @@ class LogtoAndroidClientTest {
     }
 
     @Test
-    fun grantTokenByAuthorizationCodeShouldCallBlock() = runBlocking {
+    fun grantTokenByAuthorizationCodeShouldCallBlock() = runBlockingTest {
         doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).getOidcConfiguration()
         doReturn(jsonWebKeySetMock).`when`(logtoAndroidClientSpy).getJsonWebKeySet()
         doNothing().`when`(tokenSetMock).validateIdToken(anyOrNull(), anyOrNull())
@@ -111,7 +108,7 @@ class LogtoAndroidClientTest {
     }
 
     @Test
-    fun grantTokenByRefreshTokenShouldCallBlock() = runBlocking {
+    fun grantTokenByRefreshTokenShouldCallBlock() = runBlockingTest {
         doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).getOidcConfiguration()
         doReturn(jsonWebKeySetMock).`when`(logtoAndroidClientSpy).getJsonWebKeySet()
         doNothing().`when`(tokenSetMock).validateIdToken(anyOrNull(), anyOrNull())

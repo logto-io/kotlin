@@ -11,13 +11,15 @@ import io.logto.client.constant.ResponseType
 import io.logto.client.constant.ScopeValue
 import io.logto.client.model.OidcConfiguration
 import io.logto.client.service.LogtoService
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import java.util.UUID
 
+@ExperimentalCoroutinesApi
 class LogtoClientTest {
 
     private val testLogtoConfig = LogtoConfig(
@@ -74,7 +76,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun fetchOidcConfiguration(): Unit = runBlocking {
+    fun fetchOidcConfiguration() = runBlockingTest {
         val logtoServiceMock: LogtoService = mock()
         val logtoClient = LogtoClient(testLogtoConfig, logtoServiceMock)
 
@@ -84,7 +86,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun grantTokenByAuthorizationCode(): Unit = runBlocking {
+    fun grantTokenByAuthorizationCode() = runBlockingTest {
         val authorizationCode = UUID.randomUUID().toString()
         val codeVerifier = UUID.randomUUID().toString()
         val logtoServiceMock: LogtoService = mock()
@@ -106,7 +108,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun grantTokenByRefreshToken(): Unit = runBlocking {
+    fun grantTokenByRefreshToken() = runBlockingTest {
         val refreshToken = UUID.randomUUID().toString()
         val logtoServiceMock: LogtoService = mock()
         val logtoClient = LogtoClient(testLogtoConfig, logtoServiceMock)
@@ -125,7 +127,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun fetchJwks(): Unit = runBlocking {
+    fun fetchJwks() = runBlockingTest {
         val logtoServiceMock: LogtoService = mock()
         val logtoClient = LogtoClient(testLogtoConfig, logtoServiceMock)
 
