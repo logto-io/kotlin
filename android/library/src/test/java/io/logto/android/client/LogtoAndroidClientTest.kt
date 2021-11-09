@@ -8,8 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.setMain
 import org.jose4j.jwk.JsonWebKeySet
 import org.junit.After
@@ -53,7 +53,7 @@ class LogtoAndroidClientTest {
     }
 
     @Test
-    fun getOidcConfigurationShouldCallBlock() = runBlockingTest {
+    fun getOidcConfigurationShouldCallBlock() = runBlocking {
         val logtoConfigMock: LogtoConfig = mock()
         val logtoServiceMock: LogtoService = mock()
         val oidcConfigurationMock: OidcConfiguration = mock()
@@ -66,7 +66,7 @@ class LogtoAndroidClientTest {
     }
 
     @Test
-    fun getOidcConfigurationMoreThenOnceShouldJustFetchOnce() = runBlockingTest {
+    fun getOidcConfigurationMoreThenOnceShouldJustFetchOnce(): Unit = runBlocking {
         val logtoConfigMock: LogtoConfig = mock()
         val logtoServiceMock: LogtoService = mock()
         val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock, logtoServiceMock))
@@ -80,7 +80,7 @@ class LogtoAndroidClientTest {
     }
 
     @Test
-    fun getgetJsonWebKeySetMoreThenOnceShouldJustFetchOnce() = runBlockingTest {
+    fun getgetJsonWebKeySetMoreThenOnceShouldJustFetchOnce(): Unit = runBlocking {
         val logtoConfigMock: LogtoConfig = mock()
         val logtoServiceMock: LogtoService = mock()
         val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock, logtoServiceMock))
@@ -94,7 +94,7 @@ class LogtoAndroidClientTest {
     }
 
     @Test
-    fun grantTokenByAuthorizationCodeShouldCallBlock() = runBlockingTest {
+    fun grantTokenByAuthorizationCodeShouldCallBlock() = runBlocking {
         val logtoConfigMock: LogtoConfig = mock()
         val logtoServiceMock: LogtoService = mock()
         val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock, logtoServiceMock))
@@ -126,7 +126,7 @@ class LogtoAndroidClientTest {
     }
 
     @Test
-    fun grantTokenByRefreshTokenShouldCallBlock() = runBlockingTest {
+    fun grantTokenByRefreshTokenShouldCallBlock() = runBlocking {
         val logtoConfigMock: LogtoConfig = mock()
         val logtoServiceMock: LogtoService = mock()
         val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock, logtoServiceMock))

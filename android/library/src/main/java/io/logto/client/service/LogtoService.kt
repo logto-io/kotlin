@@ -15,6 +15,7 @@ import io.logto.client.extensions.httpGet
 import io.logto.client.extensions.httpPost
 import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
+import org.jose4j.jwk.JsonWebKeySet
 
 class LogtoService(private val httpClient: HttpClient) {
 
@@ -59,10 +60,13 @@ class LogtoService(private val httpClient: HttpClient) {
         ).formUrlEncode()
     }
 
-    suspend fun fetchJwks(jwksUri: String): String = httpClient.httpGet(
-        jwksUri,
-        LogtoException.REQUEST_JWKS_FAILED,
-    )
+    suspend fun fetchJwks(jwksUri: String): JsonWebKeySet {
+        val jsonWebKeySetString: String = httpClient.httpGet(
+            jwksUri,
+            LogtoException.REQUEST_JWKS_FAILED,
+        )
+        return JsonWebKeySet(jsonWebKeySetString)
+    }
 
     init {
         httpClient.config {
