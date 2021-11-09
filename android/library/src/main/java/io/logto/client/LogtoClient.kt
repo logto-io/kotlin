@@ -8,9 +8,12 @@ import io.logto.client.constant.QueryKey
 import io.logto.client.constant.ResourceValue
 import io.logto.client.constant.ResponseType
 import io.logto.client.model.OidcConfiguration
+import io.logto.client.model.TokenSet
+import io.logto.client.service.LogtoService
 
 class LogtoClient(
     private val logtoConfig: LogtoConfig,
+    private val logtoService: LogtoService,
 ) {
     fun getSignInUrl(
         oidcConfiguration: OidcConfiguration,
@@ -29,4 +32,44 @@ class LogtoClient(
         }
         return urlBuilder.buildString()
     }
+
+    fun getSignOutUrl(
+        oidcConfiguration: OidcConfiguration,
+        idToken: String,
+    ): String {
+        val endpoint = oidcConfiguration.endSessionEndpoint
+        val urlBuilder = URLBuilder(endpoint).apply {
+            parameters.append(QueryKey.ID_TOKEN_HINT, idToken)
+            parameters.append(QueryKey.POST_LOGOUT_REDIRECT_URI, logtoConfig.postLogoutRedirectUri)
+        }
+        return urlBuilder.buildString()
+    }
+
+    suspend fun fetchOidcConfiguration(): OidcConfiguration =
+        logtoService.fetchOidcConfiguration(logtoConfig.domain)
+
+    suspend fun grantTokenByAuthorizationCode(
+        oidcConfiguration: OidcConfiguration,
+        authorizationCode: String,
+        codeVerifier: String,
+    ): TokenSet = logtoService.grantTokenByAuthorizationCode(
+        tokenEndpoint = oidcConfiguration.tokenEndpoint,
+        clientId = logtoConfig.clientId,
+        redirectUri = logtoConfig.redirectUri,
+        code = authorizationCode,
+        codeVerifier = codeVerifier
+    )
+
+    suspend fun grantTokenByRefreshToken(
+        oidcConfiguration: OidcConfiguration,
+        refreshToken: String,
+    ): TokenSet = logtoService.grantTokenByRefreshToken(
+        tokenEndpoint = oidcConfiguration.tokenEndpoint,
+        clientId = logtoConfig.clientId,
+        redirectUri = logtoConfig.redirectUri,
+        refreshToken = refreshToken
+    )
+
+    suspend fun fetchJwks(oidcConfiguration: OidcConfiguration): String =
+        logtoService.fetchJwks(oidcConfiguration.jwksUri)
 }

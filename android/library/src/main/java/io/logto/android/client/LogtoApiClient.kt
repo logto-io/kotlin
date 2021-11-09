@@ -62,7 +62,7 @@ class LogtoApiClient(
         oidcConfigCache?.let {
             return@coroutineScope it
         }
-        val oidcConfiguration = logtoService.discover(domain)
+        val oidcConfiguration = logtoService.fetchOidcConfiguration(domain)
         oidcConfigCache = oidcConfiguration
         return@coroutineScope oidcConfiguration
     }

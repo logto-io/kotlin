@@ -20,6 +20,11 @@ import io.logto.client.model.TokenSet
 
 class LogtoService(private val httpClient: HttpClient) {
 
+    suspend fun fetchOidcConfiguration(domain: String): OidcConfiguration = httpGet(
+        "https://$domain/oidc/.well-known/openid-configuration",
+        LogtoException.REQUEST_OIDC_CONFIGURATION_FAILED,
+    )
+
     suspend fun grantTokenByAuthorizationCode(
         tokenEndpoint: String,
         clientId: String,
@@ -55,11 +60,6 @@ class LogtoService(private val httpClient: HttpClient) {
             QueryKey.GRANT_TYPE to GrantType.REFRESH_TOKEN,
         ).formUrlEncode()
     }
-
-    suspend fun discover(domain: String): OidcConfiguration = httpGet(
-        "https://$domain/oidc/.well-known/openid-configuration",
-        LogtoException.REQUEST_OIDC_CONFIGURATION_FAILED,
-    )
 
     suspend fun fetchJwks(jwksUri: String): String = httpGet(
         jwksUri,
