@@ -2,13 +2,9 @@ package io.logto.client.service
 
 import com.google.gson.FieldNamingPolicy
 import io.ktor.client.HttpClient
-import io.ktor.client.features.ResponseException
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.get
 import io.ktor.client.request.headers
-import io.ktor.client.request.post
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.formUrlEncode
