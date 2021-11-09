@@ -15,12 +15,14 @@ import io.ktor.http.formUrlEncode
 import io.logto.client.constant.GrantType
 import io.logto.client.constant.QueryKey
 import io.logto.client.exception.LogtoException
+import io.logto.client.extensions.httpGet
+import io.logto.client.extensions.httpPost
 import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
 
 class LogtoService(private val httpClient: HttpClient) {
 
-    suspend fun fetchOidcConfiguration(domain: String): OidcConfiguration = httpGet(
+    suspend fun fetchOidcConfiguration(domain: String): OidcConfiguration = httpClient.httpGet(
         "https://$domain/oidc/.well-known/openid-configuration",
         LogtoException.REQUEST_OIDC_CONFIGURATION_FAILED,
     )
@@ -31,7 +33,7 @@ class LogtoService(private val httpClient: HttpClient) {
         redirectUri: String,
         code: String,
         codeVerifier: String,
-    ): TokenSet = httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
+    ): TokenSet = httpClient.httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
         headers {
             contentType(ContentType.Application.FormUrlEncoded)
         }
@@ -49,7 +51,7 @@ class LogtoService(private val httpClient: HttpClient) {
         clientId: String,
         redirectUri: String,
         refreshToken: String,
-    ): TokenSet = httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
+    ): TokenSet = httpClient.httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
         headers {
             contentType(ContentType.Application.FormUrlEncoded)
         }
@@ -61,33 +63,10 @@ class LogtoService(private val httpClient: HttpClient) {
         ).formUrlEncode()
     }
 
-    suspend fun fetchJwks(jwksUri: String): String = httpGet(
+    suspend fun fetchJwks(jwksUri: String): String = httpClient.httpGet(
         jwksUri,
         LogtoException.REQUEST_JWKS_FAILED,
     )
-
-    private suspend inline fun <reified T> httpGet(
-        urlString: String,
-        exceptLogtoExceptionDesc: String,
-    ): T {
-        try {
-            return httpClient.get(urlString)
-        } catch (exception: ResponseException) {
-            throw LogtoException(exceptLogtoExceptionDesc, exception)
-        }
-    }
-
-    private suspend inline fun <reified T> httpPost(
-        urlString: String,
-        exceptLogtoExceptionDesc: String,
-        block: HttpRequestBuilder.() -> Unit,
-    ): T {
-        try {
-            return httpClient.post(urlString, block)
-        } catch (exception: ResponseException) {
-            throw LogtoException(exceptLogtoExceptionDesc, exception)
-        }
-    }
 
     init {
         httpClient.config {
