@@ -35,8 +35,13 @@ import java.util.UUID
 @ExperimentalCoroutinesApi
 class LogtoAndroidClientTest {
 
-    @Mock
-    private lateinit var oidcConfigurationBlockMock: (oidcConfiguration: OidcConfiguration) -> Unit
+    private val oidcConfigurationMock: OidcConfiguration = mock()
+
+    private val jsonWebKeySetMock: JsonWebKeySet = mock()
+
+    private val tokenSetMock: TokenSet = mock()
+
+    private val logtoAndroidClientSpy = spy(LogtoAndroidClient(mock(), mock()))
 
     private val mainThreadSurrogate = newSingleThreadContext("UI Thread")
 
@@ -54,11 +59,8 @@ class LogtoAndroidClientTest {
 
     @Test
     fun getOidcConfigurationShouldCallBlock() = runBlocking {
-        val logtoConfigMock: LogtoConfig = mock()
-        val logtoServiceMock: LogtoService = mock()
-        val oidcConfigurationMock: OidcConfiguration = mock()
-        val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock, logtoServiceMock))
         doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).getOidcConfiguration()
+        val oidcConfigurationBlockMock: (oidcConfiguration: OidcConfiguration) -> Unit = mock()
 
         logtoAndroidClientSpy.getOidcConfiguration(oidcConfigurationBlockMock)
 
@@ -67,10 +69,6 @@ class LogtoAndroidClientTest {
 
     @Test
     fun getOidcConfigurationMoreThenOnceShouldJustFetchOnce(): Unit = runBlocking {
-        val logtoConfigMock: LogtoConfig = mock()
-        val logtoServiceMock: LogtoService = mock()
-        val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock, logtoServiceMock))
-        val oidcConfigurationMock: OidcConfiguration = mock()
         doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).fetchOidcConfiguration()
 
         logtoAndroidClientSpy.getOidcConfiguration()
@@ -81,10 +79,6 @@ class LogtoAndroidClientTest {
 
     @Test
     fun getgetJsonWebKeySetMoreThenOnceShouldJustFetchOnce(): Unit = runBlocking {
-        val logtoConfigMock: LogtoConfig = mock()
-        val logtoServiceMock: LogtoService = mock()
-        val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock, logtoServiceMock))
-        val jsonWebKeySetMock: JsonWebKeySet = mock()
         doReturn(jsonWebKeySetMock).`when`(logtoAndroidClientSpy).fetchJwks(anyOrNull())
 
         logtoAndroidClientSpy.getJsonWebKeySet()
@@ -95,17 +89,8 @@ class LogtoAndroidClientTest {
 
     @Test
     fun grantTokenByAuthorizationCodeShouldCallBlock() = runBlocking {
-        val logtoConfigMock: LogtoConfig = mock()
-        val logtoServiceMock: LogtoService = mock()
-        val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock, logtoServiceMock))
-
-        val oidcConfigurationMock: OidcConfiguration = mock()
         doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).getOidcConfiguration()
-
-        val jwks: JsonWebKeySet = mock()
-        doReturn(jwks).`when`(logtoAndroidClientSpy).getJsonWebKeySet()
-
-        val tokenSetMock: TokenSet = mock()
+        doReturn(jsonWebKeySetMock).`when`(logtoAndroidClientSpy).getJsonWebKeySet()
         doNothing().`when`(tokenSetMock).validateIdToken(anyOrNull(), anyOrNull())
         doReturn(tokenSetMock)
             .`when`(logtoAndroidClientSpy)
@@ -127,24 +112,13 @@ class LogtoAndroidClientTest {
 
     @Test
     fun grantTokenByRefreshTokenShouldCallBlock() = runBlocking {
-        val logtoConfigMock: LogtoConfig = mock()
-        val logtoServiceMock: LogtoService = mock()
-        val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock, logtoServiceMock))
-
-        val oidcConfigurationMock: OidcConfiguration = mock()
         doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).getOidcConfiguration()
-
-        val jwks: JsonWebKeySet = mock()
-        doReturn(jwks).`when`(logtoAndroidClientSpy).getJsonWebKeySet()
-
-        val tokenSetMock: TokenSet = mock()
+        doReturn(jsonWebKeySetMock).`when`(logtoAndroidClientSpy).getJsonWebKeySet()
         doNothing().`when`(tokenSetMock).validateIdToken(anyOrNull(), anyOrNull())
         doReturn(tokenSetMock)
             .`when`(logtoAndroidClientSpy)
             .grantTokenByRefreshToken(anyOrNull(), anyString())
-
         val refreshToken = UUID.randomUUID().toString()
-
         val tokenSetBlockMock: (tokenSet: TokenSet) -> Unit = mock()
 
         logtoAndroidClientSpy.grantTokenByRefreshToken(
