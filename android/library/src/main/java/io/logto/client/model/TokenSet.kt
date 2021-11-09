@@ -14,7 +14,7 @@ data class TokenSet(
 ) {
     var expiresAt: Long = TimeUtils.expiresAtFromNow(expiresIn)
     fun isExpired(): Boolean = TimeUtils.nowRoundToSec() >= expiresAt
-    fun expiresIn(): Long = (expiresAt - TimeUtils.nowRoundToSec()).coerceAtLeast(0L)
+    fun expiresInSeconds(): Long = (expiresAt - TimeUtils.nowRoundToSec()).coerceAtLeast(0L)
 
     fun validateIdToken(
         clientId: String,
