@@ -5,10 +5,9 @@ import android.net.Uri
 import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
 import io.logto.android.client.LogtoAndroidClient
+import io.logto.android.utils.Utils
 import io.logto.client.constant.QueryKey
 import io.logto.client.exception.LogtoException
-import io.logto.client.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
-import io.logto.client.exception.LogtoException.Companion.INVALID_REDIRECT_URI
 import io.logto.client.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
 import io.logto.client.exception.LogtoException.Companion.SIGN_IN_FAILED
 import io.logto.client.model.TokenSet
@@ -40,10 +39,12 @@ class BrowserSignInFlow(
     }
 
     override fun handleRedirectUri(redirectUri: Uri) {
-        try {
-            validateRedirectUri(redirectUri)
-        } catch (exceptionOnValidate: LogtoException) {
-            onComplete(exceptionOnValidate, null)
+        val exceptionMsg = Utils.validateRedirectUri(
+            redirectUri,
+            logtoAndroidClient.logtoConfig.redirectUri,
+        )
+        if (exceptionMsg != null) {
+            onComplete(LogtoException("$SIGN_IN_FAILED: $exceptionMsg"), null)
             return
         }
 
@@ -62,27 +63,6 @@ class BrowserSignInFlow(
             }
         } catch (exception: LogtoException) {
             onComplete(exception, null)
-        }
-    }
-
-    @Suppress("ThrowsCount")
-    private fun validateRedirectUri(uri: Uri) {
-        if (uri.toString().isEmpty()) {
-            throw LogtoException("$SIGN_IN_FAILED: $EMPTY_REDIRECT_URI")
-        }
-
-        val errorDescription = uri.getQueryParameter(QueryKey.ERROR_DESCRIPTION)
-        if (errorDescription != null) {
-            throw LogtoException("$SIGN_IN_FAILED: $errorDescription")
-        }
-
-        val error = uri.getQueryParameter(QueryKey.ERROR)
-        if (error != null) {
-            throw LogtoException("$SIGN_IN_FAILED: $error")
-        }
-
-        if (!uri.toString().startsWith(logtoAndroidClient.logtoConfig.redirectUri)) {
-            throw LogtoException("$SIGN_IN_FAILED: $INVALID_REDIRECT_URI")
         }
     }
 }
