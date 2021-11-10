@@ -41,17 +41,16 @@ class Logto(
     val authenticated: Boolean
         get() = tokenSet != null
 
-    fun getAccessToken(block: (accessToken: String) -> Unit) {
-        val cachedTokenSet = tokenSet ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
-        if (!cachedTokenSet.isExpired()) {
-            block(cachedTokenSet.accessToken)
-            return
+    fun getAccessToken(block: (accessToken: String) -> Unit) = tokenSet?.let {
+        if (!it.isExpired()) {
+            block(it.accessToken)
+            return@let
         }
 
         refreshTokenSet { newTokenSet ->
             block(newTokenSet.accessToken)
         }
-    }
+    } ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
 
     fun getIdTokenClaims(): JwtClaims {
         return tokenSet?.getIdTokenClaims()
@@ -98,16 +97,15 @@ class Logto(
 
     fun refreshTokenSet(
         block: (tokenSet: TokenSet) -> Unit,
-    ) {
-        val cachedTokenSet = tokenSet ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
-        val refreshToken = cachedTokenSet.refreshToken
+    ) = tokenSet?.let {
+        val refreshToken = it.refreshToken
             ?: throw LogtoException(LogtoException.REFRESH_TOKEN_IS_NOT_SUPPORTED)
 
-        logtoAndroidClient.grantTokenByRefreshTokenAsync(refreshToken) { tokenSet ->
-            updateTokenSet(tokenSet)
-            block(tokenSet)
+        logtoAndroidClient.grantTokenByRefreshTokenAsync(refreshToken) { updatedTokenSet ->
+            updateTokenSet(updatedTokenSet)
+            block(updatedTokenSet)
         }
-    }
+    } ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
 
     private fun updateTokenSet(updatedTokenSet: TokenSet?) {
         tokenSet = updatedTokenSet
