@@ -43,7 +43,7 @@ class LogtoAndroidClientTest {
 
     private val logtoConfigMock: LogtoConfig = mock()
 
-    private val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock, mock()))
+    private val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock))
 
     @Before
     fun setUp() {
@@ -80,6 +80,8 @@ class LogtoAndroidClientTest {
 
     @Test
     fun getJsonWebKeySetMoreThenOnceShouldJustFetchOnce() = runBlockingTest {
+        `when`(oidcConfigurationMock.jwksUri).thenReturn("jwksUri")
+        doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).fetchOidcConfiguration()
         doReturn(jsonWebKeySetMock).`when`(logtoAndroidClientSpy).fetchJwks(anyOrNull())
 
         logtoAndroidClientSpy.getJsonWebKeySet()

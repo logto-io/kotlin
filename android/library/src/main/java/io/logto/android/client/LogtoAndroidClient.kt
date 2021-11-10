@@ -1,10 +1,13 @@
 package io.logto.android.client
 
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.features.logging.Logging
 import io.logto.client.LogtoClient
 import io.logto.client.config.LogtoConfig
-import io.logto.client.service.LogtoService
 import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
+import io.logto.client.service.LogtoService
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -12,11 +15,15 @@ import org.jose4j.jwk.JsonWebKeySet
 
 class LogtoAndroidClient(
     logtoConfig: LogtoConfig,
-    logtoService: LogtoService,
-) : LogtoClient(logtoConfig, logtoService) {
+) : LogtoClient(
+    logtoConfig,
+    LogtoService(HttpClient(Android) {
+        install(Logging)
+    })
+) {
 
     fun getOidcConfigurationAsync(
-        block: (oidcConfiguration: OidcConfiguration) -> Unit
+        block: (oidcConfiguration: OidcConfiguration) -> Unit,
     ) = MainScope().launch {
         val oidcConfiguration = getOidcConfiguration()
         block(oidcConfiguration)

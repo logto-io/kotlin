@@ -2,18 +2,14 @@ package io.logto.android
 
 import android.app.Application
 import android.content.Context
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
-import io.ktor.client.features.logging.Logging
-import io.logto.client.service.LogtoService
 import io.logto.android.auth.AuthManager
 import io.logto.android.auth.browser.BrowserSignInFlow
 import io.logto.android.auth.browser.BrowserSignOutFlow
 import io.logto.android.client.LogtoAndroidClient
+import io.logto.android.storage.TokenSetStorage
 import io.logto.client.config.LogtoConfig
 import io.logto.client.exception.LogtoException
 import io.logto.client.model.TokenSet
-import io.logto.android.storage.TokenSetStorage
 import org.jose4j.jwt.JwtClaims
 
 class Logto(
@@ -25,11 +21,7 @@ class Logto(
         private const val STORAGE_SHAREDPREFERENCES_NAME_PREFIX = "io.logto.android"
     }
 
-    private val logtoService = LogtoService(HttpClient(Android) {
-        install(Logging)
-    })
-
-    private val logtoAndroidClient = LogtoAndroidClient(logtoConfig, logtoService)
+    private val logtoAndroidClient = LogtoAndroidClient(logtoConfig)
 
     private var tokenSet: TokenSet? = null
 
