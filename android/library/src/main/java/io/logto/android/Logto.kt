@@ -111,7 +111,7 @@ class Logto(
         val refreshToken = cachedTokenSet.refreshToken
             ?: throw LogtoException(LogtoException.REFRESH_TOKEN_IS_NOT_SUPPORTED)
 
-        logtoAndroidClient.grantTokenByRefreshToken(refreshToken) { tokenSet ->
+        logtoAndroidClient.grantTokenByRefreshTokenAsync(refreshToken) { tokenSet ->
             updateTokenSet(tokenSet)
             block(tokenSet)
         }

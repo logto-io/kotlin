@@ -15,7 +15,7 @@ import io.logto.android.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -50,15 +50,13 @@ class BrowserSignOutFlowTest {
     @Mock
     private lateinit var onCompleteMock: (exception: LogtoException?) -> Unit
 
-    private val mainThreadSurrogate = newSingleThreadContext("UI thread")
-
     private lateinit var browserSignOutFlow: BrowserSignOutFlow
 
     private val logtoExceptionCaptor = argumentCaptor<LogtoException>()
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(mainThreadSurrogate)
+        Dispatchers.setMain(TestCoroutineDispatcher())
         MockitoAnnotations.openMocks(this)
 
         `when`(logtoConfigMock.postLogoutRedirectUri).thenReturn("postLogoutRedirectUri")
@@ -75,7 +73,6 @@ class BrowserSignOutFlowTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        mainThreadSurrogate.close()
     }
 
     @Test
@@ -85,7 +82,7 @@ class BrowserSignOutFlowTest {
             val block = it.arguments[0] as (OidcConfiguration) -> Unit
             block(dummyOidcConfiguration)
             null
-        }.`when`(logtoAndroidClientMock).getOidcConfiguration(anyOrNull())
+        }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())
         `when`(logtoAndroidClientMock.getSignOutUrl(anyOrNull(), anyOrNull())).thenReturn("signOutUrl")
         val activity: Activity = spy(Robolectric.buildActivity(Activity::class.java).get())
 
@@ -99,7 +96,7 @@ class BrowserSignOutFlowTest {
         val mockLogtoException: LogtoException = mock()
         doAnswer {
             throw mockLogtoException
-        }.`when`(logtoAndroidClientMock).getOidcConfiguration(anyOrNull())
+        }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())
         val activity: Activity = spy(Robolectric.buildActivity(Activity::class.java).get())
 
         browserSignOutFlow.start(activity)

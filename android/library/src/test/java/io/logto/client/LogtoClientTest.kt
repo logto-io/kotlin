@@ -44,7 +44,10 @@ class LogtoClientTest {
         val dummyLogtoService: LogtoService = mock()
         val codeChallenge = UUID.randomUUID().toString()
         val logtoClient = LogtoClient(testLogtoConfig, dummyLogtoService)
-        val signInUrlStr = logtoClient.getSignInUrl(testOidcConfiguration, codeChallenge)
+        val signInUrlStr = logtoClient.getSignInUrl(
+            testOidcConfiguration.authorizationEndpoint,
+            codeChallenge
+        )
         Url(signInUrlStr).apply {
             assertThat(protocol.name).isEqualTo("https")
             assertThat(host).isEqualTo("logto.dev")
@@ -64,7 +67,10 @@ class LogtoClientTest {
         val dummyLogtoService: LogtoService = mock()
         val logtoClient = LogtoClient(testLogtoConfig, dummyLogtoService)
         val idToken = UUID.randomUUID().toString()
-        val signOutUrlStr = logtoClient.getSignOutUrl(testOidcConfiguration, idToken)
+        val signOutUrlStr = logtoClient.getSignOutUrl(
+            testOidcConfiguration.endSessionEndpoint,
+            idToken
+        )
         Url(signOutUrlStr).apply {
             assertThat(protocol.name).isEqualTo("https")
             assertThat(host).isEqualTo("logto.dev")
@@ -93,7 +99,7 @@ class LogtoClientTest {
         val logtoClient = LogtoClient(testLogtoConfig, logtoServiceMock)
 
         logtoClient.grantTokenByAuthorizationCode(
-            testOidcConfiguration,
+            testOidcConfiguration.tokenEndpoint,
             authorizationCode,
             codeVerifier
         )
@@ -114,7 +120,7 @@ class LogtoClientTest {
         val logtoClient = LogtoClient(testLogtoConfig, logtoServiceMock)
 
         logtoClient.grantTokenByRefreshToken(
-            testOidcConfiguration,
+            testOidcConfiguration.tokenEndpoint,
             refreshToken
         )
 

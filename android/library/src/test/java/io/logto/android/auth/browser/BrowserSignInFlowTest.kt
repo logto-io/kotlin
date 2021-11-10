@@ -17,7 +17,7 @@ import io.logto.client.model.TokenSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -56,14 +56,12 @@ class BrowserSignInFlowTest {
 
     private lateinit var browserSignInFlow: BrowserSignInFlow
 
-    private val mainThreadSurrogate = newSingleThreadContext("UI thread")
-
     private val logtoExceptionCaptor = argumentCaptor<LogtoException>()
     private val tokenSetCaptor = argumentCaptor<TokenSet>()
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(mainThreadSurrogate)
+        Dispatchers.setMain(TestCoroutineDispatcher())
         MockitoAnnotations.openMocks(this)
 
         `when`(logtoConfigMock.redirectUri).thenReturn("redirectUri")
@@ -79,7 +77,6 @@ class BrowserSignInFlowTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        mainThreadSurrogate.close()
     }
 
     @Test
@@ -89,7 +86,7 @@ class BrowserSignInFlowTest {
             val block = it.arguments[0] as (OidcConfiguration) -> Unit
             block(dummyOidcConfiguration)
             null
-        }.`when`(logtoAndroidClientMock).getOidcConfiguration(anyOrNull())
+        }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())
         `when`(logtoAndroidClientMock.getSignInUrl(anyOrNull(), anyOrNull())).thenReturn("signInUrl")
         val activity: Activity = spy(Robolectric.buildActivity(Activity::class.java).get())
 
@@ -103,7 +100,7 @@ class BrowserSignInFlowTest {
         val mockLogtoException: LogtoException = mock()
         doAnswer {
             throw mockLogtoException
-        }.`when`(logtoAndroidClientMock).getOidcConfiguration(anyOrNull())
+        }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())
         val activity: Activity = spy(Robolectric.buildActivity(Activity::class.java).get())
 
         browserSignInFlow.start(activity)
@@ -204,7 +201,7 @@ class BrowserSignInFlowTest {
             val block = it.arguments[2] as (TokenSet) -> Unit
             block(tokenSet)
             null
-        }.`when`(logtoAndroidClientMock).grantTokenByAuthorizationCode(
+        }.`when`(logtoAndroidClientMock).grantTokenByAuthorizationCodeAsync(
             anyString(),
             anyString(),
             anyOrNull(),
@@ -228,7 +225,7 @@ class BrowserSignInFlowTest {
         val mockLogtoException: LogtoException = mock()
         doAnswer {
             throw mockLogtoException
-        }.`when`(logtoAndroidClientMock).grantTokenByAuthorizationCode(
+        }.`when`(logtoAndroidClientMock).grantTokenByAuthorizationCodeAsync(
             anyString(),
             anyString(),
             anyOrNull(),

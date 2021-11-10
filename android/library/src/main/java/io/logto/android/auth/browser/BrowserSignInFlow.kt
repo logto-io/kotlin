@@ -22,11 +22,14 @@ class BrowserSignInFlow(
 
     override fun start(context: Context) {
         try {
-            logtoAndroidClient.getOidcConfiguration { oidcConfiguration ->
+            logtoAndroidClient.getOidcConfigurationAsync { oidcConfiguration ->
                 val codeChallenge = PkceUtils.generateCodeChallenge(codeVerifier)
                 val intent = AuthorizationActivity.createHandleStartIntent(
                     context = context,
-                    endpoint = logtoAndroidClient.getSignInUrl(oidcConfiguration, codeChallenge),
+                    endpoint = logtoAndroidClient.getSignInUrl(
+                        oidcConfiguration.authorizationEndpoint,
+                        codeChallenge
+                    ),
                     redirectUri = logtoAndroidClient.logtoConfig.redirectUri,
                 )
                 context.startActivity(intent)
@@ -51,7 +54,7 @@ class BrowserSignInFlow(
         }
 
         try {
-            logtoAndroidClient.grantTokenByAuthorizationCode(
+            logtoAndroidClient.grantTokenByAuthorizationCodeAsync(
                 authorizationCode = authorizationCode,
                 codeVerifier = codeVerifier,
             ) {

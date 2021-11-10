@@ -16,11 +16,10 @@ open class LogtoClient(
     private val logtoService: LogtoService,
 ) {
     fun getSignInUrl(
-        oidcConfiguration: OidcConfiguration,
+        authorizationEndpoint: String,
         codeChallenge: String,
     ): String {
-        val endpoint = oidcConfiguration.authorizationEndpoint
-        val urlBuilder = URLBuilder(endpoint).apply {
+        val urlBuilder = URLBuilder(authorizationEndpoint).apply {
             parameters.append(QueryKey.CLIENT_ID, logtoConfig.clientId)
             parameters.append(QueryKey.CODE_CHALLENGE, codeChallenge)
             parameters.append(QueryKey.CODE_CHALLENGE_METHOD, CodeChallengeMethod.S256)
@@ -34,11 +33,10 @@ open class LogtoClient(
     }
 
     fun getSignOutUrl(
-        oidcConfiguration: OidcConfiguration,
+        endSessionEndpoint: String,
         idToken: String,
     ): String {
-        val endpoint = oidcConfiguration.endSessionEndpoint
-        val urlBuilder = URLBuilder(endpoint).apply {
+        val urlBuilder = URLBuilder(endSessionEndpoint).apply {
             parameters.append(QueryKey.ID_TOKEN_HINT, idToken)
             parameters.append(QueryKey.POST_LOGOUT_REDIRECT_URI, logtoConfig.postLogoutRedirectUri)
         }
@@ -49,11 +47,11 @@ open class LogtoClient(
         logtoService.fetchOidcConfiguration(logtoConfig.domain)
 
     suspend fun grantTokenByAuthorizationCode(
-        oidcConfiguration: OidcConfiguration,
+        tokenEndpoint: String,
         authorizationCode: String,
         codeVerifier: String,
     ): TokenSet = logtoService.grantTokenByAuthorizationCode(
-        tokenEndpoint = oidcConfiguration.tokenEndpoint,
+        tokenEndpoint = tokenEndpoint,
         clientId = logtoConfig.clientId,
         redirectUri = logtoConfig.redirectUri,
         code = authorizationCode,
@@ -61,10 +59,10 @@ open class LogtoClient(
     )
 
     suspend fun grantTokenByRefreshToken(
-        oidcConfiguration: OidcConfiguration,
+        tokenEndpoint: String,
         refreshToken: String,
     ): TokenSet = logtoService.grantTokenByRefreshToken(
-        tokenEndpoint = oidcConfiguration.tokenEndpoint,
+        tokenEndpoint = tokenEndpoint,
         clientId = logtoConfig.clientId,
         redirectUri = logtoConfig.redirectUri,
         refreshToken = refreshToken

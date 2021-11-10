@@ -19,8 +19,11 @@ class BrowserSignOutFlow(
 
     override fun start(context: Context) {
         try {
-            logtoAndroidClient.getOidcConfiguration { oidcConfiguration ->
-                val signOutUrl = logtoAndroidClient.getSignOutUrl(oidcConfiguration, idToken)
+            logtoAndroidClient.getOidcConfigurationAsync { oidcConfiguration ->
+                val signOutUrl = logtoAndroidClient.getSignOutUrl(
+                    oidcConfiguration.endSessionEndpoint,
+                    idToken
+                )
                 val intent = AuthorizationActivity.createHandleStartIntent(
                     context = context,
                     endpoint = signOutUrl,

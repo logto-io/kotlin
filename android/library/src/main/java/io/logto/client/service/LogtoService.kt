@@ -16,6 +16,7 @@ import io.logto.client.extensions.httpPost
 import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
 import org.jose4j.jwk.JsonWebKeySet
+import org.json.JSONException
 
 class LogtoService(private val httpClient: HttpClient) {
 
@@ -65,7 +66,11 @@ class LogtoService(private val httpClient: HttpClient) {
             jwksUri,
             LogtoException.REQUEST_JWKS_FAILED,
         )
-        return JsonWebKeySet(jsonWebKeySetString)
+        try {
+            return JsonWebKeySet(jsonWebKeySetString)
+        } catch (exception: JSONException) {
+            throw LogtoException(LogtoException.INVALID_JWKS_JSON, exception)
+        }
     }
 
     init {

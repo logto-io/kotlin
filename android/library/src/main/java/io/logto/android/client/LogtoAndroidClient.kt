@@ -15,13 +15,14 @@ class LogtoAndroidClient(
     logtoService: LogtoService,
 ) : LogtoClient(logtoConfig, logtoService) {
 
-    fun getOidcConfiguration(
+    fun getOidcConfigurationAsync(
         block: (oidcConfiguration: OidcConfiguration) -> Unit
     ) = MainScope().launch {
-        block(getOidcConfiguration())
+        val oidcConfiguration = getOidcConfiguration()
+        block(oidcConfiguration)
     }
 
-    fun grantTokenByAuthorizationCode(
+    fun grantTokenByAuthorizationCodeAsync(
         authorizationCode: String,
         codeVerifier: String,
         block: (tokenSet: TokenSet) -> Unit,
@@ -29,7 +30,7 @@ class LogtoAndroidClient(
         val oidcConfiguration = getOidcConfiguration()
         val jwks = getJsonWebKeySet()
         val tokenSet = grantTokenByAuthorizationCode(
-            oidcConfiguration,
+            oidcConfiguration.tokenEndpoint,
             authorizationCode,
             codeVerifier
         ).apply {
@@ -38,14 +39,14 @@ class LogtoAndroidClient(
         block(tokenSet)
     }
 
-    fun grantTokenByRefreshToken(
+    fun grantTokenByRefreshTokenAsync(
         refreshToken: String,
         block: (tokenSet: TokenSet) -> Unit,
     ) = MainScope().launch {
         val oidcConfiguration = getOidcConfiguration()
         val jwks = getJsonWebKeySet()
         val tokenSet = grantTokenByRefreshToken(
-            oidcConfiguration,
+            oidcConfiguration.tokenEndpoint,
             refreshToken
         ).apply {
             validateIdToken(logtoConfig.clientId, jwks)
