@@ -1,4 +1,4 @@
-package io.logto.android.exception
+package io.logto.client.exception
 
 class LogtoException(
     message: String,
@@ -17,6 +17,7 @@ class LogtoException(
         const val REQUEST_OIDC_CONFIGURATION_FAILED = "Request oidc configuration failed"
         const val REQUEST_TOKEN_FAILED = "Request token failed"
         const val REQUEST_JWKS_FAILED = "Request jwks failed"
+        const val INVALID_JWKS_JSON = "Invalid jwks json"
         const val ENCRYPT_ALGORITHM_NOT_SUPPORTED = "Encrypt Algorithm Not Supported"
         const val CODE_CHALLENGE_ENCODED_FAILED = "Code challenge encoded failed"
     }

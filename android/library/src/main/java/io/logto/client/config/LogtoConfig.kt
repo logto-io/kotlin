@@ -1,4 +1,4 @@
-package io.logto.android.config
+package io.logto.client.config
 
 data class LogtoConfig(
     val domain: String,

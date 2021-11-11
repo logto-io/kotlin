@@ -9,7 +9,7 @@ class RedirectUriActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         intent.data?.let {
             startActivity(AuthorizationActivity.createHandleCompleteIntent(this))
-            AuthManager.onResult(it)
+            AuthManager.handleRedirectUri(it)
         } ?: finish()
     }
 }

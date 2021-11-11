@@ -1,4 +1,4 @@
-package io.logto.android.constant
+package io.logto.client.constant
 
 object QueryKey {
     const val CLIENT_ID = "client_id"
