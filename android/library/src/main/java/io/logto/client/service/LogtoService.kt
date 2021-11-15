@@ -18,7 +18,17 @@ import io.logto.client.model.TokenSet
 import org.jose4j.jwk.JsonWebKeySet
 import org.json.JSONException
 
-class LogtoService(private val httpClient: HttpClient) {
+class LogtoService(
+    customHttpClient: HttpClient,
+) {
+    private val httpClient = customHttpClient.config {
+        followRedirects = false
+        install(JsonFeature) {
+            serializer = GsonSerializer() {
+                setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            }
+        }
+    }
 
     suspend fun fetchOidcConfiguration(domain: String): OidcConfiguration = httpClient.httpGet(
         "https://$domain/oidc/.well-known/openid-configuration",
@@ -70,17 +80,6 @@ class LogtoService(private val httpClient: HttpClient) {
             return JsonWebKeySet(jsonWebKeySetString)
         } catch (exception: JSONException) {
             throw LogtoException(LogtoException.INVALID_JWKS_JSON, exception)
-        }
-    }
-
-    init {
-        httpClient.config {
-            followRedirects = false
-            install(JsonFeature) {
-                serializer = GsonSerializer() {
-                    setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                }
-            }
         }
     }
 }

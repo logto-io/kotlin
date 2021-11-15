@@ -16,21 +16,21 @@ class BrowserSignOutFlow(
 ) : IFlow {
 
     override fun start(context: Context) {
-        try {
-            logtoAndroidClient.getOidcConfigurationAsync { oidcConfiguration ->
-                val signOutUrl = logtoAndroidClient.getSignOutUrl(
-                    oidcConfiguration.endSessionEndpoint,
-                    idToken
-                )
-                val intent = AuthorizationActivity.createHandleStartIntent(
-                    context = context,
-                    endpoint = signOutUrl,
-                    redirectUri = logtoAndroidClient.logtoConfig.postLogoutRedirectUri,
-                )
-                context.startActivity(intent)
+        logtoAndroidClient.getOidcConfigurationAsync { exception, oidcConfiguration ->
+            if (exception != null) {
+                onComplete(exception)
+                return@getOidcConfigurationAsync
             }
-        } catch (exception: LogtoException) {
-            onComplete(exception)
+            val signOutUrl = logtoAndroidClient.getSignOutUrl(
+                oidcConfiguration!!.endSessionEndpoint,
+                idToken
+            )
+            val intent = AuthorizationActivity.createHandleStartIntent(
+                context = context,
+                endpoint = signOutUrl,
+                redirectUri = logtoAndroidClient.logtoConfig.postLogoutRedirectUri,
+            )
+            context.startActivity(intent)
         }
     }
 

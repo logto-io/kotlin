@@ -20,21 +20,21 @@ class BrowserSignInFlow(
     private val codeVerifier: String = PkceUtils.generateCodeVerifier()
 
     override fun start(context: Context) {
-        try {
-            logtoAndroidClient.getOidcConfigurationAsync { oidcConfiguration ->
-                val codeChallenge = PkceUtils.generateCodeChallenge(codeVerifier)
-                val intent = AuthorizationActivity.createHandleStartIntent(
-                    context = context,
-                    endpoint = logtoAndroidClient.getSignInUrl(
-                        oidcConfiguration.authorizationEndpoint,
-                        codeChallenge
-                    ),
-                    redirectUri = logtoAndroidClient.logtoConfig.redirectUri,
-                )
-                context.startActivity(intent)
+        logtoAndroidClient.getOidcConfigurationAsync { exception, oidcConfiguration ->
+            if (exception != null) {
+                onComplete(exception, null)
+                return@getOidcConfigurationAsync
             }
-        } catch (exception: LogtoException) {
-            onComplete(exception, null)
+            val codeChallenge = PkceUtils.generateCodeChallenge(codeVerifier)
+            val intent = AuthorizationActivity.createHandleStartIntent(
+                context = context,
+                endpoint = logtoAndroidClient.getSignInUrl(
+                    oidcConfiguration!!.authorizationEndpoint,
+                    codeChallenge
+                ),
+                redirectUri = logtoAndroidClient.logtoConfig.redirectUri,
+            )
+            context.startActivity(intent)
         }
     }
 
@@ -54,15 +54,11 @@ class BrowserSignInFlow(
             return
         }
 
-        try {
-            logtoAndroidClient.grantTokenByAuthorizationCodeAsync(
-                authorizationCode = authorizationCode,
-                codeVerifier = codeVerifier,
-            ) {
-                onComplete(null, it)
-            }
-        } catch (exception: LogtoException) {
-            onComplete(exception, null)
+        logtoAndroidClient.grantTokenByAuthorizationCodeAsync(
+            authorizationCode = authorizationCode,
+            codeVerifier = codeVerifier,
+        ) { exception, tokenSet ->
+            onComplete(exception, tokenSet)
         }
     }
 }
