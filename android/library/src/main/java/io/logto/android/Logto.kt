@@ -5,12 +5,15 @@ import android.content.Context
 import io.logto.android.auth.AuthManager
 import io.logto.android.auth.browser.BrowserSignInFlow
 import io.logto.android.auth.browser.BrowserSignOutFlow
+import io.logto.android.callback.HandleAccessTokenCallback
+import io.logto.android.callback.HandleIdTokenClaimsCallback
+import io.logto.android.callback.HandleLogtoExceptionCallback
+import io.logto.android.callback.HandleTokenSetCallback
 import io.logto.android.client.LogtoAndroidClient
 import io.logto.android.storage.TokenSetStorage
 import io.logto.client.config.LogtoConfig
 import io.logto.client.exception.LogtoException
 import io.logto.client.model.TokenSet
-import org.jose4j.jwt.JwtClaims
 
 class Logto(
     logtoConfig: LogtoConfig,
@@ -42,7 +45,7 @@ class Logto(
         get() = tokenSet != null
 
     fun getAccessToken(
-        block: (exception: LogtoException?, accessToken: String?) -> Unit
+        block: HandleAccessTokenCallback
     ) {
         if (tokenSet == null) {
             block(LogtoException(LogtoException.NOT_AUTHENTICATED), null)
@@ -59,7 +62,7 @@ class Logto(
         }
     }
 
-    fun getIdTokenClaims(block: (exception: LogtoException?, idTokenClaims: JwtClaims?) -> Unit) {
+    fun getIdTokenClaims(block: HandleIdTokenClaimsCallback) {
         if (tokenSet == null) {
             block(LogtoException(LogtoException.NOT_AUTHENTICATED), null)
             return
@@ -74,7 +77,7 @@ class Logto(
 
     fun signInWithBrowser(
         context: Context,
-        onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit,
+        onComplete: HandleTokenSetCallback,
     ) {
         val signInFlow = BrowserSignInFlow(
             logtoAndroidClient,
@@ -97,7 +100,7 @@ class Logto(
 
     fun signOutWithBrowser(
         context: Context,
-        block: ((exception: LogtoException?) -> Unit)? = null
+        block: HandleLogtoExceptionCallback? = null
     ) {
         if (tokenSet == null) {
             block?.invoke(LogtoException(LogtoException.NOT_AUTHENTICATED))
@@ -116,9 +119,7 @@ class Logto(
         AuthManager.start(context, browserSignOutFlow)
     }
 
-    fun refreshTokenSet(
-        block: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit,
-    ) {
+    fun refreshTokenSet(block: HandleTokenSetCallback) {
         if (tokenSet == null) {
             block(LogtoException(LogtoException.NOT_AUTHENTICATED), null)
             return

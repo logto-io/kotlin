@@ -3,7 +3,8 @@ package io.logto.android.auth.browser
 import android.app.Activity
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
-import io.logto.android.callback.OidcConfigurationCallback
+import io.logto.android.callback.HandleLogtoExceptionCallback
+import io.logto.android.callback.HandleOidcConfigurationCallback
 import io.logto.android.client.LogtoAndroidClient
 import io.logto.android.utils.Utils
 import io.logto.client.config.LogtoConfig
@@ -44,7 +45,7 @@ class BrowserSignOutFlowTest {
     private lateinit var dummyOidcConfiguration: OidcConfiguration
 
     @Mock
-    private lateinit var onCompleteMock: (exception: LogtoException?) -> Unit
+    private lateinit var onCompleteMock: HandleLogtoExceptionCallback
 
     private lateinit var browserSignOutFlow: BrowserSignOutFlow
 
@@ -69,7 +70,7 @@ class BrowserSignOutFlowTest {
     @Suppress("UNCHECKED_CAST")
     fun shouldStartSignOut() {
         doAnswer {
-            val block = it.arguments[0] as OidcConfigurationCallback
+            val block = it.arguments[0] as HandleOidcConfigurationCallback
             block(null, dummyOidcConfiguration)
             null
         }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())
@@ -86,7 +87,7 @@ class BrowserSignOutFlowTest {
     fun startShouldInvokeCompleteWithLogtoExceptionOnDiscoverFailed() {
         val mockLogtoException: LogtoException = mock()
         doAnswer {
-            val block = it.arguments[0] as OidcConfigurationCallback
+            val block = it.arguments[0] as HandleOidcConfigurationCallback
             block(mockLogtoException, null)
             null
         }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())

@@ -3,8 +3,8 @@ package io.logto.android.auth.browser
 import android.app.Activity
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
-import io.logto.android.callback.OidcConfigurationCallback
-import io.logto.android.callback.TokenSetCallback
+import io.logto.android.callback.HandleOidcConfigurationCallback
+import io.logto.android.callback.HandleTokenSetCallback
 import io.logto.android.client.LogtoAndroidClient
 import io.logto.android.utils.Utils
 import io.logto.client.config.LogtoConfig
@@ -49,7 +49,7 @@ class BrowserSignInFlowTest {
     private lateinit var logtoAndroidClientMock: LogtoAndroidClient
 
     @Mock
-    private lateinit var onCompleteMock: TokenSetCallback
+    private lateinit var onCompleteMock: HandleTokenSetCallback
 
     private lateinit var browserSignInFlow: BrowserSignInFlow
 
@@ -74,7 +74,7 @@ class BrowserSignInFlowTest {
     @Suppress("UNCHECKED_CAST")
     fun shouldStartSignIn() {
         doAnswer {
-            val block = it.arguments[0] as OidcConfigurationCallback
+            val block = it.arguments[0] as HandleOidcConfigurationCallback
             block(null, dummyOidcConfiguration)
             null
         }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())
@@ -91,7 +91,7 @@ class BrowserSignInFlowTest {
     fun startShouldInvokeCompleteWithLogtoExceptionOnDiscoverFailed() {
         val mockLogtoException: LogtoException = mock()
         doAnswer {
-            val block = it.arguments[0] as OidcConfigurationCallback
+            val block = it.arguments[0] as HandleOidcConfigurationCallback
             block(mockLogtoException, null)
             null
         }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())
@@ -192,7 +192,7 @@ class BrowserSignInFlowTest {
     fun handleRedirectUriShouldCompleteWithTokenSetWithValidUri() {
         val tokenSet: TokenSet = mock()
         doAnswer {
-            val block = it.arguments[2] as TokenSetCallback
+            val block = it.arguments[2] as HandleTokenSetCallback
             block(null, tokenSet)
             null
         }.`when`(logtoAndroidClientMock).grantTokenByAuthorizationCodeAsync(
@@ -219,7 +219,7 @@ class BrowserSignInFlowTest {
         ))
         val mockLogtoException: LogtoException = mock()
         doAnswer {
-            val block = it.arguments[2] as TokenSetCallback
+            val block = it.arguments[2] as HandleTokenSetCallback
             block(mockLogtoException, null)
             null
         }.`when`(logtoAndroidClientMock).grantTokenByAuthorizationCodeAsync(

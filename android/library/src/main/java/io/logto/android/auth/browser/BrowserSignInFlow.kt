@@ -4,18 +4,18 @@ import android.content.Context
 import android.net.Uri
 import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
+import io.logto.android.callback.HandleTokenSetCallback
 import io.logto.android.client.LogtoAndroidClient
 import io.logto.android.utils.Utils
 import io.logto.client.constant.QueryKey
 import io.logto.client.exception.LogtoException
 import io.logto.client.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
 import io.logto.client.exception.LogtoException.Companion.SIGN_IN_FAILED
-import io.logto.client.model.TokenSet
 import io.logto.client.utils.PkceUtils
 
 class BrowserSignInFlow(
     private val logtoAndroidClient: LogtoAndroidClient,
-    private val onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
+    private val onComplete: HandleTokenSetCallback
 ) : IFlow {
     private val codeVerifier: String = PkceUtils.generateCodeVerifier()
 
