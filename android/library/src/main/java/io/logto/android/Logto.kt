@@ -10,7 +10,6 @@ import io.logto.android.storage.TokenSetStorage
 import io.logto.client.config.LogtoConfig
 import io.logto.client.exception.LogtoException
 import io.logto.client.model.TokenSet
-import io.logto.client.utils.TimeUtils
 import org.jose4j.jwt.JwtClaims
 
 class Logto(

@@ -3,17 +3,16 @@ package io.logto.android.client
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.features.logging.Logging
+import io.logto.android.callback.OidcConfigurationCallback
+import io.logto.android.callback.TokenSetCallback
 import io.logto.client.LogtoClient
 import io.logto.client.config.LogtoConfig
 import io.logto.client.exception.LogtoException
 import io.logto.client.model.OidcConfiguration
-import io.logto.client.model.TokenSet
 import io.logto.client.service.LogtoService
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,7 +33,7 @@ class LogtoAndroidClient(
     )
 
     fun getOidcConfigurationAsync(
-        block: (exception: LogtoException?, oidcConfiguration: OidcConfiguration?) -> Unit,
+        block: OidcConfigurationCallback,
     ) = coroutineScope.launch {
         try {
             val oidcConfiguration = getOidcConfiguration()
@@ -47,7 +46,7 @@ class LogtoAndroidClient(
     fun grantTokenByAuthorizationCodeAsync(
         authorizationCode: String,
         codeVerifier: String,
-        block: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit,
+        block: TokenSetCallback,
     ) = coroutineScope.launch {
         try {
             val oidcConfiguration = getOidcConfiguration()
@@ -67,7 +66,7 @@ class LogtoAndroidClient(
 
     fun grantTokenByRefreshTokenAsync(
         refreshToken: String,
-        block: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit,
+        block: TokenSetCallback,
     ) = coroutineScope.launch {
         try {
             val oidcConfiguration = getOidcConfiguration()

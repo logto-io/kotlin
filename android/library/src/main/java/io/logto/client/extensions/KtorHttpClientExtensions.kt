@@ -6,6 +6,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.logto.client.exception.LogtoException
 
+@Suppress("TooGenericExceptionCaught")
 suspend inline fun <reified T> HttpClient.httpGet(urlString: String, exceptLogtoExceptionDesc: String): T {
     try {
         return get(urlString)
@@ -14,6 +15,7 @@ suspend inline fun <reified T> HttpClient.httpGet(urlString: String, exceptLogto
     }
 }
 
+@Suppress("TooGenericExceptionCaught")
 suspend inline fun <reified T> HttpClient.httpPost(
     urlString: String,
     exceptLogtoExceptionDesc: String,
