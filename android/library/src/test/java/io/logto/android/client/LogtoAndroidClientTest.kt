@@ -8,8 +8,7 @@ import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.jose4j.jwk.JsonWebKeySet
 import org.junit.Before
@@ -42,52 +41,59 @@ class LogtoAndroidClientTest {
 
     private val logtoConfigMock: LogtoConfig = mock()
 
-    private val logtoAndroidClientSpy = spy(LogtoAndroidClient(logtoConfigMock))
+    private val logtoAndroidClient = LogtoAndroidClient(logtoConfigMock)
+
+    private val testCoroutineScope = TestCoroutineScope()
+
+    private lateinit var logtoAndroidClientSpy: LogtoAndroidClient
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
+        logtoAndroidClient.setCoroutineScope(testCoroutineScope)
+        logtoAndroidClientSpy = spy(logtoAndroidClient)
     }
 
     @Test
-    fun getOidcConfigurationAsyncShouldCallBlock() = runBlockingTest {
-        doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).getOidcConfiguration()
-        val handleOidcConfigurationCallbackMock: HandleOidcConfigurationCallback = mock()
+    fun getOidcConfigurationAsyncShouldCallBlock() {
+        runBlockingTest {
+            doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).getOidcConfiguration()
+            val handleOidcConfigurationCallbackMock: HandleOidcConfigurationCallback = mock()
 
-        logtoAndroidClientSpy.getOidcConfigurationAsync(handleOidcConfigurationCallbackMock)
-            .invokeOnCompletion { throwable ->
-                assertThat(throwable).isNull()
-                verify(handleOidcConfigurationCallbackMock).invoke(eq(null), eq(oidcConfigurationMock))
-            }
+            logtoAndroidClientSpy.getOidcConfigurationAsync(handleOidcConfigurationCallbackMock)
+                .invokeOnCompletion { throwable ->
+                    assertThat(throwable).isNull()
+                    verify(handleOidcConfigurationCallbackMock)
+                        .invoke(eq(null), eq(oidcConfigurationMock))
+                }
+        }
     }
 
     @Test
     fun getOidcConfigurationMoreThenOnceShouldJustFetchOnce() {
-        runBlocking {
-            launch {
-                doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).fetchOidcConfiguration()
+        runBlockingTest {
+            doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy)
+                .fetchOidcConfiguration()
 
-                logtoAndroidClientSpy.getOidcConfiguration()
-                logtoAndroidClientSpy.getOidcConfiguration()
+            logtoAndroidClientSpy.getOidcConfiguration()
+            logtoAndroidClientSpy.getOidcConfiguration()
 
-                verify(logtoAndroidClientSpy, times(1)).fetchOidcConfiguration()
-            }
+            verify(logtoAndroidClientSpy, times(1)).fetchOidcConfiguration()
         }
     }
 
     @Test
     fun getJsonWebKeySetMoreThenOnceShouldJustFetchOnce() {
-        runBlocking {
-            launch {
-                `when`(oidcConfigurationMock.jwksUri).thenReturn("jwksUri")
-                doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).fetchOidcConfiguration()
-                doReturn(jsonWebKeySetMock).`when`(logtoAndroidClientSpy).fetchJwks(anyOrNull())
+        runBlockingTest {
+            `when`(oidcConfigurationMock.jwksUri).thenReturn("jwksUri")
+            doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy)
+                .fetchOidcConfiguration()
+            doReturn(jsonWebKeySetMock).`when`(logtoAndroidClientSpy).fetchJwks(anyOrNull())
 
-                logtoAndroidClientSpy.getJsonWebKeySet()
-                logtoAndroidClientSpy.getJsonWebKeySet()
+            logtoAndroidClientSpy.getJsonWebKeySet()
+            logtoAndroidClientSpy.getJsonWebKeySet()
 
-                verify(logtoAndroidClientSpy, times(1)).fetchJwks(anyOrNull())
-            }
+            verify(logtoAndroidClientSpy, times(1)).fetchJwks(anyOrNull())
         }
     }
 
@@ -122,7 +128,8 @@ class LogtoAndroidClientTest {
         doReturn(oidcConfigurationMock).`when`(logtoAndroidClientSpy).getOidcConfiguration()
         doReturn(jsonWebKeySetMock).`when`(logtoAndroidClientSpy).getJsonWebKeySet()
         doNothing().`when`(tokenSetMock).validateIdToken(anyOrNull(), anyOrNull())
-        doReturn(tokenSetMock).`when`(logtoAndroidClientSpy).grantTokenByRefreshToken(anyOrNull(), anyOrNull())
+        doReturn(tokenSetMock).`when`(logtoAndroidClientSpy)
+            .grantTokenByRefreshToken(anyOrNull(), anyOrNull())
         val dummyRefreshToken = UUID.randomUUID().toString()
         val handleTokenSetCallbackMock: HandleTokenSetCallback = mock()
 

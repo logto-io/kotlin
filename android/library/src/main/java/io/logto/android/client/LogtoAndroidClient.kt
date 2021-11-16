@@ -1,5 +1,6 @@
 package io.logto.android.client
 
+import androidx.annotation.VisibleForTesting
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.features.logging.Logging
@@ -26,7 +27,7 @@ class LogtoAndroidClient(
         install(Logging)
     })
 ) {
-    private val coroutineScope = CoroutineScope(
+    private var coroutineScope = CoroutineScope(
         SupervisorJob() +
                 Dispatchers.IO +
                 CoroutineName("logto-android")
@@ -81,6 +82,11 @@ class LogtoAndroidClient(
         } catch (exception: LogtoException) {
             block(exception, null)
         }
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    internal fun setCoroutineScope(scope: CoroutineScope) {
+        coroutineScope = scope
     }
 
     internal suspend fun getOidcConfiguration(): OidcConfiguration = withContext(
