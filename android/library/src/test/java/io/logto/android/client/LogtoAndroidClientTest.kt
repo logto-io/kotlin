@@ -11,6 +11,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.jose4j.jwk.JsonWebKeySet
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -52,6 +53,11 @@ class LogtoAndroidClientTest {
         MockitoAnnotations.openMocks(this)
         logtoAndroidClient.setCoroutineScope(testCoroutineScope)
         logtoAndroidClientSpy = spy(logtoAndroidClient)
+    }
+
+    @After
+    fun tearDown() {
+        testCoroutineScope.cleanupTestCoroutines()
     }
 
     @Test
