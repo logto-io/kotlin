@@ -4,37 +4,37 @@ import android.content.Context
 import android.net.Uri
 import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
+import io.logto.android.callback.HandleTokenSetCallback
 import io.logto.android.client.LogtoAndroidClient
 import io.logto.android.utils.Utils
 import io.logto.client.constant.QueryKey
 import io.logto.client.exception.LogtoException
 import io.logto.client.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
 import io.logto.client.exception.LogtoException.Companion.SIGN_IN_FAILED
-import io.logto.client.model.TokenSet
 import io.logto.client.utils.PkceUtils
 
 class BrowserSignInFlow(
     private val logtoAndroidClient: LogtoAndroidClient,
-    private val onComplete: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
+    private val onComplete: HandleTokenSetCallback
 ) : IFlow {
     private val codeVerifier: String = PkceUtils.generateCodeVerifier()
 
     override fun start(context: Context) {
-        try {
-            logtoAndroidClient.getOidcConfigurationAsync { oidcConfiguration ->
-                val codeChallenge = PkceUtils.generateCodeChallenge(codeVerifier)
-                val intent = AuthorizationActivity.createHandleStartIntent(
-                    context = context,
-                    endpoint = logtoAndroidClient.getSignInUrl(
-                        oidcConfiguration.authorizationEndpoint,
-                        codeChallenge
-                    ),
-                    redirectUri = logtoAndroidClient.logtoConfig.redirectUri,
-                )
-                context.startActivity(intent)
+        logtoAndroidClient.getOidcConfigurationAsync { exception, oidcConfiguration ->
+            if (exception != null) {
+                onComplete(exception, null)
+                return@getOidcConfigurationAsync
             }
-        } catch (exception: LogtoException) {
-            onComplete(exception, null)
+            val codeChallenge = PkceUtils.generateCodeChallenge(codeVerifier)
+            val intent = AuthorizationActivity.createHandleStartIntent(
+                context = context,
+                endpoint = logtoAndroidClient.getSignInUrl(
+                    oidcConfiguration!!.authorizationEndpoint,
+                    codeChallenge
+                ),
+                redirectUri = logtoAndroidClient.logtoConfig.redirectUri,
+            )
+            context.startActivity(intent)
         }
     }
 
@@ -54,15 +54,11 @@ class BrowserSignInFlow(
             return
         }
 
-        try {
-            logtoAndroidClient.grantTokenByAuthorizationCodeAsync(
-                authorizationCode = authorizationCode,
-                codeVerifier = codeVerifier,
-            ) {
-                onComplete(null, it)
-            }
-        } catch (exception: LogtoException) {
-            onComplete(exception, null)
+        logtoAndroidClient.grantTokenByAuthorizationCodeAsync(
+            authorizationCode = authorizationCode,
+            codeVerifier = codeVerifier,
+        ) { exception, tokenSet ->
+            onComplete(exception, tokenSet)
         }
     }
 }

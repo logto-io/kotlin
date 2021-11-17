@@ -3,6 +3,8 @@ package io.logto.android.auth.browser
 import android.app.Activity
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
+import io.logto.android.callback.HandleOidcConfigurationCallback
+import io.logto.android.callback.HandleTokenSetCallback
 import io.logto.android.client.LogtoAndroidClient
 import io.logto.android.utils.Utils
 import io.logto.client.config.LogtoConfig
@@ -14,13 +16,8 @@ import io.logto.client.exception.LogtoException.Companion.MISSING_AUTHORIZATION_
 import io.logto.client.exception.LogtoException.Companion.SIGN_IN_FAILED
 import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -52,7 +49,7 @@ class BrowserSignInFlowTest {
     private lateinit var logtoAndroidClientMock: LogtoAndroidClient
 
     @Mock
-    private lateinit var onCompleteMock: (exception: LogtoException?, tokenSet: TokenSet?) -> Unit
+    private lateinit var onCompleteMock: HandleTokenSetCallback
 
     private lateinit var browserSignInFlow: BrowserSignInFlow
 
@@ -61,7 +58,6 @@ class BrowserSignInFlowTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(TestCoroutineDispatcher())
         MockitoAnnotations.openMocks(this)
 
         `when`(logtoConfigMock.redirectUri).thenReturn("redirectUri")
@@ -74,17 +70,12 @@ class BrowserSignInFlowTest {
         )
     }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
     @Test
     @Suppress("UNCHECKED_CAST")
     fun shouldStartSignIn() {
         doAnswer {
-            val block = it.arguments[0] as (OidcConfiguration) -> Unit
-            block(dummyOidcConfiguration)
+            val block = it.arguments[0] as HandleOidcConfigurationCallback
+            block(null, dummyOidcConfiguration)
             null
         }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())
         `when`(logtoAndroidClientMock.getSignInUrl(anyOrNull(), anyOrNull())).thenReturn("signInUrl")
@@ -96,10 +87,13 @@ class BrowserSignInFlowTest {
     }
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun startShouldInvokeCompleteWithLogtoExceptionOnDiscoverFailed() {
         val mockLogtoException: LogtoException = mock()
         doAnswer {
-            throw mockLogtoException
+            val block = it.arguments[0] as HandleOidcConfigurationCallback
+            block(mockLogtoException, null)
+            null
         }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())
         val activity: Activity = spy(Robolectric.buildActivity(Activity::class.java).get())
 
@@ -198,8 +192,8 @@ class BrowserSignInFlowTest {
     fun handleRedirectUriShouldCompleteWithTokenSetWithValidUri() {
         val tokenSet: TokenSet = mock()
         doAnswer {
-            val block = it.arguments[2] as (TokenSet) -> Unit
-            block(tokenSet)
+            val block = it.arguments[2] as HandleTokenSetCallback
+            block(null, tokenSet)
             null
         }.`when`(logtoAndroidClientMock).grantTokenByAuthorizationCodeAsync(
             anyString(),
@@ -218,19 +212,24 @@ class BrowserSignInFlowTest {
     }
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun handleRedirectUriShouldCompleteWithLogtoExceptionOnGrantTokenByAuthorizationCodeFailed() {
         val validUri = Utils.buildUriWithQueries(logtoConfigMock.redirectUri, mapOf(
             QueryKey.CODE to "authorizationCode"
         ))
         val mockLogtoException: LogtoException = mock()
         doAnswer {
-            throw mockLogtoException
+            val block = it.arguments[2] as HandleTokenSetCallback
+            block(mockLogtoException, null)
+            null
         }.`when`(logtoAndroidClientMock).grantTokenByAuthorizationCodeAsync(
             anyString(),
             anyString(),
             anyOrNull(),
         )
+
         browserSignInFlow.handleRedirectUri(validUri)
+
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).isEqualTo(mockLogtoException)
         assertThat(tokenSetCaptor.firstValue).isNull()

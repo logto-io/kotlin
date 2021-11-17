@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import io.logto.android.auth.IFlow
 import io.logto.android.auth.activity.AuthorizationActivity
+import io.logto.android.callback.HandleLogtoExceptionCallback
 import io.logto.android.client.LogtoAndroidClient
 import io.logto.android.utils.Utils
 import io.logto.client.exception.LogtoException
@@ -12,25 +13,25 @@ import io.logto.client.exception.LogtoException.Companion.SIGN_OUT_FAILED
 class BrowserSignOutFlow(
     private val idToken: String,
     private val logtoAndroidClient: LogtoAndroidClient,
-    private val onComplete: (exception: LogtoException?) -> Unit,
+    private val onComplete: HandleLogtoExceptionCallback,
 ) : IFlow {
 
     override fun start(context: Context) {
-        try {
-            logtoAndroidClient.getOidcConfigurationAsync { oidcConfiguration ->
-                val signOutUrl = logtoAndroidClient.getSignOutUrl(
-                    oidcConfiguration.endSessionEndpoint,
-                    idToken
-                )
-                val intent = AuthorizationActivity.createHandleStartIntent(
-                    context = context,
-                    endpoint = signOutUrl,
-                    redirectUri = logtoAndroidClient.logtoConfig.postLogoutRedirectUri,
-                )
-                context.startActivity(intent)
+        logtoAndroidClient.getOidcConfigurationAsync { exception, oidcConfiguration ->
+            if (exception != null) {
+                onComplete(exception)
+                return@getOidcConfigurationAsync
             }
-        } catch (exception: LogtoException) {
-            onComplete(exception)
+            val signOutUrl = logtoAndroidClient.getSignOutUrl(
+                oidcConfiguration!!.endSessionEndpoint,
+                idToken
+            )
+            val intent = AuthorizationActivity.createHandleStartIntent(
+                context = context,
+                endpoint = signOutUrl,
+                redirectUri = logtoAndroidClient.logtoConfig.postLogoutRedirectUri,
+            )
+            context.startActivity(intent)
         }
     }
 

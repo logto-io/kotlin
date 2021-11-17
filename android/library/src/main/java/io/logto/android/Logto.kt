@@ -5,12 +5,15 @@ import android.content.Context
 import io.logto.android.auth.AuthManager
 import io.logto.android.auth.browser.BrowserSignInFlow
 import io.logto.android.auth.browser.BrowserSignOutFlow
+import io.logto.android.callback.HandleAccessTokenCallback
+import io.logto.android.callback.HandleIdTokenClaimsCallback
+import io.logto.android.callback.HandleLogtoExceptionCallback
+import io.logto.android.callback.HandleTokenSetCallback
 import io.logto.android.client.LogtoAndroidClient
 import io.logto.android.storage.TokenSetStorage
 import io.logto.client.config.LogtoConfig
 import io.logto.client.exception.LogtoException
 import io.logto.client.model.TokenSet
-import org.jose4j.jwt.JwtClaims
 
 class Logto(
     logtoConfig: LogtoConfig,
@@ -41,71 +44,98 @@ class Logto(
     val authenticated: Boolean
         get() = tokenSet != null
 
-    fun getAccessToken(block: (accessToken: String) -> Unit) = tokenSet?.let {
-        if (!it.isExpired()) {
-            block(it.accessToken)
-            return@let
+    fun getAccessToken(
+        block: HandleAccessTokenCallback
+    ) {
+        if (tokenSet == null) {
+            block(LogtoException(LogtoException.NOT_AUTHENTICATED), null)
+            return
         }
 
-        refreshTokenSet { newTokenSet ->
-            block(newTokenSet.accessToken)
+        if (!tokenSet!!.isExpired()) {
+            block(null, tokenSet!!.accessToken)
+            return
         }
-    } ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
 
-    fun getIdTokenClaims(): JwtClaims {
-        return tokenSet?.getIdTokenClaims()
-            ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
+        refreshTokenSet { exception, newTokenSet ->
+            block(exception, newTokenSet?.accessToken)
+        }
+    }
+
+    fun getIdTokenClaims(block: HandleIdTokenClaimsCallback) {
+        if (tokenSet == null) {
+            block(LogtoException(LogtoException.NOT_AUTHENTICATED), null)
+            return
+        }
+        try {
+            val idTokenClaims = tokenSet!!.getIdTokenClaims()
+            block(null, idTokenClaims)
+        } catch (exception: LogtoException) {
+            block(exception, null)
+        }
     }
 
     fun signInWithBrowser(
         context: Context,
-        onComplete: (tokenSet: TokenSet) -> Unit,
-    ) = AuthManager.start(
-        context,
-        BrowserSignInFlow(
+        block: HandleTokenSetCallback,
+    ) {
+        val signInFlow = BrowserSignInFlow(
             logtoAndroidClient,
         ) { exception, tokenSet ->
             if (exception != null) {
-                throw exception
+                block(exception, null)
+                return@BrowserSignInFlow
             }
             if (tokenSet == null) {
-                throw LogtoException(LogtoException.UNKNOWN_ERROR)
+                block(LogtoException(LogtoException.UNKNOWN_ERROR), null)
+                return@BrowserSignInFlow
             }
             updateTokenSet(tokenSet)
             AuthManager.reset()
-            onComplete(tokenSet)
+            block(null, tokenSet)
         }
-    )
+
+        AuthManager.start(context, signInFlow)
+    }
 
     fun signOutWithBrowser(
         context: Context,
-    ) = tokenSet?.let {
-        AuthManager.start(
-            context,
-            BrowserSignOutFlow(
-                idToken = it.idToken,
-                logtoAndroidClient = logtoAndroidClient,
-            ) { exception ->
-                updateTokenSet(null)
-                AuthManager.reset()
-                if (exception != null) {
-                    throw exception
-                }
-            }
-        )
-    } ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
-
-    fun refreshTokenSet(
-        block: (tokenSet: TokenSet) -> Unit,
-    ) = tokenSet?.let {
-        val refreshToken = it.refreshToken
-            ?: throw LogtoException(LogtoException.REFRESH_TOKEN_IS_NOT_SUPPORTED)
-
-        logtoAndroidClient.grantTokenByRefreshTokenAsync(refreshToken) { updatedTokenSet ->
-            updateTokenSet(updatedTokenSet)
-            block(updatedTokenSet)
+        block: HandleLogtoExceptionCallback? = null
+    ) {
+        if (tokenSet == null) {
+            block?.invoke(LogtoException(LogtoException.NOT_AUTHENTICATED))
+            return
         }
-    } ?: throw LogtoException(LogtoException.NOT_AUTHENTICATED)
+
+        val browserSignOutFlow = BrowserSignOutFlow(
+            idToken = tokenSet!!.idToken,
+            logtoAndroidClient = logtoAndroidClient,
+        ) { exception ->
+            updateTokenSet(null)
+            AuthManager.reset()
+            block?.invoke(exception)
+        }
+
+        AuthManager.start(context, browserSignOutFlow)
+    }
+
+    fun refreshTokenSet(block: HandleTokenSetCallback) {
+        if (tokenSet == null) {
+            block(LogtoException(LogtoException.NOT_AUTHENTICATED), null)
+            return
+        }
+
+        val refreshToken = tokenSet!!.refreshToken
+        if (refreshToken == null) {
+            block(LogtoException(LogtoException.REFRESH_TOKEN_IS_NOT_SUPPORTED), null)
+            return
+        }
+
+        logtoAndroidClient.grantTokenByRefreshTokenAsync(refreshToken) { exception, updatedTokenSet ->
+            updateTokenSet(updatedTokenSet)
+            block(exception, updatedTokenSet)
+        }
+    }
 
     private fun updateTokenSet(updatedTokenSet: TokenSet?) {
         tokenSet = updatedTokenSet

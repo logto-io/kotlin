@@ -1,16 +1,22 @@
 package io.logto.android.client
 
+import androidx.annotation.VisibleForTesting
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.features.logging.Logging
+import io.logto.android.callback.HandleOidcConfigurationCallback
+import io.logto.android.callback.HandleTokenSetCallback
 import io.logto.client.LogtoClient
 import io.logto.client.config.LogtoConfig
+import io.logto.client.exception.LogtoException
 import io.logto.client.model.OidcConfiguration
-import io.logto.client.model.TokenSet
 import io.logto.client.service.LogtoService
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jose4j.jwk.JsonWebKeySet
 
 class LogtoAndroidClient(
@@ -21,63 +27,89 @@ class LogtoAndroidClient(
         install(Logging)
     })
 ) {
+    private var coroutineScope = CoroutineScope(
+        SupervisorJob() +
+                Dispatchers.IO +
+                CoroutineName("logto-android")
+    )
 
     fun getOidcConfigurationAsync(
-        block: (oidcConfiguration: OidcConfiguration) -> Unit,
-    ) = MainScope().launch {
-        val oidcConfiguration = getOidcConfiguration()
-        block(oidcConfiguration)
+        block: HandleOidcConfigurationCallback,
+    ) = coroutineScope.launch {
+        try {
+            val oidcConfiguration = getOidcConfiguration()
+            block(null, oidcConfiguration)
+        } catch (exception: LogtoException) {
+            block(exception, null)
+        }
     }
 
     fun grantTokenByAuthorizationCodeAsync(
         authorizationCode: String,
         codeVerifier: String,
-        block: (tokenSet: TokenSet) -> Unit,
-    ) = MainScope().launch {
-        val oidcConfiguration = getOidcConfiguration()
-        val jwks = getJsonWebKeySet()
-        val tokenSet = grantTokenByAuthorizationCode(
-            oidcConfiguration.tokenEndpoint,
-            authorizationCode,
-            codeVerifier
-        ).apply {
-            validateIdToken(logtoConfig.clientId, jwks)
+        block: HandleTokenSetCallback,
+    ) = coroutineScope.launch {
+        try {
+            val oidcConfiguration = getOidcConfiguration()
+            val jwks = getJsonWebKeySet()
+            val tokenSet = grantTokenByAuthorizationCode(
+                oidcConfiguration.tokenEndpoint,
+                authorizationCode,
+                codeVerifier
+            ).apply {
+                validateIdToken(logtoConfig.clientId, jwks)
+            }
+            block(null, tokenSet)
+        } catch (exception: LogtoException) {
+            block(exception, null)
         }
-        block(tokenSet)
     }
 
     fun grantTokenByRefreshTokenAsync(
         refreshToken: String,
-        block: (tokenSet: TokenSet) -> Unit,
-    ) = MainScope().launch {
-        val oidcConfiguration = getOidcConfiguration()
-        val jwks = getJsonWebKeySet()
-        val tokenSet = grantTokenByRefreshToken(
-            oidcConfiguration.tokenEndpoint,
-            refreshToken
-        ).apply {
-            validateIdToken(logtoConfig.clientId, jwks)
+        block: HandleTokenSetCallback,
+    ) = coroutineScope.launch {
+        try {
+            val oidcConfiguration = getOidcConfiguration()
+            val jwks = getJsonWebKeySet()
+            val tokenSet = grantTokenByRefreshToken(
+                oidcConfiguration.tokenEndpoint,
+                refreshToken
+            ).apply {
+                validateIdToken(logtoConfig.clientId, jwks)
+            }
+            block(null, tokenSet)
+        } catch (exception: LogtoException) {
+            block(exception, null)
         }
-        block(tokenSet)
     }
 
-    internal suspend fun getOidcConfiguration(): OidcConfiguration = coroutineScope {
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    internal fun setCoroutineScope(scope: CoroutineScope) {
+        coroutineScope = scope
+    }
+
+    internal suspend fun getOidcConfiguration(): OidcConfiguration = withContext(
+        coroutineScope.coroutineContext
+    ) {
         oidcConfigCache?.let {
-            return@coroutineScope it
+            return@withContext it
         }
         val oidcConfiguration = fetchOidcConfiguration()
         oidcConfigCache = oidcConfiguration
-        return@coroutineScope oidcConfiguration
+        return@withContext oidcConfiguration
     }
 
-    internal suspend fun getJsonWebKeySet(): JsonWebKeySet = coroutineScope {
+    internal suspend fun getJsonWebKeySet(): JsonWebKeySet = withContext(
+        coroutineScope.coroutineContext
+    ) {
         jsonWebKeySetCache?.let {
-            return@coroutineScope it
+            return@withContext it
         }
         val oidcConfiguration = getOidcConfiguration()
         val fetchedJsonWebKeySet = fetchJwks(oidcConfiguration)
         jsonWebKeySetCache = fetchedJsonWebKeySet
-        return@coroutineScope fetchedJsonWebKeySet
+        return@withContext fetchedJsonWebKeySet
     }
 
     private var oidcConfigCache: OidcConfiguration? = null

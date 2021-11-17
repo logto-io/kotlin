@@ -1,20 +1,21 @@
 package io.logto.client.extensions
 
 import io.ktor.client.HttpClient
-import io.ktor.client.features.ResponseException
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.logto.client.exception.LogtoException
 
+@Suppress("TooGenericExceptionCaught")
 suspend inline fun <reified T> HttpClient.httpGet(urlString: String, exceptLogtoExceptionDesc: String): T {
     try {
         return get(urlString)
-    } catch (exception: ResponseException) {
+    } catch (exception: RuntimeException) {
         throw LogtoException(exceptLogtoExceptionDesc, exception)
     }
 }
 
+@Suppress("TooGenericExceptionCaught")
 suspend inline fun <reified T> HttpClient.httpPost(
     urlString: String,
     exceptLogtoExceptionDesc: String,
@@ -22,7 +23,7 @@ suspend inline fun <reified T> HttpClient.httpPost(
 ): T {
     try {
         return post(urlString, block)
-    } catch (exception: ResponseException) {
+    } catch (exception: RuntimeException) {
         throw LogtoException(exceptLogtoExceptionDesc, exception)
     }
 }
