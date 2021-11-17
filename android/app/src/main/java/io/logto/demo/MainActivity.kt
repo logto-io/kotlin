@@ -30,12 +30,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initButtons() {
-        findViewById<Button>(R.id.login_button).setOnClickListener {
-            login()
+        findViewById<Button>(R.id.signin_button).setOnClickListener {
+            signIn()
         }
 
-        findViewById<Button>(R.id.logout_button).setOnClickListener {
-            logout()
+        findViewById<Button>(R.id.signout_button).setOnClickListener {
+            signOut()
         }
 
         findViewById<Button>(R.id.get_access_token_button).setOnClickListener {
@@ -47,25 +47,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun login() {
+    private fun signIn() {
         logto.signInWithBrowser(this) { exception, tokenSet ->
             if (exception !== null) {
-                Log.d(TAG, "Login Failed: $exception")
+                Log.d(TAG, "Sign in Failed: $exception")
                 return@signInWithBrowser
             } else {
-                Log.d(TAG, "Login Success!")
-                Log.d(TAG, "TokenSet After Login: $tokenSet")
+                Log.d(TAG, "Sign in Success!")
+                Log.d(TAG, "TokenSet After Sign in: $tokenSet")
             }
         }
     }
 
-    private fun logout() {
+    private fun signOut() {
         logto.signOutWithBrowser(this) { exception ->
             if (exception != null) {
-                Log.d(TAG, "Logout with exception: $exception")
+                Log.d(TAG, "Sign out with exception: $exception")
                 return@signOutWithBrowser
             } else {
-                Log.d(TAG, "Logout Success!")
+                Log.d(TAG, "Sign out Success!")
             }
         }
     }
