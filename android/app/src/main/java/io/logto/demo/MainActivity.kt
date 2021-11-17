@@ -2,7 +2,7 @@ package io.logto.demo
 
 import android.os.Bundle
 import android.util.Log
-import android.view.View
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import io.logto.android.Logto
 import io.logto.client.config.LogtoConfig
@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        initButtons()
         val logtoConfig = LogtoConfig(
             domain = "logto.dev",
             clientId = "z4skkM1Z8LLVSl1JCmVZO",
@@ -28,20 +29,22 @@ class MainActivity : AppCompatActivity() {
         logto = Logto(logtoConfig, application, true)
     }
 
-    fun onLoginButtonClick(view: View) {
-        login()
-    }
+    private fun initButtons() {
+        findViewById<Button>(R.id.login_button).setOnClickListener {
+            login()
+        }
 
-    fun onLogoutButtonClick(view: View) {
-        logout()
-    }
+        findViewById<Button>(R.id.logout_button).setOnClickListener {
+            logout()
+        }
 
-    fun onGetAccessTokenClick(view: View) {
-        getAccessToken()
-    }
+        findViewById<Button>(R.id.get_access_token_button).setOnClickListener {
+            getAccessToken()
+        }
 
-    fun onRefreshTokenClick(view: View) {
-        refreshAccessToken()
+        findViewById<Button>(R.id.refresh_token_button).setOnClickListener {
+            refreshAccessToken()
+        }
     }
 
     private fun login() {
