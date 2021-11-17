@@ -33,9 +33,9 @@ class TokenSetActivity : AppCompatActivity() {
             }
         }
 
-        logtoViewModel.idTokenClaims.observe(this) { idTokenCliams ->
-            if (idTokenCliams != null) {
-                idTokenClaimsTextView.text = JSONObject(idTokenCliams.toJson()).toString(2)
+        logtoViewModel.idTokenClaims.observe(this) { idTokenClaims ->
+            if (idTokenClaims != null) {
+                idTokenClaimsTextView.text = JSONObject(idTokenClaims.toJson()).toString(2)
             } else {
                 idTokenClaimsTextView.text = null
             }

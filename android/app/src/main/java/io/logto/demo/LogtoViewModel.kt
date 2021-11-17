@@ -35,9 +35,9 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         logto.signInWithBrowser(context) { exception, tokenSet ->
             if (exception !== null) {
                 _logtoException.postValue(exception)
-                return@signInWithBrowser
+            } else {
+                _authenticated.postValue(logto.authenticated)
             }
-            _authenticated.postValue(logto.authenticated)
         }
     }
 
@@ -45,9 +45,9 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         logto.signOutWithBrowser(context) { exception ->
             if (exception != null) {
                 _logtoException.postValue(exception)
-                return@signOutWithBrowser
+            } else {
+                _authenticated.postValue(logto.authenticated)
             }
-            _authenticated.postValue(logto.authenticated)
         }
     }
 
@@ -55,9 +55,9 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         logto.getAccessToken { exception, accessToken ->
             if (exception != null) {
                 _logtoException.postValue(exception)
-                return@getAccessToken
+            } else {
+                _accessToken.postValue(accessToken)
             }
-            _accessToken.postValue(accessToken)
         }
     }
 
@@ -65,9 +65,9 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         logto.getIdTokenClaims { exception, idTokenClaims ->
             if (exception != null) {
                 _logtoException.postValue(exception)
-                return@getIdTokenClaims
+            } else {
+                _idTokenClaims.postValue(idTokenClaims)
             }
-            _idTokenClaims.postValue(idTokenClaims)
         }
     }
 

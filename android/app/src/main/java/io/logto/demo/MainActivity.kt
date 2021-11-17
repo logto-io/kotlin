@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
@@ -23,6 +22,12 @@ class MainActivity : AppCompatActivity() {
         initViewModel()
     }
 
+    private fun initViews() {
+        findViewById<Button>(R.id.sign_in_button).setOnClickListener {
+            logtoViewModel.signIn(this)
+        }
+    }
+
     private fun initViewModel() {
         logtoViewModel.logtoException.observe(this) { exception ->
             if (exception != null) {
@@ -31,16 +36,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        logtoViewModel.authenticated.observe(this, Observer { hasAuthenticated ->
+        logtoViewModel.authenticated.observe(this) { hasAuthenticated ->
             if (hasAuthenticated) {
                 navigateToTokenSetActivity()
             }
-        })
-    }
-
-    private fun initViews() {
-        findViewById<Button>(R.id.sign_in_button).setOnClickListener {
-            logtoViewModel.signIn(this)
         }
     }
 
@@ -48,7 +47,4 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent(this, TokenSetActivity::class.java))
     }
 
-    companion object {
-        private val TAG = MainActivity::class.java.simpleName
-    }
 }
