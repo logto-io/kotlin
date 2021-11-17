@@ -38,6 +38,7 @@ dependencies {
     implementation "com.google.android.material:material:${rootProject.materialVersion}"
     implementation "androidx.constraintlayout:constraintlayout:${rootProject.constraintlayoutVersion}"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutinesVersion"
+    implementation "org.bitbucket.b_c:jose4j:$rootProject.jose4jVersion"
 
     implementation project(path: ':library')
 
