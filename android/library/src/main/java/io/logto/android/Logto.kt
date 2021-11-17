@@ -77,22 +77,22 @@ class Logto(
 
     fun signInWithBrowser(
         context: Context,
-        onComplete: HandleTokenSetCallback,
+        block: HandleTokenSetCallback,
     ) {
         val signInFlow = BrowserSignInFlow(
             logtoAndroidClient,
         ) { exception, tokenSet ->
             if (exception != null) {
-                onComplete(exception, null)
+                block(exception, null)
                 return@BrowserSignInFlow
             }
             if (tokenSet == null) {
-                onComplete(LogtoException(LogtoException.UNKNOWN_ERROR), null)
+                block(LogtoException(LogtoException.UNKNOWN_ERROR), null)
                 return@BrowserSignInFlow
             }
             updateTokenSet(tokenSet)
             AuthManager.reset()
-            onComplete(null, tokenSet)
+            block(null, tokenSet)
         }
 
         AuthManager.start(context, signInFlow)
