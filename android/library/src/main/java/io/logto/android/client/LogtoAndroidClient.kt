@@ -57,6 +57,7 @@ class LogtoAndroidClient(
                 authorizationCode,
                 codeVerifier
             ).apply {
+                calculateExpiresAt()
                 validateIdToken(logtoConfig.clientId, jwks)
             }
             block(null, tokenSet)
@@ -76,6 +77,7 @@ class LogtoAndroidClient(
                 oidcConfiguration.tokenEndpoint,
                 refreshToken
             ).apply {
+                calculateExpiresAt()
                 validateIdToken(logtoConfig.clientId, jwks)
             }
             block(null, tokenSet)
