@@ -12,9 +12,15 @@ data class TokenSet(
     val tokenType: String,
     private val expiresIn: Long,
 ) {
-    var expiresAt: Long = TimeUtils.expiresAtFromNow(expiresIn)
+    var expiresAt: Long = 0L
+
     fun isExpired(): Boolean = TimeUtils.nowRoundToSec() >= expiresAt
+
     fun expiresInSeconds(): Long = (expiresAt - TimeUtils.nowRoundToSec()).coerceAtLeast(0L)
+
+    fun calculateExpiresAt() {
+        expiresAt = TimeUtils.expiresAtFromNow(expiresIn)
+    }
 
     fun validateIdToken(
         clientId: String,
