@@ -8,7 +8,6 @@ class PkceUtilsTest {
     @Test
     fun generateCodeVerifierShouldBeFixedLength() {
         val codeVerifier = PkceUtils.generateCodeVerifier()
-        println("CodeVerifier: $codeVerifier")
         assertThat(codeVerifier.length).isEqualTo(ceil(64 * 1.34).toInt())
     }
 

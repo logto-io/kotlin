@@ -16,8 +16,6 @@ data class TokenSet(
 
     fun isExpired(): Boolean = TimeUtils.nowRoundToSec() >= expiresAt
 
-    fun expiresInSeconds(): Long = (expiresAt - TimeUtils.nowRoundToSec()).coerceAtLeast(0L)
-
     fun calculateExpiresAt() {
         expiresAt = TimeUtils.expiresAtFromNow(expiresIn)
     }
