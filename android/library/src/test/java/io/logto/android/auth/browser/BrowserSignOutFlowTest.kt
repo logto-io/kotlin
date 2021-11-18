@@ -13,6 +13,7 @@ import io.logto.client.exception.LogtoException
 import io.logto.client.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
 import io.logto.client.exception.LogtoException.Companion.INVALID_REDIRECT_URI
 import io.logto.client.exception.LogtoException.Companion.SIGN_OUT_FAILED
+import io.logto.client.exception.LogtoException.Companion.USER_CANCELED
 import io.logto.client.model.OidcConfiguration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -161,5 +162,14 @@ class BrowserSignOutFlowTest {
 
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).isNull()
+    }
+
+    @Test
+    fun handleUserCanceledShouldCompleteWithLogtoException() {
+        browserSignOutFlow.handleUserCanceled()
+
+        verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
+
+        assertThat(logtoExceptionCaptor.firstValue).hasMessageThat().isEqualTo(USER_CANCELED)
     }
 }

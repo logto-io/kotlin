@@ -20,5 +20,6 @@ class LogtoException(
         const val INVALID_JWKS_JSON = "Invalid jwks json"
         const val ENCRYPT_ALGORITHM_NOT_SUPPORTED = "Encrypt Algorithm Not Supported"
         const val CODE_CHALLENGE_ENCODED_FAILED = "Code challenge encoded failed"
+        const val USER_CANCELED = "User canceled"
     }
 }

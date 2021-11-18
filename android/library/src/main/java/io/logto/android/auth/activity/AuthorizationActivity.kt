@@ -7,6 +7,7 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
+import io.logto.android.auth.AuthManager
 
 class AuthorizationActivity : AppCompatActivity() {
 
@@ -47,14 +48,20 @@ class AuthorizationActivity : AppCompatActivity() {
 
     private fun handleFlow() {
         if (flowStarted) {
+            val flowComplete = intent.getBooleanExtra(EXTRA_FLOW_COMPLETE_FLAG, false)
+            if (!flowComplete) {
+                AuthManager.handleUserCanceled()
+            }
             handleFlowEnd()
             return
         }
+
         val endpoint = intent.getStringExtra(EXTRA_FLOW_ENDPOINT)
         if (endpoint == null) {
             handleFlowEnd()
             return
         }
+
         handleFlowStart(endpoint)
     }
 
@@ -90,6 +97,7 @@ class AuthorizationActivity : AppCompatActivity() {
     companion object {
         private const val EXTRA_FLOW_ENDPOINT = "EXTRA_FLOW_ENDPOINT"
         private const val EXTRA_FLOW_REDIRECT_URI = "EXTRA_FLOW_REDIRECT_URI"
+        private const val EXTRA_FLOW_COMPLETE_FLAG = "EXTRA_FLOW_COMPLETE_FLAG"
 
         fun createHandleStartIntent(
             context: Context,
@@ -100,6 +108,7 @@ class AuthorizationActivity : AppCompatActivity() {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 putExtra(EXTRA_FLOW_ENDPOINT, endpoint)
                 putExtra(EXTRA_FLOW_REDIRECT_URI, redirectUri)
+                putExtra(EXTRA_FLOW_COMPLETE_FLAG, false)
             }
         }
 
@@ -108,6 +117,7 @@ class AuthorizationActivity : AppCompatActivity() {
         ): Intent {
             return Intent(context, AuthorizationActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                putExtra(EXTRA_FLOW_COMPLETE_FLAG, true)
             }
         }
     }

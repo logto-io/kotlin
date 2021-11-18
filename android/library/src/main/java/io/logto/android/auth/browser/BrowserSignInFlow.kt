@@ -11,6 +11,7 @@ import io.logto.client.constant.QueryKey
 import io.logto.client.exception.LogtoException
 import io.logto.client.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
 import io.logto.client.exception.LogtoException.Companion.SIGN_IN_FAILED
+import io.logto.client.exception.LogtoException.Companion.USER_CANCELED
 import io.logto.client.utils.PkceUtils
 
 class BrowserSignInFlow(
@@ -60,5 +61,9 @@ class BrowserSignInFlow(
         ) { exception, tokenSet ->
             onComplete(exception, tokenSet)
         }
+    }
+
+    override fun handleUserCanceled() {
+        onComplete(LogtoException(USER_CANCELED), null)
     }
 }

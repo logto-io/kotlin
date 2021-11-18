@@ -15,6 +15,11 @@ object AuthManager {
         currentFlow?.handleRedirectUri(redirectUri)
     }
 
+    fun handleUserCanceled() {
+        currentFlow?.handleUserCanceled()
+        currentFlow = null
+    }
+
     fun reset() {
         currentFlow = null
     }
