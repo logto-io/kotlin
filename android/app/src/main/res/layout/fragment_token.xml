@@ -5,33 +5,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#141222"
-    tools:context=".TokenSetActivity">
+    tools:context=".fragment.TokenFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <TextView
+        android:id="@+id/token_claims_text"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="150dp"
         android:layout_marginEnd="32dp"
-        android:layout_marginBottom="200dp"
+        android:layout_marginBottom="250dp"
+        android:textAlignment="viewStart"
+        android:textColor="#ffffff"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/token_claims_text"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textAlignment="viewStart"
-            android:textColor="#ffffff"
-            android:textSize="18sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/get_access_token_button"
@@ -41,7 +31,7 @@
         android:text="@string/get_access_token_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/token_claims_text" />
 
     <Button
         android:id="@+id/sign_out_button"

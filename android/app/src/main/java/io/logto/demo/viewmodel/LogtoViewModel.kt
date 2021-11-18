@@ -1,4 +1,4 @@
-package io.logto.demo
+package io.logto.demo.viewmodel
 
 import android.app.Application
 import android.content.Context
@@ -45,9 +45,8 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         logto.signOutWithBrowser(context) { exception ->
             if (exception != null) {
                 _logtoException.postValue(exception)
-            } else {
-                _authenticated.postValue(logto.authenticated)
             }
+            _authenticated.postValue(logto.authenticated)
         }
     }
 

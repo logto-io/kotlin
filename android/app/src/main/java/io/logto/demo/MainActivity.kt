@@ -1,50 +1,29 @@
 package io.logto.demo
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
+import io.logto.demo.viewmodel.LogtoViewModel
+import io.logto.demo.viewmodel.LogtoViewModelFactory
 
 class MainActivity : AppCompatActivity() {
 
-    private val logtoViewModel: LogtoViewModel by lazy {
-        ViewModelProvider(this, LogtoViewModelFactory(application))
-            .get(LogtoViewModel::class.java)
+    private val logtoViewModel: LogtoViewModel by viewModels {
+        LogtoViewModelFactory(application)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         supportActionBar?.hide()
-        initViews()
-        initViewModel()
-    }
 
-    private fun initViews() {
-        findViewById<Button>(R.id.sign_in_button).setOnClickListener {
-            logtoViewModel.signIn(this)
-        }
-    }
-
-    private fun initViewModel() {
         logtoViewModel.logtoException.observe(this) { exception ->
             if (exception != null) {
                 Toast.makeText(this, "${exception.message}", Toast.LENGTH_LONG).show()
                 logtoViewModel.clearException()
             }
         }
-
-        logtoViewModel.authenticated.observe(this) { hasAuthenticated ->
-            if (hasAuthenticated) {
-                navigateToTokenSetActivity()
-            }
-        }
-    }
-
-    private fun navigateToTokenSetActivity() {
-        startActivity(Intent(this, TokenSetActivity::class.java))
     }
 
 }

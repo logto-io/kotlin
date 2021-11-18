@@ -1,4 +1,4 @@
-package io.logto.demo
+package io.logto.demo.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
