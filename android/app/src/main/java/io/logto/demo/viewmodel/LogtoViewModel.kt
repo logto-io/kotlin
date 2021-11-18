@@ -46,8 +46,8 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
             if (exception != null) {
                 _logtoException.postValue(exception)
             }
-            _authenticated.postValue(logto.authenticated)
         }
+        _authenticated.postValue(logto.authenticated)
     }
 
     fun getAccessToken() {
