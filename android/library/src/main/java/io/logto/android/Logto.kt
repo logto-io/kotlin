@@ -119,7 +119,7 @@ class Logto(
         AuthManager.start(context, browserSignOutFlow)
     }
 
-    fun refreshTokenSet(block: HandleTokenSetCallback) {
+    private fun refreshTokenSet(block: HandleTokenSetCallback) {
         if (tokenSet == null) {
             block(LogtoException(LogtoException.NOT_AUTHENTICATED), null)
             return
