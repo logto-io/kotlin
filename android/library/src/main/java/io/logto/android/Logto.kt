@@ -111,10 +111,11 @@ class Logto(
             idToken = tokenSet!!.idToken,
             logtoAndroidClient = logtoAndroidClient,
         ) { exception ->
-            updateTokenSet(null)
             AuthManager.reset()
             block?.invoke(exception)
         }
+
+        updateTokenSet(null)
 
         AuthManager.start(context, browserSignOutFlow)
     }
