@@ -4,6 +4,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
@@ -15,6 +16,11 @@ class AuthManagerTest {
     private val context = ApplicationProvider.getApplicationContext<Application>()
     private val testFlow = mock(IFlow::class.java)
     private val testUriData = mock(Uri::class.java)
+
+    @After
+    fun tearDown() {
+        AuthManager.reset()
+    }
 
     @Test
     fun authManagerOnStart() {
