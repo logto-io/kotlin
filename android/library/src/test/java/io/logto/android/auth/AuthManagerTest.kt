@@ -4,6 +4,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
@@ -16,6 +17,11 @@ class AuthManagerTest {
     private val testFlow = mock(IFlow::class.java)
     private val testUriData = mock(Uri::class.java)
 
+    @After
+    fun tearDown() {
+        AuthManager.reset()
+    }
+
     @Test
     fun authManagerOnStart() {
         AuthManager.start(context, testFlow)
@@ -26,20 +32,34 @@ class AuthManagerTest {
         verify(testFlow).handleRedirectUri(testUriData)
 
         AuthManager.reset()
-        assertThat(AuthManager.currentFlow).isEqualTo(null)
+        assertThat(AuthManager.currentFlow).isNull()
     }
 
     @Test
     fun authManagerHandleRedirectUri() {
         AuthManager.start(context, testFlow)
+
         AuthManager.handleRedirectUri(testUriData)
+
         verify(testFlow).handleRedirectUri(testUriData)
     }
 
     @Test
     fun authManagerOnReset() {
         AuthManager.start(context, testFlow)
+
         AuthManager.reset()
-        assertThat(AuthManager.currentFlow).isEqualTo(null)
+
+        assertThat(AuthManager.currentFlow).isNull()
+    }
+
+    @Test
+    fun authManagerHandleUserCanceled() {
+        AuthManager.start(context, testFlow)
+
+        AuthManager.handleUserCanceled()
+
+        verify(testFlow).handleUserCanceled()
+        assertThat(AuthManager.currentFlow).isNull()
     }
 }

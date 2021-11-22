@@ -14,6 +14,7 @@ import io.logto.client.exception.LogtoException.Companion.EMPTY_REDIRECT_URI
 import io.logto.client.exception.LogtoException.Companion.INVALID_REDIRECT_URI
 import io.logto.client.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
 import io.logto.client.exception.LogtoException.Companion.SIGN_IN_FAILED
+import io.logto.client.exception.LogtoException.Companion.USER_CANCELED
 import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -233,5 +234,12 @@ class BrowserSignInFlowTest {
         verify(onCompleteMock).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
         assertThat(logtoExceptionCaptor.firstValue).isEqualTo(mockLogtoException)
         assertThat(tokenSetCaptor.firstValue).isNull()
+    }
+
+    @Test
+    fun handleUserCanceledShouldCompleteWithLogtoException() {
+        browserSignInFlow.handleUserCanceled()
+        verify(onCompleteMock).invoke(logtoExceptionCaptor.capture(), tokenSetCaptor.capture())
+        assertThat(logtoExceptionCaptor.firstValue).hasMessageThat().isEqualTo(USER_CANCELED)
     }
 }

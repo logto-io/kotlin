@@ -6,4 +6,5 @@ import android.net.Uri
 interface IFlow {
     fun start(context: Context)
     fun handleRedirectUri(redirectUri: Uri)
+    fun handleUserCanceled()
 }

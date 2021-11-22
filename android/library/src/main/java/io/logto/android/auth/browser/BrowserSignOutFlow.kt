@@ -9,6 +9,7 @@ import io.logto.android.client.LogtoAndroidClient
 import io.logto.android.utils.Utils
 import io.logto.client.exception.LogtoException
 import io.logto.client.exception.LogtoException.Companion.SIGN_OUT_FAILED
+import io.logto.client.exception.LogtoException.Companion.USER_CANCELED
 
 class BrowserSignOutFlow(
     private val idToken: String,
@@ -45,5 +46,9 @@ class BrowserSignOutFlow(
             return
         }
         onComplete(null)
+    }
+
+    override fun handleUserCanceled() {
+        onComplete(LogtoException(USER_CANCELED))
     }
 }
