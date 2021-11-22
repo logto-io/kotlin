@@ -26,8 +26,8 @@ open class LogtoClient(
             parameters.append(QueryKey.PROMPT, PromptValue.CONSENT)
             parameters.append(QueryKey.REDIRECT_URI, logtoConfig.redirectUri)
             parameters.append(QueryKey.RESPONSE_TYPE, ResponseType.CODE)
-            parameters.append(QueryKey.SCOPE, logtoConfig.encodedScopes)
             parameters.append(QueryKey.RESOURCE, ResourceValue.LOGTO_API)
+            parameters.append(QueryKey.SCOPE, logtoConfig.scope)
         }
         return urlBuilder.buildString()
     }

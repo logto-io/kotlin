@@ -12,7 +12,7 @@ class LogtoConfigTest {
         assertThat(logtoConfig).isNotNull()
         assertThat(logtoConfig.domain).isEqualTo(TEST_DOMAIN)
         assertThat(logtoConfig.clientId).isEqualTo(TEST_CLIENT_ID)
-        assertThat(logtoConfig.scopes).isEqualTo(TEST_SCOPE_ARRAY)
+        assertThat(logtoConfig.scopeValues).isEqualTo(TEST_SCOPE_VALUES)
         assertThat(logtoConfig.redirectUri).isEqualTo(TEST_REDIRECT_URI)
         assertThat(logtoConfig.postLogoutRedirectUri).isEqualTo(TEST_POST_LOGOUT_REDIRE_URI)
     }
@@ -23,7 +23,7 @@ class LogtoConfigTest {
             LogtoConfig(
                 domain = TEST_DOMAIN,
                 clientId = "",
-                scopes = TEST_SCOPE_ARRAY,
+                scopeValues = TEST_SCOPE_VALUES,
                 redirectUri = TEST_REDIRECT_URI,
                 postLogoutRedirectUri = TEST_POST_LOGOUT_REDIRE_URI,
             )
@@ -42,7 +42,7 @@ class LogtoConfigTest {
             LogtoConfig(
                 domain = TEST_DOMAIN,
                 clientId = TEST_CLIENT_ID,
-                scopes = listOf(),
+                scopeValues = listOf(),
                 redirectUri = TEST_REDIRECT_URI,
                 postLogoutRedirectUri = TEST_POST_LOGOUT_REDIRE_URI,
             )
@@ -58,7 +58,7 @@ class LogtoConfigTest {
             LogtoConfig(
                 domain = TEST_DOMAIN,
                 clientId = TEST_CLIENT_ID,
-                scopes = TEST_SCOPE_ARRAY,
+                scopeValues = TEST_SCOPE_VALUES,
                 redirectUri = "",
                 postLogoutRedirectUri = TEST_POST_LOGOUT_REDIRE_URI,
             )
@@ -74,7 +74,7 @@ class LogtoConfigTest {
             LogtoConfig(
                 domain = TEST_DOMAIN,
                 clientId = TEST_CLIENT_ID,
-                scopes = TEST_SCOPE_ARRAY,
+                scopeValues = TEST_SCOPE_VALUES,
                 redirectUri = TEST_REDIRECT_URI,
                 postLogoutRedirectUri = "",
             )
@@ -90,7 +90,7 @@ class LogtoConfigTest {
             LogtoConfig(
                 domain = "",
                 clientId = TEST_CLIENT_ID,
-                scopes = TEST_SCOPE_ARRAY,
+                scopeValues = TEST_SCOPE_VALUES,
                 redirectUri = TEST_REDIRECT_URI,
                 postLogoutRedirectUri = TEST_POST_LOGOUT_REDIRE_URI,
             )
@@ -100,7 +100,7 @@ class LogtoConfigTest {
     @Test
     fun encodedScopesValidation() {
         val logtoConfig = createTestLogtoConfig()
-        assertThat(logtoConfig.encodedScopes)
+        assertThat(logtoConfig.scope)
             .isEqualTo("${ScopeValue.OPEN_ID} ${ScopeValue.OFFLINE_ACCESS}")
     }
 
@@ -108,19 +108,19 @@ class LogtoConfigTest {
     fun cacheKeyValidation() {
         val logtoConfig = createTestLogtoConfig()
         assertThat(logtoConfig.cacheKey)
-            .isEqualTo("$TEST_CLIENT_ID::${logtoConfig.encodedScopes}")
+            .isEqualTo("$TEST_CLIENT_ID::${logtoConfig.scope}")
     }
 
     private val TEST_DOMAIN = "logto.dev"
     private val TEST_CLIENT_ID = "clientId"
-    private val TEST_SCOPE_ARRAY = listOf(ScopeValue.OPEN_ID, ScopeValue.OFFLINE_ACCESS)
+    private val TEST_SCOPE_VALUES = listOf(ScopeValue.OPEN_ID, ScopeValue.OFFLINE_ACCESS)
     private val TEST_REDIRECT_URI = "redirectUri"
     private val TEST_POST_LOGOUT_REDIRE_URI = "postLogoutRedirectUri"
 
     private fun createTestLogtoConfig() = LogtoConfig(
         domain = TEST_DOMAIN,
         clientId = TEST_CLIENT_ID,
-        scopes = TEST_SCOPE_ARRAY,
+        scopeValues = TEST_SCOPE_VALUES,
         redirectUri = TEST_REDIRECT_URI,
         postLogoutRedirectUri = TEST_POST_LOGOUT_REDIRE_URI,
     )

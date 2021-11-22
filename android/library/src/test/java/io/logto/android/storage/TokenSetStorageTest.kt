@@ -17,7 +17,7 @@ class TokenSetStorageTest {
     private val logtoConfig = LogtoConfig(
         domain = "logto.dev",
         clientId = "clientId",
-        scopes = listOf(ScopeValue.OPEN_ID, ScopeValue.OFFLINE_ACCESS),
+        scopeValues = listOf(ScopeValue.OPEN_ID, ScopeValue.OFFLINE_ACCESS),
         redirectUri = "redirectUri",
         postLogoutRedirectUri = "postLogoutRedirectUri",
     )
