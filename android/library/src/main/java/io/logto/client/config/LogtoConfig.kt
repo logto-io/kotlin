@@ -1,5 +1,7 @@
 package io.logto.client.config
 
+import java.net.URLEncoder
+
 data class LogtoConfig(
     val domain: String,
     val clientId: String,
@@ -9,7 +11,7 @@ data class LogtoConfig(
 ) {
     val scope: String = scopeValues.joinToString(" ")
 
-    val cacheKey: String = "$clientId::$scope"
+    val cacheKey: String = URLEncoder.encode("$clientId::$scope", "utf-8")
 
     private fun validate() {
         require(domain.isNotEmpty()) { "LogtoConfig: domain should not be empty" }
