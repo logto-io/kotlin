@@ -10,6 +10,7 @@ import io.logto.client.constant.ResponseType
 import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
 import io.logto.client.service.LogtoService
+import org.jose4j.jwk.JsonWebKeySet
 
 open class LogtoClient(
     val logtoConfig: LogtoConfig,
@@ -43,31 +44,60 @@ open class LogtoClient(
         return urlBuilder.buildString()
     }
 
-    suspend fun fetchOidcConfiguration(): OidcConfiguration =
-        logtoService.fetchOidcConfiguration(logtoConfig.domain)
-
     suspend fun grantTokenByAuthorizationCode(
         tokenEndpoint: String,
         authorizationCode: String,
         codeVerifier: String,
-    ): TokenSet = logtoService.grantTokenByAuthorizationCode(
-        tokenEndpoint = tokenEndpoint,
-        clientId = logtoConfig.clientId,
-        redirectUri = logtoConfig.redirectUri,
-        code = authorizationCode,
-        codeVerifier = codeVerifier
-    )
+    ): TokenSet {
+        val tokenSetParameters = logtoService.grantTokenByAuthorizationCode(
+            tokenEndpoint = tokenEndpoint,
+            clientId = logtoConfig.clientId,
+            redirectUri = logtoConfig.redirectUri,
+            code = authorizationCode,
+            codeVerifier = codeVerifier
+        )
+
+        val jsonWebKeySet = getJsonWebKeySet()
+        tokenSetParameters.verifyIdToken(logtoConfig.clientId, jsonWebKeySet)
+        return tokenSetParameters.convertTokenSet()
+    }
 
     suspend fun grantTokenByRefreshToken(
         tokenEndpoint: String,
         refreshToken: String,
-    ): TokenSet = logtoService.grantTokenByRefreshToken(
-        tokenEndpoint = tokenEndpoint,
-        clientId = logtoConfig.clientId,
-        redirectUri = logtoConfig.redirectUri,
-        refreshToken = refreshToken
-    )
+    ): TokenSet {
+        val tokenSetParameters = logtoService.grantTokenByRefreshToken(
+            tokenEndpoint = tokenEndpoint,
+            clientId = logtoConfig.clientId,
+            redirectUri = logtoConfig.redirectUri,
+            refreshToken = refreshToken
+        )
 
-    suspend fun fetchJwks(oidcConfiguration: OidcConfiguration) =
-        logtoService.fetchJwks(oidcConfiguration.jwksUri)
+        val jsonWebKeySet = getJsonWebKeySet()
+        tokenSetParameters.verifyIdToken(logtoConfig.clientId, jsonWebKeySet)
+        return tokenSetParameters.convertTokenSet()
+    }
+
+    suspend fun getOidcConfiguration(): OidcConfiguration {
+        oidcConfigurationCache?.let {
+            return it
+        }
+        val oidcConfiguration = logtoService.fetchOidcConfiguration(logtoConfig.domain)
+        oidcConfigurationCache = oidcConfiguration
+        return oidcConfiguration
+    }
+
+    internal suspend fun getJsonWebKeySet(): JsonWebKeySet {
+        jsonWebKeySetCache?.let {
+            return it
+        }
+        val oidcConfiguration = getOidcConfiguration()
+        val fetchedJsonWebKeySet = logtoService.fetchJwks(oidcConfiguration.jwksUri)
+        jsonWebKeySetCache = fetchedJsonWebKeySet
+        return fetchedJsonWebKeySet
+    }
+
+    private var oidcConfigurationCache: OidcConfiguration? = null
+
+    private var jsonWebKeySetCache: JsonWebKeySet? = null
 }

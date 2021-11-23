@@ -14,7 +14,7 @@ import io.logto.client.exception.LogtoException
 import io.logto.client.extensions.httpGet
 import io.logto.client.extensions.httpPost
 import io.logto.client.model.OidcConfiguration
-import io.logto.client.model.TokenSet
+import io.logto.client.model.TokenSetParameters
 import org.jose4j.jwk.JsonWebKeySet
 import org.json.JSONException
 
@@ -41,7 +41,7 @@ class LogtoService(
         redirectUri: String,
         code: String,
         codeVerifier: String,
-    ): TokenSet = httpClient.httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
+    ): TokenSetParameters = httpClient.httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
         headers {
             contentType(ContentType.Application.FormUrlEncoded)
         }
@@ -59,7 +59,7 @@ class LogtoService(
         clientId: String,
         redirectUri: String,
         refreshToken: String,
-    ): TokenSet = httpClient.httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
+    ): TokenSetParameters = httpClient.httpPost(tokenEndpoint, LogtoException.REQUEST_TOKEN_FAILED) {
         headers {
             contentType(ContentType.Application.FormUrlEncoded)
         }
