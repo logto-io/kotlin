@@ -35,16 +35,14 @@ dependencies {
     // align with library
     implementation "androidx.core:core-ktx:$rootProject.ktxVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.appcompatVersion"
-    implementation "com.google.android.material:material:$rootProject.materialVersion"
-    implementation "androidx.constraintlayout:constraintlayout:$rootProject.constraintlayoutVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutinesVersion"
     implementation "org.bitbucket.b_c:jose4j:$rootProject.jose4jVersion"
 
     // app specified
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
+    implementation "com.google.android.material:material:1.4.0"
+    implementation "androidx.constraintlayout:constraintlayout:2.1.2"
 
     implementation project(path: ':library')
-
-    testImplementation "junit:junit:${rootProject.junitVersion}"
 }
