@@ -28,7 +28,7 @@ class TokenSetStorageTest {
         idToken = "idToken",
         scope = "offline_access openid",
         tokenType = "Bearer",
-        expiresIn = 60L
+        expiresAt = 60L
     )
 
     private val sharedPreferencesName = "io.logto.android::${logtoConfig.cacheKey}"
