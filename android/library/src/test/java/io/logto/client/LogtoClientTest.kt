@@ -25,7 +25,7 @@ class LogtoClientTest {
     private val testLogtoConfig = LogtoConfig(
         domain = "logto.dev",
         clientId = "clientId",
-        scopes = listOf(ScopeValue.OFFLINE_ACCESS, ScopeValue.OPEN_ID),
+        scopeValues = listOf(ScopeValue.OFFLINE_ACCESS, ScopeValue.OPEN_ID),
         redirectUri = "redirectUri",
         postLogoutRedirectUri = "postLogoutRedirectUri"
     )
@@ -57,7 +57,7 @@ class LogtoClientTest {
             assertThat(parameters[QueryKey.CODE_CHALLENGE_METHOD]).isEqualTo(CodeChallengeMethod.S256)
             assertThat(parameters[QueryKey.PROMPT]).isEqualTo(PromptValue.CONSENT)
             assertThat(parameters[QueryKey.RESPONSE_TYPE]).isEqualTo(ResponseType.CODE)
-            assertThat(parameters[QueryKey.SCOPE]).isEqualTo(testLogtoConfig.encodedScopes)
+            assertThat(parameters[QueryKey.SCOPE]).isEqualTo(testLogtoConfig.scope)
             assertThat(parameters[QueryKey.RESOURCE]).isEqualTo(ResourceValue.LOGTO_API)
         }
     }

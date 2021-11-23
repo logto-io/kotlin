@@ -82,7 +82,7 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         val logtoConfig = LogtoConfig(
             domain = "logto.dev",
             clientId = "z4skkM1Z8LLVSl1JCmVZO",
-            scopes = listOf(
+            scopeValues = listOf(
                 ScopeValue.OPEN_ID,
                 ScopeValue.OFFLINE_ACCESS
             ),
