@@ -7,9 +7,12 @@ import io.logto.android.auth.AuthManager
 class RedirectUriActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        intent.data?.let {
-            startActivity(AuthorizationActivity.createHandleCompleteIntent(this))
-            AuthManager.handleRedirectUri(it)
-        } ?: finish()
+        if (AuthManager.isInFlowProcess) {
+            intent.data?.let {
+                startActivity(AuthorizationActivity.createHandleCompleteIntent(this))
+                AuthManager.handleRedirectUri(it)
+            }
+        }
+        finish()
     }
 }
