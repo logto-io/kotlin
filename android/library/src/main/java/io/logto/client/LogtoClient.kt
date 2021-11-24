@@ -19,11 +19,13 @@ open class LogtoClient(
     fun getSignInUrl(
         authorizationEndpoint: String,
         codeChallenge: String,
+        state: String,
     ): String {
         val urlBuilder = URLBuilder(authorizationEndpoint).apply {
             parameters.append(QueryKey.CLIENT_ID, logtoConfig.clientId)
             parameters.append(QueryKey.CODE_CHALLENGE, codeChallenge)
             parameters.append(QueryKey.CODE_CHALLENGE_METHOD, CodeChallengeMethod.S256)
+            parameters.append(QueryKey.STATE, state)
             parameters.append(QueryKey.PROMPT, PromptValue.CONSENT)
             parameters.append(QueryKey.REDIRECT_URI, logtoConfig.redirectUri)
             parameters.append(QueryKey.RESPONSE_TYPE, ResponseType.CODE)

@@ -7,19 +7,14 @@ import java.io.UnsupportedEncodingException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
-object PkceUtils {
+object GenerateUtils {
     private const val CODE_VERIFIER_ALPHABET =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
-    private const val CODE_VERIFIER_LEN = 64
     private const val DEFAULT_ALGORITHM = "SHA-256"
+    private const val DEFAULT_RANDOM_STRING_LENGTH = 64
 
     fun generateCodeVerifier(): String {
-        val randomString = NanoIdUtils.randomNanoId(
-            NanoIdUtils.DEFAULT_NUMBER_GENERATOR,
-            CODE_VERIFIER_ALPHABET.toCharArray(),
-            CODE_VERIFIER_LEN
-        )
-        return Base64Url.encode(randomString.toByteArray())
+        return generateRandomString()
     }
 
     fun generateCodeChallenge(codeVerifier: String): String {
@@ -36,5 +31,18 @@ object PkceUtils {
         } catch (exception: UnsupportedEncodingException) {
             throw LogtoException(LogtoException.CODE_CHALLENGE_ENCODED_FAILED, exception)
         }
+    }
+
+    fun generateState(): String {
+        return generateRandomString()
+    }
+
+    private fun generateRandomString(stringLength: Int = DEFAULT_RANDOM_STRING_LENGTH): String {
+        val randomString = NanoIdUtils.randomNanoId(
+            NanoIdUtils.DEFAULT_NUMBER_GENERATOR,
+            CODE_VERIFIER_ALPHABET.toCharArray(),
+            stringLength
+        )
+        return Base64Url.encode(randomString.toByteArray())
     }
 }
