@@ -19,15 +19,9 @@ object Utils {
             return LogtoException.EMPTY_REDIRECT_URI
         }
 
-        val errorDescription = uri.getQueryParameter(QueryKey.ERROR_DESCRIPTION)
-        if (errorDescription != null) {
-            return errorDescription
-        }
+        uri.getQueryParameter(QueryKey.ERROR_DESCRIPTION)?.let { return it }
 
-        val error = uri.getQueryParameter(QueryKey.ERROR)
-        if (error != null) {
-            return error
-        }
+        uri.getQueryParameter(QueryKey.ERROR)?.let { return it }
 
         if (!uri.toString().startsWith(baseUri)) {
             return LogtoException.INVALID_REDIRECT_URI

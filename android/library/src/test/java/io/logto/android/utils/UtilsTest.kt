@@ -21,6 +21,7 @@ class UtilsTest {
 
         val uri = Utils.buildUriWithQueries(baseUrl, queries)
 
+        assertThat(uri.path).isEqualTo(baseUrl)
         assertThat(uri.getQueryParameter("key1")).isEqualTo("value1")
         assertThat(uri.getQueryParameter("key2")).isEqualTo("value2")
     }
