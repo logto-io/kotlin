@@ -43,9 +43,9 @@ class UtilsTest {
             QueryKey.ERROR_DESCRIPTION to exceptionMsg
         ))
 
-        val expectedExcpetionMsg = Utils.validateRedirectUri(uriWithErrorDesc, dummyBaseUri)
+        val expectedExceptionMsg = Utils.validateRedirectUri(uriWithErrorDesc, dummyBaseUri)
 
-        assertThat(expectedExcpetionMsg).isEqualTo(exceptionMsg)
+        assertThat(expectedExceptionMsg).isEqualTo(exceptionMsg)
     }
 
     @Test
@@ -56,9 +56,9 @@ class UtilsTest {
             QueryKey.ERROR to exceptionMsg
         ))
 
-        val expectedExcpetionMsg = Utils.validateRedirectUri(uriWithError, dummyBaseUri)
+        val expectedExceptionMsg = Utils.validateRedirectUri(uriWithError, dummyBaseUri)
 
-        assertThat(expectedExcpetionMsg).isEqualTo(exceptionMsg)
+        assertThat(expectedExceptionMsg).isEqualTo(exceptionMsg)
     }
 
     @Test
@@ -67,9 +67,9 @@ class UtilsTest {
         val uri = Uri.parse(baseUri)
         val anotherBaseUri = UUID.randomUUID().toString()
 
-        val expectedExcpetionMsg = Utils.validateRedirectUri(uri, anotherBaseUri)
+        val expectedExceptionMsg = Utils.validateRedirectUri(uri, anotherBaseUri)
 
-        assertThat(expectedExcpetionMsg).isEqualTo(LogtoException.INVALID_REDIRECT_URI)
+        assertThat(expectedExceptionMsg).isEqualTo(LogtoException.INVALID_REDIRECT_URI)
     }
 
     @Test

@@ -61,9 +61,9 @@ class BrowserSignInFlowTest {
 
     private val state = "state1"
 
-    private val logtoExceptionMutableList = mutableListOf<LogtoException?>()
+    private val logtoExceptionCaptureList = mutableListOf<LogtoException?>()
 
-    private val tokenSetMutableList = mutableListOf<TokenSet?>()
+    private val tokenSetCaptureList = mutableListOf<TokenSet?>()
 
     @Before
     fun setUp() {
@@ -122,8 +122,8 @@ class BrowserSignInFlowTest {
         val activity: Activity = spyk(Robolectric.buildActivity(Activity::class.java).get())
         browserSignInFlow.start(activity)
 
-        verify { onCompleteMock(mockLogtoException, captureNullable(tokenSetMutableList)) }
-        assertThat(tokenSetMutableList.last()).isNull()
+        verify { onCompleteMock(mockLogtoException, captureNullable(tokenSetCaptureList)) }
+        assertThat(tokenSetCaptureList.last()).isNull()
     }
 
     @Test
@@ -133,14 +133,14 @@ class BrowserSignInFlowTest {
 
         verify {
             onCompleteMock.invoke(
-                captureNullable(logtoExceptionMutableList),
-                captureNullable(tokenSetMutableList)
+                captureNullable(logtoExceptionCaptureList),
+                captureNullable(tokenSetCaptureList)
             )
         }
-        assertThat(logtoExceptionMutableList.last())
+        assertThat(logtoExceptionCaptureList.last())
             .hasMessageThat()
             .isEqualTo("$SIGN_IN_FAILED: $EMPTY_REDIRECT_URI")
-        assertThat(tokenSetMutableList.last()).isNull()
+        assertThat(tokenSetCaptureList.last()).isNull()
     }
 
     @Test
@@ -154,14 +154,14 @@ class BrowserSignInFlowTest {
 
         verify {
             onCompleteMock.invoke(
-                captureNullable(logtoExceptionMutableList),
-                captureNullable(tokenSetMutableList)
+                captureNullable(logtoExceptionCaptureList),
+                captureNullable(tokenSetCaptureList)
             )
         }
-        assertThat(logtoExceptionMutableList.last())
+        assertThat(logtoExceptionCaptureList.last())
             .hasMessageThat()
             .isEqualTo("$SIGN_IN_FAILED: mocked sign in error description")
-        assertThat(tokenSetMutableList.last()).isNull()
+        assertThat(tokenSetCaptureList.last()).isNull()
     }
 
     @Test
@@ -174,14 +174,14 @@ class BrowserSignInFlowTest {
 
         verify {
             onCompleteMock.invoke(
-                captureNullable(logtoExceptionMutableList),
-                captureNullable(tokenSetMutableList)
+                captureNullable(logtoExceptionCaptureList),
+                captureNullable(tokenSetCaptureList)
             )
         }
-        assertThat(logtoExceptionMutableList.last())
+        assertThat(logtoExceptionCaptureList.last())
             .hasMessageThat()
             .isEqualTo("$SIGN_IN_FAILED: mocked sign in error")
-        assertThat(tokenSetMutableList.last()).isNull()
+        assertThat(tokenSetCaptureList.last()).isNull()
     }
 
     @Test
@@ -192,14 +192,14 @@ class BrowserSignInFlowTest {
 
         verify {
             onCompleteMock.invoke(
-                captureNullable(logtoExceptionMutableList),
-                captureNullable(tokenSetMutableList)
+                captureNullable(logtoExceptionCaptureList),
+                captureNullable(tokenSetCaptureList)
             )
         }
-        assertThat(logtoExceptionMutableList.last())
+        assertThat(logtoExceptionCaptureList.last())
             .hasMessageThat()
             .isEqualTo("$SIGN_IN_FAILED: $INVALID_REDIRECT_URI")
-        assertThat(tokenSetMutableList.last()).isNull()
+        assertThat(tokenSetCaptureList.last()).isNull()
     }
 
     @Test
@@ -214,14 +214,14 @@ class BrowserSignInFlowTest {
 
         verify {
             onCompleteMock.invoke(
-                captureNullable(logtoExceptionMutableList),
-                captureNullable(tokenSetMutableList)
+                captureNullable(logtoExceptionCaptureList),
+                captureNullable(tokenSetCaptureList)
             )
         }
-        assertThat(logtoExceptionMutableList.last())
+        assertThat(logtoExceptionCaptureList.last())
             .hasMessageThat()
             .isEqualTo("$SIGN_IN_FAILED: $MISSING_STATE")
-        assertThat(tokenSetMutableList.last()).isNull()
+        assertThat(tokenSetCaptureList.last()).isNull()
     }
 
     @Test
@@ -237,14 +237,14 @@ class BrowserSignInFlowTest {
 
         verify {
             onCompleteMock.invoke(
-                captureNullable(logtoExceptionMutableList),
-                captureNullable(tokenSetMutableList)
+                captureNullable(logtoExceptionCaptureList),
+                captureNullable(tokenSetCaptureList)
             )
         }
-        assertThat(logtoExceptionMutableList.last())
+        assertThat(logtoExceptionCaptureList.last())
             .hasMessageThat()
             .isEqualTo("$SIGN_IN_FAILED: $UNKNOWN_STATE")
-        assertThat(tokenSetMutableList.last()).isNull()
+        assertThat(tokenSetCaptureList.last()).isNull()
     }
 
     @Test
@@ -259,14 +259,14 @@ class BrowserSignInFlowTest {
 
         verify {
             onCompleteMock.invoke(
-                captureNullable(logtoExceptionMutableList),
-                captureNullable(tokenSetMutableList)
+                captureNullable(logtoExceptionCaptureList),
+                captureNullable(tokenSetCaptureList)
             )
         }
-        assertThat(logtoExceptionMutableList.last())
+        assertThat(logtoExceptionCaptureList.last())
             .hasMessageThat()
             .isEqualTo("$SIGN_IN_FAILED: $MISSING_AUTHORIZATION_CODE")
-        assertThat(tokenSetMutableList.last()).isNull()
+        assertThat(tokenSetCaptureList.last()).isNull()
     }
 
     @Test
@@ -282,14 +282,14 @@ class BrowserSignInFlowTest {
 
         verify {
             onCompleteMock.invoke(
-                captureNullable(logtoExceptionMutableList),
-                captureNullable(tokenSetMutableList)
+                captureNullable(logtoExceptionCaptureList),
+                captureNullable(tokenSetCaptureList)
             )
         }
-        assertThat(logtoExceptionMutableList.last())
+        assertThat(logtoExceptionCaptureList.last())
             .hasMessageThat()
             .isEqualTo("$SIGN_IN_FAILED: $MISSING_AUTHORIZATION_CODE")
-        assertThat(tokenSetMutableList.last()).isNull()
+        assertThat(tokenSetCaptureList.last()).isNull()
     }
 
     @Test
@@ -313,8 +313,8 @@ class BrowserSignInFlowTest {
         )
         browserSignInFlow.handleRedirectUri(validUri)
 
-        verify { onCompleteMock.invoke(captureNullable(logtoExceptionMutableList), tokenSet) }
-        assertThat(logtoExceptionMutableList.last()).isNull()
+        verify { onCompleteMock.invoke(captureNullable(logtoExceptionCaptureList), tokenSet) }
+        assertThat(logtoExceptionCaptureList.last()).isNull()
     }
 
     @Test
@@ -337,8 +337,8 @@ class BrowserSignInFlowTest {
         )
         browserSignInFlow.handleRedirectUri(validUri)
 
-        verify { onCompleteMock.invoke(mockLogtoException, captureNullable(tokenSetMutableList)) }
-        assertThat(tokenSetMutableList.last()).isNull()
+        verify { onCompleteMock.invoke(mockLogtoException, captureNullable(tokenSetCaptureList)) }
+        assertThat(tokenSetCaptureList.last()).isNull()
     }
 
     @Test
@@ -346,11 +346,11 @@ class BrowserSignInFlowTest {
         browserSignInFlow.handleUserCanceled()
         verify {
             onCompleteMock.invoke(
-                captureNullable(logtoExceptionMutableList),
-                captureNullable(tokenSetMutableList)
+                captureNullable(logtoExceptionCaptureList),
+                captureNullable(tokenSetCaptureList)
             )
         }
-        assertThat(logtoExceptionMutableList.last()).hasMessageThat().isEqualTo(USER_CANCELED)
-        assertThat(tokenSetMutableList.last()).isNull()
+        assertThat(logtoExceptionCaptureList.last()).hasMessageThat().isEqualTo(USER_CANCELED)
+        assertThat(tokenSetCaptureList.last()).isNull()
     }
 }
