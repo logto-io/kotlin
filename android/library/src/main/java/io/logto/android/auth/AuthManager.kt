@@ -6,6 +6,9 @@ import android.net.Uri
 object AuthManager {
     internal var currentFlow: IFlow? = null
 
+    val isInFlowProcess: Boolean
+        get() = currentFlow != null
+
     fun start(context: Context, flow: IFlow) {
         currentFlow = flow
         flow.start(context)

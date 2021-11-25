@@ -86,7 +86,6 @@ class AuthorizationActivity : AppCompatActivity() {
 
     private fun startFlowWithCustomTabs(endpoint: String) {
         val customTabsIntent = CustomTabsIntent.Builder().build()
-        customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         customTabsIntent.launchUrl(this, Uri.parse(endpoint))
     }
 
