@@ -12,6 +12,8 @@ class LogtoException(
         const val INVALID_REDIRECT_URI = "Invalid redirect uri"
         const val EMPTY_REDIRECT_URI = "Empty redirect uri"
         const val MISSING_AUTHORIZATION_CODE = "Missing authorization code"
+        const val MISSING_STATE = "Missing state"
+        const val UNKNOWN_STATE = "Unknown state"
         const val SIGN_OUT_FAILED = "Sign out failed"
         const val INVALID_JWT = "Invalid jwt"
         const val REQUEST_OIDC_CONFIGURATION_FAILED = "Request oidc configuration failed"

@@ -31,6 +31,7 @@ buildscript {
         robolectricVersion = '4.6.1'
         mockitoVersion = '4.0.0'
         coroutinesTestVersion = '1.5.2'
+        mockkVersion = '1.12.1'
     }
 
     repositories {

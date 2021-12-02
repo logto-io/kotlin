@@ -10,15 +10,18 @@ import io.logto.android.utils.Utils
 import io.logto.client.constant.QueryKey
 import io.logto.client.exception.LogtoException
 import io.logto.client.exception.LogtoException.Companion.MISSING_AUTHORIZATION_CODE
+import io.logto.client.exception.LogtoException.Companion.MISSING_STATE
 import io.logto.client.exception.LogtoException.Companion.SIGN_IN_FAILED
+import io.logto.client.exception.LogtoException.Companion.UNKNOWN_STATE
 import io.logto.client.exception.LogtoException.Companion.USER_CANCELED
-import io.logto.client.utils.PkceUtils
+import io.logto.client.utils.GenerateUtils
 
 class BrowserSignInFlow(
     private val logtoAndroidClient: LogtoAndroidClient,
     private val onComplete: HandleTokenSetCallback
 ) : IFlow {
-    private val codeVerifier: String = PkceUtils.generateCodeVerifier()
+    private val codeVerifier: String = GenerateUtils.generateCodeVerifier()
+    private val state: String = GenerateUtils.generateState()
 
     override fun start(context: Context) {
         logtoAndroidClient.getOidcConfigurationAsync { exception, oidcConfiguration ->
@@ -26,12 +29,13 @@ class BrowserSignInFlow(
                 onComplete(exception, null)
                 return@getOidcConfigurationAsync
             }
-            val codeChallenge = PkceUtils.generateCodeChallenge(codeVerifier)
+            val codeChallenge = GenerateUtils.generateCodeChallenge(codeVerifier)
             val intent = AuthorizationActivity.createHandleStartIntent(
                 context = context,
                 endpoint = logtoAndroidClient.getSignInUrl(
                     oidcConfiguration!!.authorizationEndpoint,
-                    codeChallenge
+                    codeChallenge,
+                    state,
                 ),
                 redirectUri = logtoAndroidClient.logtoConfig.redirectUri,
             )
@@ -39,6 +43,7 @@ class BrowserSignInFlow(
         }
     }
 
+    @Suppress("ReturnCount")
     override fun handleRedirectUri(redirectUri: Uri) {
         val exceptionMsg = Utils.validateRedirectUri(
             redirectUri,
@@ -49,8 +54,18 @@ class BrowserSignInFlow(
             return
         }
 
+        val state = redirectUri.getQueryParameter(QueryKey.STATE)
+        if (state.isNullOrBlank()) {
+            onComplete(LogtoException("$SIGN_IN_FAILED: $MISSING_STATE"), null)
+            return
+        }
+        if (state != this.state) {
+            onComplete(LogtoException("$SIGN_IN_FAILED: $UNKNOWN_STATE"), null)
+            return
+        }
+
         val authorizationCode = redirectUri.getQueryParameter(QueryKey.CODE)
-        if (authorizationCode.isNullOrEmpty()) {
+        if (authorizationCode.isNullOrBlank()) {
             onComplete(LogtoException("$SIGN_IN_FAILED: $MISSING_AUTHORIZATION_CODE"), null)
             return
         }

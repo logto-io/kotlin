@@ -50,10 +50,12 @@ class LogtoClientTest {
     fun getSignInUrl() {
         val dummyLogtoService: LogtoService = mock()
         val codeChallenge = UUID.randomUUID().toString()
+        val state = UUID.randomUUID().toString()
         val logtoClient = LogtoClient(testLogtoConfig, dummyLogtoService)
         val signInUrlStr = logtoClient.getSignInUrl(
             testOidcConfiguration.authorizationEndpoint,
-            codeChallenge
+            codeChallenge,
+            state,
         )
         Url(signInUrlStr).apply {
             assertThat(protocol.name).isEqualTo("https")
@@ -62,6 +64,7 @@ class LogtoClientTest {
             assertThat(parameters[QueryKey.CLIENT_ID]).isEqualTo(testLogtoConfig.clientId)
             assertThat(parameters[QueryKey.CODE_CHALLENGE]).isEqualTo(codeChallenge)
             assertThat(parameters[QueryKey.CODE_CHALLENGE_METHOD]).isEqualTo(CodeChallengeMethod.S256)
+            assertThat(parameters[QueryKey.STATE]).isEqualTo(state)
             assertThat(parameters[QueryKey.PROMPT]).isEqualTo(PromptValue.CONSENT)
             assertThat(parameters[QueryKey.RESPONSE_TYPE]).isEqualTo(ResponseType.CODE)
             assertThat(parameters[QueryKey.SCOPE]).isEqualTo(testLogtoConfig.scope)

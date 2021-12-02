@@ -6,6 +6,7 @@ object QueryKey {
     const val CODE_CHALLENGE = "code_challenge"
     const val CODE_CHALLENGE_METHOD = "code_challenge_method"
     const val CODE_VERIFIER = "code_verifier"
+    const val STATE = "state"
     const val ERROR = "error"
     const val ERROR_DESCRIPTION = "error_description"
     const val GRANT_TYPE = "grant_type"
