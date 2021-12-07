@@ -13,17 +13,14 @@ import io.logto.client.model.OidcConfiguration
 import io.logto.client.model.TokenSet
 import io.logto.client.model.TokenSetParameters
 import io.logto.client.service.LogtoService
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.jose4j.jwk.JsonWebKeySet
 import org.junit.Test
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.doNothing
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
 import java.util.UUID
 
 @ExperimentalCoroutinesApi
@@ -48,7 +45,7 @@ class LogtoClientTest {
 
     @Test
     fun getSignInUrl() {
-        val dummyLogtoService: LogtoService = mock()
+        val dummyLogtoService: LogtoService = mockk()
         val codeChallenge = UUID.randomUUID().toString()
         val state = UUID.randomUUID().toString()
         val logtoClient = LogtoClient(testLogtoConfig, dummyLogtoService)
@@ -74,7 +71,7 @@ class LogtoClientTest {
 
     @Test
     fun getSignOutUrl() {
-        val dummyLogtoService: LogtoService = mock()
+        val dummyLogtoService: LogtoService = mockk()
         val logtoClient = LogtoClient(testLogtoConfig, dummyLogtoService)
         val idToken = UUID.randomUUID().toString()
         val signOutUrlStr = logtoClient.getSignOutUrl(
@@ -93,10 +90,12 @@ class LogtoClientTest {
 
     @Test
     fun getOidcConfiguration() = runBlockingTest {
-        val logtoServiceMock: LogtoService = mock()
-        val oidcConfigurationMock: OidcConfiguration = mock()
-        doReturn(oidcConfigurationMock)
-            .`when`(logtoServiceMock).fetchOidcConfiguration(eq(testLogtoConfig.domain))
+        val logtoServiceMock: LogtoService = mockk()
+        val oidcConfigurationMock: OidcConfiguration = mockk(relaxed = true)
+        coEvery {
+            logtoServiceMock.fetchOidcConfiguration(eq(testLogtoConfig.domain))
+        } returns oidcConfigurationMock
+
         val logtoClient = LogtoClient(testLogtoConfig, logtoServiceMock)
 
         val oidcConfiguration = logtoClient.getOidcConfiguration()
@@ -106,24 +105,28 @@ class LogtoClientTest {
 
     @Test
     fun getOidcConfigurationMoreThenOnceShouldJustFetchOnce() = runBlockingTest {
-        val logtoServiceMock: LogtoService = mock()
-        val oidcConfigurationMock: OidcConfiguration = mock()
-        doReturn(oidcConfigurationMock)
-            .`when`(logtoServiceMock).fetchOidcConfiguration(eq(testLogtoConfig.domain))
+        val logtoServiceMock: LogtoService = mockk()
+        val oidcConfigurationMock: OidcConfiguration = mockk(relaxed = true)
+        coEvery {
+            logtoServiceMock.fetchOidcConfiguration(eq(testLogtoConfig.domain))
+        } returns oidcConfigurationMock
         val logtoClient = LogtoClient(testLogtoConfig, logtoServiceMock)
 
         logtoClient.getOidcConfiguration()
         logtoClient.getOidcConfiguration()
 
-        verify(logtoServiceMock, times(1)).fetchOidcConfiguration(eq(testLogtoConfig.domain))
+        coVerify(exactly = 1) {
+            logtoServiceMock.fetchOidcConfiguration(eq(testLogtoConfig.domain))
+        }
     }
 
     @Test
     fun getOidcConfigurationMoreThenOnceShouldBeTheSameValue() = runBlockingTest {
-        val logtoServiceMock: LogtoService = mock()
-        val oidcConfigurationMock: OidcConfiguration = mock()
-        doReturn(oidcConfigurationMock)
-            .`when`(logtoServiceMock).fetchOidcConfiguration(eq(testLogtoConfig.domain))
+        val logtoServiceMock: LogtoService = mockk()
+        val oidcConfigurationMock: OidcConfiguration = mockk(relaxed = true)
+        coEvery {
+            logtoServiceMock.fetchOidcConfiguration(eq(testLogtoConfig.domain))
+        } returns oidcConfigurationMock
         val logtoClient = LogtoClient(testLogtoConfig, logtoServiceMock)
 
         val oidcConfiguration1 = logtoClient.getOidcConfiguration()
@@ -136,24 +139,28 @@ class LogtoClientTest {
 
     @Test
     fun grantTokenByAuthorizationCode() = runBlockingTest {
-        val logtoServiceMock: LogtoService = mock()
-        doReturn(testOidcConfiguration).`when`(logtoServiceMock).fetchOidcConfiguration(anyOrNull())
+        val logtoServiceMock: LogtoService = mockk()
+        coEvery {
+            logtoServiceMock.fetchOidcConfiguration(any())
+        } returns testOidcConfiguration
 
-        val jwksMock: JsonWebKeySet = mock()
-        doReturn(jwksMock).`when`(logtoServiceMock).fetchJwks(anyOrNull())
+        val jwksMock: JsonWebKeySet = mockk()
+        coEvery {
+            logtoServiceMock.fetchJwks(any())
+        } returns jwksMock
 
-        val tokenSetParametersMock: TokenSetParameters = mock()
-        doNothing().`when`(tokenSetParametersMock).verifyIdToken(anyOrNull(), anyOrNull())
-        doReturn(tokenSetParametersMock).`when`(logtoServiceMock).grantTokenByAuthorizationCode(
-            anyOrNull(),
-            anyOrNull(),
-            anyOrNull(),
-            anyOrNull(),
-            anyOrNull()
-        )
+        val tokenSetParametersMock: TokenSetParameters = mockk()
+        every {
+            tokenSetParametersMock.verifyIdToken(any(), any())
+        } returns Unit
+        coEvery {
+            logtoServiceMock.grantTokenByAuthorizationCode(any(), any(), any(), any(), any())
+        } returns tokenSetParametersMock
 
-        val tokenSetMock: TokenSet = mock()
-        doReturn(tokenSetMock).`when`(tokenSetParametersMock).convertTokenSet()
+        val tokenSetMock: TokenSet = mockk()
+        every {
+            tokenSetParametersMock.convertTokenSet()
+        } returns tokenSetMock
 
         val authorizationCode = UUID.randomUUID().toString()
         val codeVerifier = UUID.randomUUID().toString()
@@ -167,34 +174,41 @@ class LogtoClientTest {
         )
 
         assertThat(tokenSet).isEqualTo(tokenSetMock)
-        verify(logtoServiceMock).grantTokenByAuthorizationCode(
-            tokenEndpoint = eq(testOidcConfiguration.tokenEndpoint),
-            clientId = eq(testLogtoConfig.clientId),
-            redirectUri = eq(testLogtoConfig.redirectUri),
-            code = eq(authorizationCode),
-            codeVerifier = eq(codeVerifier)
-        )
+        coVerify {
+            logtoServiceMock.grantTokenByAuthorizationCode(
+                tokenEndpoint = eq(testOidcConfiguration.tokenEndpoint),
+                clientId = eq(testLogtoConfig.clientId),
+                redirectUri = eq(testLogtoConfig.redirectUri),
+                code = eq(authorizationCode),
+                codeVerifier = eq(codeVerifier)
+            )
+        }
     }
 
     @Test
     fun grantTokenByRefreshToken() = runBlockingTest {
-        val logtoServiceMock: LogtoService = mock()
-        doReturn(testOidcConfiguration).`when`(logtoServiceMock).fetchOidcConfiguration(anyOrNull())
+        val logtoServiceMock: LogtoService = mockk()
+        coEvery {
+            logtoServiceMock.fetchOidcConfiguration(any())
+        } returns testOidcConfiguration
 
-        val jwksMock: JsonWebKeySet = mock()
-        doReturn(jwksMock).`when`(logtoServiceMock).fetchJwks(anyOrNull())
+        val jwksMock: JsonWebKeySet = mockk()
+        coEvery {
+            logtoServiceMock.fetchJwks(any())
+        } returns jwksMock
 
-        val tokenSetParametersMock: TokenSetParameters = mock()
-        doNothing().`when`(tokenSetParametersMock).verifyIdToken(anyOrNull(), anyOrNull())
-        doReturn(tokenSetParametersMock).`when`(logtoServiceMock).grantTokenByRefreshToken(
-            anyOrNull(),
-            anyOrNull(),
-            anyOrNull(),
-            anyOrNull()
-        )
+        val tokenSetParametersMock: TokenSetParameters = mockk()
+        coEvery {
+            tokenSetParametersMock.verifyIdToken(any(), any())
+        } returns Unit
+        coEvery {
+            logtoServiceMock.grantTokenByRefreshToken(any(), any(), any(), any())
+        } returns tokenSetParametersMock
 
-        val tokenSetMock: TokenSet = mock()
-        doReturn(tokenSetMock).`when`(tokenSetParametersMock).convertTokenSet()
+        val tokenSetMock: TokenSet = mockk()
+        every {
+            tokenSetParametersMock.convertTokenSet()
+        } returns tokenSetMock
 
         val refreshToken = UUID.randomUUID().toString()
 
@@ -206,23 +220,27 @@ class LogtoClientTest {
         )
 
         assertThat(tokenSet).isEqualTo(tokenSetMock)
-        verify(logtoServiceMock).grantTokenByRefreshToken(
-            tokenEndpoint = eq(testOidcConfiguration.tokenEndpoint),
-            clientId = eq(testLogtoConfig.clientId),
-            redirectUri = eq(testLogtoConfig.redirectUri),
-            refreshToken = eq(refreshToken)
-        )
+        coVerify {
+            logtoServiceMock.grantTokenByRefreshToken(
+                tokenEndpoint = eq(testOidcConfiguration.tokenEndpoint),
+                clientId = eq(testLogtoConfig.clientId),
+                redirectUri = eq(testLogtoConfig.redirectUri),
+                refreshToken = eq(refreshToken)
+            )
+        }
     }
 
     @Test
     fun getJsonWebKeySet() = runBlockingTest {
-        val jwksMock: JsonWebKeySet = mock()
-        val oidcConfigurationMock: OidcConfiguration = mock()
-        val logtoServiceMock: LogtoService = mock()
-        doReturn(oidcConfigurationMock)
-            .`when`(logtoServiceMock).fetchOidcConfiguration(anyOrNull())
-        doReturn(jwksMock)
-            .`when`(logtoServiceMock).fetchJwks(anyOrNull())
+        val jwksMock: JsonWebKeySet = mockk()
+        val oidcConfigurationMock: OidcConfiguration = mockk(relaxed = true)
+        val logtoServiceMock: LogtoService = mockk()
+        coEvery {
+            logtoServiceMock.fetchOidcConfiguration(any())
+        } returns oidcConfigurationMock
+        coEvery {
+            logtoServiceMock.fetchJwks(any())
+        } returns jwksMock
         val logtoClient = LogtoClient(testLogtoConfig, logtoServiceMock)
 
         val jwks = logtoClient.getJsonWebKeySet()
@@ -232,31 +250,35 @@ class LogtoClientTest {
 
     @Test
     fun getJsonWebKeySetMoreThenOnceShouldJustFetchOnce() = runBlockingTest {
-        val jwksMock: JsonWebKeySet = mock()
-        val oidcConfigurationMock: OidcConfiguration = mock()
-        val logtoServiceMock: LogtoService = mock()
-        doReturn(oidcConfigurationMock)
-            .`when`(logtoServiceMock).fetchOidcConfiguration(anyOrNull())
-        doReturn(jwksMock)
-            .`when`(logtoServiceMock).fetchJwks(anyOrNull())
+        val jwksMock: JsonWebKeySet = mockk()
+        val oidcConfigurationMock: OidcConfiguration = mockk(relaxed = true)
+        val logtoServiceMock: LogtoService = mockk()
+        coEvery {
+            (logtoServiceMock).fetchOidcConfiguration(any())
+        } returns oidcConfigurationMock
+        coEvery {
+            logtoServiceMock.fetchJwks(any())
+        } returns jwksMock
 
         val logtoClient = LogtoClient(testLogtoConfig, logtoServiceMock)
 
         logtoClient.getJsonWebKeySet()
         logtoClient.getJsonWebKeySet()
 
-        verify(logtoServiceMock, times(1)).fetchJwks(anyOrNull())
+        coVerify(exactly = 1) { logtoServiceMock.fetchJwks(any()) }
     }
 
     @Test
     fun getJsonWebKeySetMoreThenOnceShouldBeTheSameValue() = runBlockingTest {
-        val jwksMock: JsonWebKeySet = mock()
-        val oidcConfigurationMock: OidcConfiguration = mock()
-        val logtoServiceMock: LogtoService = mock()
-        doReturn(oidcConfigurationMock)
-            .`when`(logtoServiceMock).fetchOidcConfiguration(anyOrNull())
-        doReturn(jwksMock)
-            .`when`(logtoServiceMock).fetchJwks(anyOrNull())
+        val jwksMock: JsonWebKeySet = mockk()
+        val oidcConfigurationMock: OidcConfiguration = mockk(relaxed = true)
+        val logtoServiceMock: LogtoService = mockk()
+        coEvery {
+            logtoServiceMock.fetchOidcConfiguration(any())
+        } returns oidcConfigurationMock
+        coEvery {
+            logtoServiceMock.fetchJwks(any())
+        } returns jwksMock
 
         val logtoClient = LogtoClient(testLogtoConfig, logtoServiceMock)
 

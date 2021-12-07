@@ -15,20 +15,18 @@ import io.logto.client.exception.LogtoException.Companion.INVALID_REDIRECT_URI
 import io.logto.client.exception.LogtoException.Companion.SIGN_OUT_FAILED
 import io.logto.client.exception.LogtoException.Companion.USER_CANCELED
 import io.logto.client.model.OidcConfiguration
+import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.spy
-import org.mockito.MockitoAnnotations
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
@@ -36,29 +34,28 @@ import org.robolectric.RobolectricTestRunner
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
 class BrowserSignOutFlowTest {
-    @Mock
+    @RelaxedMockK
     private lateinit var logtoConfigMock: LogtoConfig
 
-    @Mock
+    @RelaxedMockK
     private lateinit var logtoAndroidClientMock: LogtoAndroidClient
 
-    @Mock
+    @RelaxedMockK
     private lateinit var dummyOidcConfiguration: OidcConfiguration
 
-    @Mock
+    @RelaxedMockK
     private lateinit var onCompleteMock: HandleLogtoExceptionCallback
 
     private lateinit var browserSignOutFlow: BrowserSignOutFlow
 
-    private val logtoExceptionCaptor = argumentCaptor<LogtoException>()
+    private val logtoExceptionCaptureList = mutableListOf<LogtoException?>()
 
     @Before
     fun setUp() {
-        MockitoAnnotations.openMocks(this)
+        MockKAnnotations.init(this)
 
-        `when`(logtoConfigMock.postLogoutRedirectUri).thenReturn("postLogoutRedirectUri")
-
-        `when`(logtoAndroidClientMock.logtoConfig).thenReturn(logtoConfigMock)
+        every { logtoConfigMock.postLogoutRedirectUri } returns "postLogoutRedirectUri"
+        every { logtoAndroidClientMock.logtoConfig } returns logtoConfigMock
 
         browserSignOutFlow = BrowserSignOutFlow(
             "idToken",
@@ -70,34 +67,37 @@ class BrowserSignOutFlowTest {
     @Test
     @Suppress("UNCHECKED_CAST")
     fun shouldStartSignOut() {
-        doAnswer {
-            val block = it.arguments[0] as HandleOidcConfigurationCallback
+        every {
+            logtoAndroidClientMock.getOidcConfigurationAsync(any())
+        } answers {
+            val block = args[0] as HandleOidcConfigurationCallback
             block(null, dummyOidcConfiguration)
-            null
-        }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())
-        `when`(logtoAndroidClientMock.getSignOutUrl(anyOrNull(), anyOrNull())).thenReturn("signOutUrl")
-        val activity: Activity = spy(Robolectric.buildActivity(Activity::class.java).get())
+            Job(null)
+        }
+        every { logtoAndroidClientMock.getSignOutUrl(any(), any()) } returns "signOutUrl"
+        val activity: Activity = spyk(Robolectric.buildActivity(Activity::class.java).get())
 
         browserSignOutFlow.start(activity)
 
-        verify(activity).startActivity(anyOrNull())
+        verify { activity.startActivity(any()) }
     }
 
     @Test
     @Suppress("UNCHECKED_CAST")
     fun startShouldInvokeCompleteWithLogtoExceptionOnDiscoverFailed() {
-        val mockLogtoException: LogtoException = mock()
-        doAnswer {
-            val block = it.arguments[0] as HandleOidcConfigurationCallback
+        val mockLogtoException: LogtoException = mockk()
+        every {
+            logtoAndroidClientMock.getOidcConfigurationAsync(any())
+        } answers {
+            val block = args[0] as HandleOidcConfigurationCallback
             block(mockLogtoException, null)
-            null
-        }.`when`(logtoAndroidClientMock).getOidcConfigurationAsync(anyOrNull())
-        val activity: Activity = spy(Robolectric.buildActivity(Activity::class.java).get())
+            Job(null)
+        }
+        val activity: Activity = spyk(Robolectric.buildActivity(Activity::class.java).get())
 
         browserSignOutFlow.start(activity)
 
-        verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
-        assertThat(logtoExceptionCaptor.firstValue).isEqualTo(mockLogtoException)
+        verify { onCompleteMock.invoke(mockLogtoException) }
     }
 
     @Test
@@ -106,8 +106,9 @@ class BrowserSignOutFlowTest {
 
         browserSignOutFlow.handleRedirectUri(invalidUri)
 
-        verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
-        assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
+        verify { onCompleteMock.invoke(captureNullable(logtoExceptionCaptureList)) }
+        assertThat(logtoExceptionCaptureList.last())
+            .hasMessageThat()
             .isEqualTo("$SIGN_OUT_FAILED: $EMPTY_REDIRECT_URI")
     }
 
@@ -122,8 +123,9 @@ class BrowserSignOutFlowTest {
 
         browserSignOutFlow.handleRedirectUri(invalidUri)
 
-        verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
-        assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
+        verify { onCompleteMock.invoke(captureNullable(logtoExceptionCaptureList)) }
+        assertThat(logtoExceptionCaptureList.last())
+            .hasMessageThat()
             .isEqualTo("$SIGN_OUT_FAILED: mocked sign out error description")
     }
 
@@ -138,8 +140,9 @@ class BrowserSignOutFlowTest {
 
         browserSignOutFlow.handleRedirectUri(invalidUri)
 
-        verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
-        assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
+        verify { onCompleteMock.invoke(captureNullable(logtoExceptionCaptureList)) }
+        assertThat(logtoExceptionCaptureList.last())
+            .hasMessageThat()
             .isEqualTo("$SIGN_OUT_FAILED: mocked sign out error")
     }
 
@@ -149,8 +152,9 @@ class BrowserSignOutFlowTest {
 
         browserSignOutFlow.handleRedirectUri(invalidUri)
 
-        verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
-        assertThat(logtoExceptionCaptor.firstValue).hasMessageThat()
+        verify { onCompleteMock.invoke(captureNullable(logtoExceptionCaptureList)) }
+        assertThat(logtoExceptionCaptureList.last())
+            .hasMessageThat()
             .isEqualTo("$SIGN_OUT_FAILED: $INVALID_REDIRECT_URI")
     }
 
@@ -160,16 +164,17 @@ class BrowserSignOutFlowTest {
 
         browserSignOutFlow.handleRedirectUri(validUri)
 
-        verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
-        assertThat(logtoExceptionCaptor.firstValue).isNull()
+        verify { onCompleteMock.invoke(captureNullable(logtoExceptionCaptureList)) }
+        assertThat(logtoExceptionCaptureList.last()).isNull()
     }
 
     @Test
     fun handleUserCanceledShouldCompleteWithLogtoException() {
         browserSignOutFlow.handleUserCanceled()
 
-        verify(onCompleteMock).invoke(logtoExceptionCaptor.capture())
-
-        assertThat(logtoExceptionCaptor.firstValue).hasMessageThat().isEqualTo(USER_CANCELED)
+        verify { onCompleteMock.invoke(captureNullable(logtoExceptionCaptureList)) }
+        assertThat(logtoExceptionCaptureList.last())
+            .hasMessageThat()
+            .isEqualTo(USER_CANCELED)
     }
 }
