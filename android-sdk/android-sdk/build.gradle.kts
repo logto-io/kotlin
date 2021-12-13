@@ -1,6 +1,7 @@
 plugins {
     id("com.android.library") version "7.0.0"
     id("org.jetbrains.kotlin.android") version "1.5.32"
+    id("io.gitlab.arturbosch.detekt") version "1.18.1"
 }
 
 group = "io.logto"
@@ -30,6 +31,9 @@ android {
 }
 
 dependencies {
+    detekt("io.gitlab.arturbosch.detekt:detekt-formatting:1.18.1")
+    detekt("io.gitlab.arturbosch.detekt:detekt-cli:1.18.1")
+
     implementation("io.logto:client:1.0.0")
 
     implementation("androidx.core:core-ktx:1.6.0")

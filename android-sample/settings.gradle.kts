@@ -4,6 +4,8 @@ pluginManagement {
         google()
     }
 }
+
 includeBuild("../android-sdk")
+
 rootProject.name = "android-sample"
 include(":app")

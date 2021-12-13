@@ -1,5 +1,6 @@
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.5.31"
+    id("io.gitlab.arturbosch.detekt") version "1.18.1"
     `java-library`
 }
 
@@ -16,6 +17,9 @@ java {
 }
 
 dependencies {
+    detekt("io.gitlab.arturbosch.detekt:detekt-formatting:1.18.1")
+    detekt("io.gitlab.arturbosch.detekt:detekt-cli:1.18.1")
+
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 

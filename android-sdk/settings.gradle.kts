@@ -5,6 +5,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "android-sdk"
 includeBuild("../client")
-include(":sdk")
+
+rootProject.name = "android-sdk"
+include(":android-sdk")
