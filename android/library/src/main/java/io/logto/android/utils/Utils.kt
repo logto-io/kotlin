@@ -13,7 +13,6 @@ object Utils {
         return uriBuilder.build()
     }
 
-    @Suppress("ReturnCount")
     fun validateRedirectUri(uri: Uri, baseUri: String): String? {
         if (uri.toString().isEmpty()) {
             return LogtoException.EMPTY_REDIRECT_URI

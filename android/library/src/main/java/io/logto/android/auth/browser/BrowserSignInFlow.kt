@@ -43,7 +43,6 @@ class BrowserSignInFlow(
         }
     }
 
-    @Suppress("ReturnCount")
     override fun handleRedirectUri(redirectUri: Uri) {
         val exceptionMsg = Utils.validateRedirectUri(
             redirectUri,
