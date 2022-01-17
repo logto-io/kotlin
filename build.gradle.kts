@@ -1,6 +1,5 @@
 tasks.register("checkCodeStyle") {
-    dependsOn(gradle.includedBuild("client").task(":detekt"))
-    dependsOn(gradle.includedBuild("android-sdk").task(":android-sdk:detekt"))
+    dependsOn(gradle.includedBuild("kotlin").task(":detekt"))
 }
 
 tasks.register("lintAndroidSdk") {
