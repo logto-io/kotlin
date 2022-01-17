@@ -1,6 +1,7 @@
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.5.31"
     `java-library`
+    id("io.gitlab.arturbosch.detekt").version("1.19.0")
 }
 
 group = "io.logto.sdk"
@@ -13,6 +14,12 @@ repositories {
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+detekt {
+    toolVersion = "1.19.0"
+    config = files("../config/detekt/detekt.yml")
+    buildUponDefaultConfig = true
 }
 
 dependencies {
