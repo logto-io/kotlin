@@ -32,7 +32,7 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         get() = _logtoException
 
     fun signIn(context: Context) {
-        logto.signInWithBrowser(context) { exception, _ ->
+        logto.signInWithBrowser(context) { exception, tokenSet ->
             if (exception !== null) {
                 _logtoException.postValue(exception)
             } else {
