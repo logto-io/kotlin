@@ -28,7 +28,7 @@ class GenerateUtilsTest {
         ).isEqualTo("p3yvZiKYauPicLIDZ0W1peDz4Z9KFC-9uxtDfoO1KOQ")
 
         assertThat(
-            GenerateUtils.generateCodeChallenge("\uD83D\uDE80")
+            GenerateUtils.generateCodeChallenge("🚀")
         ).isEqualTo("67wLKHDrMj8rbP-lxJPO74GufrNq_HPU4DZzAWMdrsU")
     }
 
