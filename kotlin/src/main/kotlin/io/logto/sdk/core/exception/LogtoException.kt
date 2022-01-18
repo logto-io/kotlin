@@ -1,11 +1,12 @@
 package io.logto.sdk.core.exception
 
-class LogtoException(
+open class LogtoException(
     message: String,
     cause: Throwable? = null,
 ) : RuntimeException(message, cause) {
-    object System {
-        const val ENCODED_ALGORITHM_NOT_SUPPORTED = "Encoded Algorithm Not Supported"
-        const val ENCODING_NOT_SUPPORTED = "Encoding Not Supported"
+    class System(message: Enum<SystemException>, cause: Throwable?): LogtoException(message.name, cause)
+    enum class SystemException {
+        ENCODED_ALGORITHM_NOT_SUPPORTED,
+        ENCODING_NOT_SUPPORTED
     }
 }

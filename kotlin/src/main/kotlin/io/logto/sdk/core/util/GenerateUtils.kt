@@ -21,12 +21,15 @@ object GenerateUtils {
             val byteArray: ByteArray = digester.digest()
             return Base64Url.encode(byteArray)
         } catch (exception: NoSuchAlgorithmException) {
-            throw LogtoException(
-                LogtoException.System.ENCODED_ALGORITHM_NOT_SUPPORTED,
-                exception,
+            throw LogtoException.System(
+                LogtoException.SystemException.ENCODED_ALGORITHM_NOT_SUPPORTED,
+                exception
             )
         } catch (exception: UnsupportedEncodingException) {
-            throw LogtoException(LogtoException.System.ENCODING_NOT_SUPPORTED, exception)
+            throw LogtoException.System(
+                LogtoException.SystemException.ENCODING_NOT_SUPPORTED,
+                exception
+            )
         }
     }
 
