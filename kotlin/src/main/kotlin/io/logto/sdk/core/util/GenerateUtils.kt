@@ -23,8 +23,7 @@ object GenerateUtils {
     }
 
     private fun generateRandomString(length: Int = DEFAULT_RANDOM_STRING_LENGTH): String {
-        val actualLen = if (length < 1) DEFAULT_RANDOM_STRING_LENGTH else length
-        val randomString = (1..actualLen).map {
+        val randomString = (1..length).map {
             (UByte.MIN_VALUE.toInt()..UByte.MAX_VALUE.toInt()).random().toChar()
         }.joinToString("")
         return Base64Url.encode(randomString.toByteArray())
