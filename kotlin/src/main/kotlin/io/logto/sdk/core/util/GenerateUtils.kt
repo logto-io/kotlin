@@ -1,10 +1,7 @@
 package io.logto.sdk.core.util
 
-import io.logto.sdk.core.exception.LogtoException
 import org.jose4j.base64url.Base64Url
-import java.io.UnsupportedEncodingException
 import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
 
 object GenerateUtils {
     private const val DEFAULT_ALGORITHM = "SHA-256"
@@ -15,22 +12,10 @@ object GenerateUtils {
     }
 
     fun generateCodeChallenge(codeVerifier: String): String {
-        try {
-            val digester: MessageDigest = MessageDigest.getInstance(DEFAULT_ALGORITHM)
-            digester.update(codeVerifier.toByteArray(Charsets.UTF_8))
-            val byteArray: ByteArray = digester.digest()
-            return Base64Url.encode(byteArray)
-        } catch (exception: NoSuchAlgorithmException) {
-            throw LogtoException.System(
-                LogtoException.SystemException.ENCODED_ALGORITHM_NOT_SUPPORTED,
-                exception
-            )
-        } catch (exception: UnsupportedEncodingException) {
-            throw LogtoException.System(
-                LogtoException.SystemException.ENCODING_NOT_SUPPORTED,
-                exception
-            )
-        }
+        val digester: MessageDigest = MessageDigest.getInstance(DEFAULT_ALGORITHM)
+        digester.update(codeVerifier.toByteArray(Charsets.UTF_8))
+        val byteArray: ByteArray = digester.digest()
+        return Base64Url.encode(byteArray)
     }
 
     fun generateState(): String {
