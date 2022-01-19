@@ -24,10 +24,6 @@ object TokenUtils {
             setExpectedIssuer(issuer)
             setExpectedAudience(clientId)
             setIssuedAtRestrictions(ISSUED_AT_RESTRICTIONS_IN_SECONDS, ISSUED_AT_RESTRICTIONS_IN_SECONDS)
-            setJwsAlgorithmConstraints(
-                AlgorithmConstraints.ConstraintType.PERMIT,
-                AlgorithmIdentifiers.RSA_USING_SHA256,
-            )
             setVerificationKeyResolver(JwksVerificationKeyResolver(jwks.jsonWebKeys))
         }.build().process(idToken)
     }
