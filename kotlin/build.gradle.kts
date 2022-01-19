@@ -34,6 +34,9 @@ tasks {
 }
 
 dependencies {
+    detekt("io.gitlab.arturbosch.detekt:detekt-cli:1.19.0")
+    detekt("io.gitlab.arturbosch.detekt:detekt-formatting:1.19.0")
+
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.5.31"))
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.3"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
