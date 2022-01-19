@@ -33,6 +33,15 @@ tasks {
     }
 }
 
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    reports {
+        xml.required.set(false)
+        html.required.set(false)
+        txt.required.set(false)
+        sarif.required.set(false)
+    }
+}
+
 dependencies {
     detekt("io.gitlab.arturbosch.detekt:detekt-cli:1.19.0")
     detekt("io.gitlab.arturbosch.detekt:detekt-formatting:1.19.0")
