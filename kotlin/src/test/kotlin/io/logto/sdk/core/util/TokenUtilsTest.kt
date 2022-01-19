@@ -2,7 +2,6 @@ package io.logto.sdk.core.util
 
 import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.core.constant.ClaimName
-import io.logto.sdk.core.exception.LogtoException
 import io.logto.sdk.core.extension.toIdTokenClaims
 import org.jose4j.jwk.RsaJwkGenerator
 import org.jose4j.jws.AlgorithmIdentifiers
@@ -43,19 +42,26 @@ class TokenUtilsTest {
 
     @Test
     fun decodeIdTokenShouldThrowWithInvalidTokenFormat() {
-        val invalidToken = "invalidToken"
-        val expectedException = Assert.assertThrows(LogtoException.DecodingException::class.java) {
-            TokenUtils.decodeIdToken(invalidToken)
+        val invalidTokenWithOnePart = "invalidToken"
+        val expectedExceptionOnePart = Assert.assertThrows(InvalidJwtException::class.java) {
+            TokenUtils.decodeIdToken(invalidTokenWithOnePart)
         }
-        assertThat(expectedException).hasMessageThat().isEqualTo(LogtoException.Decoding.INVALID_JWT.name)
+        assertThat(expectedExceptionOnePart).hasMessageThat().contains("Invalid JOSE Compact Serialization.")
+
+        val invalidTokenWithTwoParts = "invalidToken.invalidToken"
+        val expectedExceptionTwoParts = Assert.assertThrows(InvalidJwtException::class.java) {
+            TokenUtils.decodeIdToken(invalidTokenWithTwoParts)
+        }
+        assertThat(expectedExceptionTwoParts).hasMessageThat().contains("Invalid JOSE Compact Serialization.")
     }
 
     @Test
     fun decodeIdTokenShouldThrowWithInvalidTokenPayloadSection() {
-        val tokenWithInvalidPayload = "invalidToken.invalidPayload"
-        Assert.assertThrows(InvalidJwtException::class.java) {
+        val tokenWithInvalidPayload = "part1.invalidPayload.part3"
+        val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
             TokenUtils.decodeIdToken(tokenWithInvalidPayload)
         }
+        assertThat(expectedException).hasMessageThat().contains("Parsing error")
     }
 
     private fun createTestIdTokenWithClaims(claims: JwtClaims): String {
