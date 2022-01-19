@@ -43,6 +43,7 @@ dependencies {
     implementation("org.bitbucket.b_c:jose4j:0.7.9")
     implementation("com.squareup.okhttp3:okhttp")
     implementation("com.google.code.gson:gson:2.8.9")
+    implementation("ch.qos.logback:logback-classic:1.2.10")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
     testImplementation("io.mockk:mockk:1.12.2")
