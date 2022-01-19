@@ -3,6 +3,7 @@ package io.logto.sdk.core.util
 import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.core.constant.ClaimName
 import io.logto.sdk.core.extension.toIdTokenClaims
+import io.logto.sdk.core.util.TokenUtils.ISSUED_AT_RESTRICTIONS_IN_SECONDS
 import org.jose4j.jwk.JsonWebKeySet
 import org.jose4j.jwk.RsaJwkGenerator
 import org.jose4j.jws.AlgorithmIdentifiers
@@ -32,9 +33,62 @@ class TokenUtilsTest {
     }
 
     @Test
+    fun verifyIdTokenWithOverdueIssueAtShouldThrow() {
+        val claims = createTestIdTokenClaims()
+        claims.issuedAt = NumericDate.fromSeconds(
+            NumericDate.now().value - ISSUED_AT_RESTRICTIONS_IN_SECONDS - 1
+        )
+        val idToken = createTestIdTokenWithClaims(claims)
+        val jwks = createTestJwks()
+
+        val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
+            TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
+        }
+
+        assertThat(expectedException)
+            .hasMessageThat()
+            .contains("more than $ISSUED_AT_RESTRICTIONS_IN_SECONDS second(s) in the past.")
+    }
+
+    @Test
+    fun verifyIdTokenWithFutureIssueAtShouldThrow() {
+        val claims = createTestIdTokenClaims()
+        claims.issuedAt = NumericDate.fromSeconds(
+            NumericDate.now().value + ISSUED_AT_RESTRICTIONS_IN_SECONDS + 1
+        )
+        val idToken = createTestIdTokenWithClaims(claims)
+        val jwks = createTestJwks()
+
+        val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
+            TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
+        }
+
+        assertThat(expectedException)
+            .hasMessageThat()
+            .contains("more than $ISSUED_AT_RESTRICTIONS_IN_SECONDS second(s) ahead of now")
+    }
+
+    @Test
+    fun verifyIdTokenWithExpiredTokenShouldThrow() {
+        val claims = createTestIdTokenClaims()
+        claims.expirationTime = NumericDate.fromSeconds(
+            NumericDate.now().value - 1
+        )
+        val idToken = createTestIdTokenWithClaims(claims)
+        val jwks = createTestJwks()
+
+        val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
+            TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
+        }
+
+        assertThat(expectedException).hasMessageThat().contains("on or after the Expiration Time")
+    }
+
+    @Test
     fun verifyIdTokenWithInvalidIdTokenShouldThrow() {
         val idToken = "randomInvalidIdToken"
         val jwks = createTestJwks()
+
         Assert.assertThrows(InvalidJwtException::class.java) {
             TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
         }
@@ -63,9 +117,11 @@ class TokenUtilsTest {
         val claims = createTestIdTokenClaims()
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
+
         val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
             TokenUtils.verifyIdToken(idToken, testAudience, testIssuer.reversed(), jwks)
         }
+
         assertThat(expectedException)
             .hasMessageThat()
             .contains(
@@ -78,9 +134,11 @@ class TokenUtilsTest {
         val claims = createTestIdTokenClaims()
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
+
         val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
             TokenUtils.verifyIdToken(idToken, testAudience.reversed(), testIssuer, jwks)
         }
+
         assertThat(expectedException)
             .hasMessageThat()
             .contains(
@@ -94,9 +152,11 @@ class TokenUtilsTest {
         val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.SUBJECT)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
+
         val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
             TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
         }
+
         assertThat(expectedException).hasMessageThat().contains("No Subject (sub) claim is present.")
     }
 
@@ -105,9 +165,11 @@ class TokenUtilsTest {
         val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.EXPIRATION_TIME)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
+
         val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
             TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
         }
+
         assertThat(expectedException).hasMessageThat().contains("No Expiration Time (exp) claim present.")
     }
 
@@ -116,9 +178,11 @@ class TokenUtilsTest {
         val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.ISSUER)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
+
         val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
             TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
         }
+
         assertThat(expectedException).hasMessageThat().contains("No Issuer (iss) claim present.")
     }
 
@@ -127,9 +191,11 @@ class TokenUtilsTest {
         val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.ISSUED_AT)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
+
         val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
             TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
         }
+
         assertThat(expectedException).hasMessageThat().contains("No Issued At (iat) claim present.")
     }
 
@@ -138,9 +204,11 @@ class TokenUtilsTest {
         val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.AUDIENCE)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
+
         val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
             TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
         }
+
         assertThat(expectedException).hasMessageThat().contains("No Audience (aud) claim present.")
     }
 

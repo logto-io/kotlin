@@ -9,7 +9,7 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver
 
 object TokenUtils {
-    private const val ALLOWED_CLOCK_SKEW_IN_SECONDS = 60
+    internal const val ISSUED_AT_RESTRICTIONS_IN_SECONDS = 60
 
     fun verifyIdToken(
         idToken: String,
@@ -23,7 +23,7 @@ object TokenUtils {
             setRequireIssuedAt()
             setExpectedIssuer(issuer)
             setExpectedAudience(clientId)
-            setAllowedClockSkewInSeconds(ALLOWED_CLOCK_SKEW_IN_SECONDS)
+            setIssuedAtRestrictions(ISSUED_AT_RESTRICTIONS_IN_SECONDS, ISSUED_AT_RESTRICTIONS_IN_SECONDS)
             setJwsAlgorithmConstraints(
                 AlgorithmConstraints.ConstraintType.PERMIT,
                 AlgorithmIdentifiers.RSA_USING_SHA256,
