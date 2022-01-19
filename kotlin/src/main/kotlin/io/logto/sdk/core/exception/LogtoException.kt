@@ -17,5 +17,8 @@ open class LogtoException(
         STATE_MISMATCHED,
     }
 
-    class OidcProviderException(message: String, cause: Throwable? = null) : LogtoException(message, cause)
+    class RedirectUriReturnedException(
+        val error: String,
+        val errorDesc: String?,
+    ) : LogtoException("Redirect Uri Returned Exception")
 }

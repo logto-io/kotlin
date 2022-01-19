@@ -17,12 +17,11 @@ object UriUtils {
         val parsedUri = callbackUri.toHttpUrlOrNull()
             ?: throw LogtoException.VerificationException(LogtoException.Verification.INVALID_URI_FORMAT)
 
-        parsedUri.queryParameter(QueryKey.ERROR_DESCRIPTION)?.let {
-            throw LogtoException.OidcProviderException(it)
-        }
-
         parsedUri.queryParameter(QueryKey.ERROR)?.let {
-            throw LogtoException.OidcProviderException(it)
+            throw LogtoException.RedirectUriReturnedException(
+                error = it,
+                errorDesc = parsedUri.queryParameter(QueryKey.ERROR_DESCRIPTION)
+            )
         }
 
         parsedUri.queryParameter(QueryKey.STATE)?.let {

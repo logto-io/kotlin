@@ -62,30 +62,16 @@ class UriUtilsTest {
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback?error=$error&state=$state&code=$code"
 
-        val expectedException = Assert.assertThrows(LogtoException.OidcProviderException::class.java) {
+        val expectedException = Assert.assertThrows(LogtoException.RedirectUriReturnedException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
-        assertThat(expectedException).hasMessageThat().contains(error)
+        assertThat(expectedException.error).isEqualTo(error)
+        assertThat(expectedException.errorDesc).isNull()
     }
 
     @Test
-    fun verifyAndParseCodeFromCallbackUriShouldThrowWithErrorDescParameter() {
-        val state = GenerateUtils.generateState()
-        val code = "dummyCode"
-        val errorDesc = "you hava an error description"
-        val redirectUri = "https://myapp.com/callback"
-        val callbackUri = "https://myapp.com/callback?error_description=$errorDesc&state=$state&code=$code"
-
-        val expectedException = Assert.assertThrows(LogtoException.OidcProviderException::class.java) {
-            UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
-        }
-
-        assertThat(expectedException).hasMessageThat().contains(errorDesc)
-    }
-
-    @Test
-    fun verifyAndParseCodeFromCallbackUriShouldThrowErrorDescWithBothErrorDescAndErrorParameter() {
+    fun verifyAndParseCodeFromCallbackUriShouldThrowWithBothErrorDescAndErrorParameter() {
         val state = GenerateUtils.generateState()
         val code = "dummyCode"
         val errorDesc = "you hava an error description"
@@ -93,11 +79,12 @@ class UriUtilsTest {
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback?error_description=$errorDesc&error=$error&state=$state&code=$code"
 
-        val expectedException = Assert.assertThrows(LogtoException.OidcProviderException::class.java) {
+        val expectedException = Assert.assertThrows(LogtoException.RedirectUriReturnedException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
-        assertThat(expectedException).hasMessageThat().contains(errorDesc)
+        assertThat(expectedException.error).isEqualTo(error)
+        assertThat(expectedException.errorDesc).isEqualTo(errorDesc)
     }
 
     @Test
