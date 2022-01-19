@@ -2,9 +2,7 @@ package io.logto.sdk.core.util
 
 import io.logto.sdk.core.extension.toIdTokenClaims
 import io.logto.sdk.core.type.IdTokenClaims
-import org.jose4j.jwa.AlgorithmConstraints
 import org.jose4j.jwk.JsonWebKeySet
-import org.jose4j.jws.AlgorithmIdentifiers
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver
 
