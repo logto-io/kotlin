@@ -33,6 +33,15 @@ tasks {
     }
 }
 
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    reports {
+        xml.required.set(false)
+        html.required.set(false)
+        txt.required.set(false)
+        sarif.required.set(false)
+    }
+}
+
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.5.31"))
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.3"))
