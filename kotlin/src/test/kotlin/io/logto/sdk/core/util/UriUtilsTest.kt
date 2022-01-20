@@ -73,7 +73,7 @@ class UriUtilsTest {
     }
 
     @Test
-    fun verifyAndParseCodeFromCallbackUriShouldThrowWithBothErrorDescAndErrorParameter() {
+    fun verifyAndParseCodeFromCallbackUriShouldThrowWithErrorDescWithBothErrorAndErrorDescParameter() {
         val state = GenerateUtils.generateState()
         val code = "dummyCode"
         val errorDesc = "you hava an error description"
