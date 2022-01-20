@@ -4,12 +4,12 @@ open class LogtoException(
     message: String,
     cause: Throwable? = null,
 ) : RuntimeException(message, cause) {
-    class VerificationException(
-        message: Enum<Verification>,
+    class CallbackUriVerificationException(
+        message: Enum<CallbackUriVerification>,
         cause: Throwable? = null,
     ) : LogtoException(message.name, cause)
 
-    enum class Verification {
+    enum class CallbackUriVerification {
         INVALID_URI_FORMAT,
         URI_MISMATCHED,
         MISSING_CODE_URI_PARAMETER,
