@@ -1,7 +1,7 @@
 package io.logto.sdk.core.util
 
 import com.google.common.truth.Truth.assertThat
-import io.logto.sdk.core.exception.LogtoException
+import io.logto.sdk.core.exception.CallbackUriVerificationException
 import org.junit.Assert
 import org.junit.Test
 
@@ -25,35 +25,35 @@ class UriUtilsTest {
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://yourapp.com/callback?state=$state&code=$code"
 
-        val expectedException = Assert.assertThrows(LogtoException.CallbackUriVerificationException::class.java) {
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(LogtoException.CallbackUriVerification.URI_MISMATCHED.name)
+            .contains(CallbackUriVerificationException.Message.URI_MISMATCHED.name)
     }
 
     @Test
     fun verifyAndParseCodeFromCallbackUriShouldThrowWithEmptyUri() {
-        val expectedException = Assert.assertThrows(LogtoException.CallbackUriVerificationException::class.java) {
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri("", "", "dummyState")
         }
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(LogtoException.CallbackUriVerification.INVALID_URI_FORMAT.name)
+            .contains(CallbackUriVerificationException.Message.INVALID_URI_FORMAT.name)
     }
 
     @Test
     fun verifyAndParseCodeFromCallbackUriShouldThrowWithInvalidUriFormat() {
-        val expectedException = Assert.assertThrows(LogtoException.CallbackUriVerificationException::class.java) {
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri("invalidUri", "invalidUri", "dummyState")
         }
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(LogtoException.CallbackUriVerification.INVALID_URI_FORMAT.name)
+            .contains(CallbackUriVerificationException.Message.INVALID_URI_FORMAT.name)
     }
 
     @Test
@@ -64,7 +64,7 @@ class UriUtilsTest {
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback?error=$error&state=$state&code=$code"
 
-        val expectedException = Assert.assertThrows(LogtoException.CallbackUriVerificationException::class.java) {
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
@@ -81,7 +81,7 @@ class UriUtilsTest {
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback?error_description=$errorDesc&error=$error&state=$state&code=$code"
 
-        val expectedException = Assert.assertThrows(LogtoException.CallbackUriVerificationException::class.java) {
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
@@ -97,13 +97,13 @@ class UriUtilsTest {
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback?state=$state1&code=$testCode"
 
-        val expectedException = Assert.assertThrows(LogtoException.CallbackUriVerificationException::class.java) {
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state2)
         }
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(LogtoException.CallbackUriVerification.STATE_MISMATCHED.name)
+            .contains(CallbackUriVerificationException.Message.STATE_MISMATCHED.name)
     }
 
     @Test
@@ -113,13 +113,13 @@ class UriUtilsTest {
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback?code=$code"
 
-        val expectedException = Assert.assertThrows(LogtoException.CallbackUriVerificationException::class.java) {
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(LogtoException.CallbackUriVerification.MISSING_STATE_URI_PARAMETER.name)
+            .contains(CallbackUriVerificationException.Message.MISSING_STATE_URI_PARAMETER.name)
     }
 
     @Test
@@ -128,12 +128,12 @@ class UriUtilsTest {
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback?state=$state"
 
-        val expectedException = Assert.assertThrows(LogtoException.CallbackUriVerificationException::class.java) {
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(LogtoException.CallbackUriVerification.MISSING_CODE_URI_PARAMETER.name)
+            .contains(CallbackUriVerificationException.Message.MISSING_CODE_URI_PARAMETER.name)
     }
 }

@@ -1,7 +1,7 @@
 package io.logto.sdk.core.util
 
 import io.logto.sdk.core.constant.QueryKey
-import io.logto.sdk.core.exception.LogtoException
+import io.logto.sdk.core.exception.CallbackUriVerificationException
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 object UriUtils {
@@ -11,19 +11,19 @@ object UriUtils {
         state: String,
     ): String {
         val parsedUri = callbackUri.toHttpUrlOrNull()
-            ?: throw LogtoException.CallbackUriVerificationException(
-                LogtoException.CallbackUriVerification.INVALID_URI_FORMAT
+            ?: throw CallbackUriVerificationException(
+                CallbackUriVerificationException.Message.INVALID_URI_FORMAT
             )
 
         if (!callbackUri.startsWith(redirectUri)) {
-            throw LogtoException.CallbackUriVerificationException(
-                LogtoException.CallbackUriVerification.URI_MISMATCHED
+            throw CallbackUriVerificationException(
+                CallbackUriVerificationException.Message.URI_MISMATCHED
             )
         }
 
         parsedUri.queryParameter(QueryKey.ERROR)?.let {
-            throw LogtoException.CallbackUriVerificationException(
-                LogtoException.CallbackUriVerification.ERROR_FOUND_IN_URI
+            throw CallbackUriVerificationException(
+                CallbackUriVerificationException.Message.ERROR_FOUND_IN_URI
             ).apply {
                 error = it
                 errorDesc = parsedUri.queryParameter(QueryKey.ERROR_DESCRIPTION)
@@ -32,17 +32,17 @@ object UriUtils {
 
         parsedUri.queryParameter(QueryKey.STATE)?.let {
             if (it != state) {
-                throw LogtoException.CallbackUriVerificationException(
-                    LogtoException.CallbackUriVerification.STATE_MISMATCHED
+                throw CallbackUriVerificationException(
+                    CallbackUriVerificationException.Message.STATE_MISMATCHED
                 )
             }
-        } ?: throw LogtoException.CallbackUriVerificationException(
-            LogtoException.CallbackUriVerification.MISSING_STATE_URI_PARAMETER
+        } ?: throw CallbackUriVerificationException(
+            CallbackUriVerificationException.Message.MISSING_STATE_URI_PARAMETER
         )
 
         return parsedUri.queryParameter(QueryKey.CODE)
-            ?: throw LogtoException.CallbackUriVerificationException(
-                LogtoException.CallbackUriVerification.MISSING_CODE_URI_PARAMETER
+            ?: throw CallbackUriVerificationException(
+                CallbackUriVerificationException.Message.MISSING_CODE_URI_PARAMETER
             )
     }
 }
