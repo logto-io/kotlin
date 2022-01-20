@@ -64,7 +64,7 @@ class UriUtilsTest {
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback?error=$error&state=$state&code=$code"
 
-        val expectedException = Assert.assertThrows(LogtoException.RedirectUriReturnedException::class.java) {
+        val expectedException = Assert.assertThrows(LogtoException.CallbackUriVerificationException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
@@ -81,7 +81,7 @@ class UriUtilsTest {
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback?error_description=$errorDesc&error=$error&state=$state&code=$code"
 
-        val expectedException = Assert.assertThrows(LogtoException.RedirectUriReturnedException::class.java) {
+        val expectedException = Assert.assertThrows(LogtoException.CallbackUriVerificationException::class.java) {
             UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 

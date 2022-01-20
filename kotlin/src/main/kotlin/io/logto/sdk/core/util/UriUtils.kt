@@ -22,10 +22,12 @@ object UriUtils {
             )
 
         parsedUri.queryParameter(QueryKey.ERROR)?.let {
-            throw LogtoException.RedirectUriReturnedException(
-                error = it,
+            throw LogtoException.CallbackUriVerificationException(
+                LogtoException.CallbackUriVerification.ERROR_FOUND_IN_URI
+            ).apply {
+                error = it
                 errorDesc = parsedUri.queryParameter(QueryKey.ERROR_DESCRIPTION)
-            )
+            }
         }
 
         parsedUri.queryParameter(QueryKey.STATE)?.let {
