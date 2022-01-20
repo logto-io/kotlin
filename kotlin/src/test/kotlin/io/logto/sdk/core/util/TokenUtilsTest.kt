@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.core.constant.ClaimName
 import io.logto.sdk.core.extension.toIdTokenClaims
 import io.logto.sdk.core.util.TokenUtils.ISSUED_AT_RESTRICTIONS_IN_SECONDS
+import org.jose4j.jwk.EcJwkGenerator
 import org.jose4j.jwk.JsonWebKeySet
 import org.jose4j.jwk.RsaJwkGenerator
 import org.jose4j.jws.AlgorithmIdentifiers
@@ -12,6 +13,7 @@ import org.jose4j.jwt.JwtClaims
 import org.jose4j.jwt.NumericDate
 import org.jose4j.jwt.ReservedClaimNames
 import org.jose4j.jwt.consumer.InvalidJwtException
+import org.jose4j.keys.EllipticCurves
 import org.junit.Assert
 import org.junit.Test
 
@@ -29,6 +31,30 @@ class TokenUtilsTest {
         val claims = createTestIdTokenClaims()
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
+        TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
+    }
+
+    @Test
+    fun verifyIdTokenWithValidIdTokenWithES512JsonWebKey() {
+        val claims = createTestIdTokenClaims()
+
+        // Note: Es512 is "ECDSA using P-521 and SHA-512".
+        // Rfc: https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
+        val es512JsonWebKey = EcJwkGenerator.generateJwk(EllipticCurves.P521).apply {
+            keyId = "es512-json-web-key-id"
+        }
+        val jws = JsonWebSignature().apply {
+            payload = claims.toJson()
+            key = es512JsonWebKey.privateKey
+            keyIdHeaderValue = es512JsonWebKey.keyId
+            algorithmHeaderValue = AlgorithmIdentifiers.ECDSA_USING_P521_CURVE_AND_SHA512
+        }
+        val idToken = jws.compactSerialization
+
+        val jwks = JsonWebKeySet().apply {
+            addJsonWebKey(es512JsonWebKey)
+        }
+
         TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
     }
 
@@ -270,11 +296,12 @@ class TokenUtilsTest {
         }
 
     private fun createTestIdTokenWithClaims(claims: JwtClaims): String {
-        val jws = JsonWebSignature()
-        jws.payload = claims.toJson()
-        jws.key = testRsaJsonWebKey.privateKey
-        jws.keyIdHeaderValue = testRsaJsonWebKey.keyId
-        jws.algorithmHeaderValue = AlgorithmIdentifiers.RSA_USING_SHA256
+        val jws = JsonWebSignature().apply {
+            payload = claims.toJson()
+            key = testRsaJsonWebKey.privateKey
+            keyIdHeaderValue = testRsaJsonWebKey.keyId
+            algorithmHeaderValue = AlgorithmIdentifiers.RSA_USING_SHA256
+        }
         return jws.compactSerialization
     }
 
