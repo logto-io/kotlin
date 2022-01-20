@@ -10,16 +10,16 @@ object UriUtils {
         redirectUri: String,
         state: String,
     ): String {
+        val parsedUri = callbackUri.toHttpUrlOrNull()
+            ?: throw LogtoException.CallbackUriVerificationException(
+                LogtoException.CallbackUriVerification.INVALID_URI_FORMAT
+            )
+
         if (!callbackUri.startsWith(redirectUri)) {
             throw LogtoException.CallbackUriVerificationException(
                 LogtoException.CallbackUriVerification.URI_MISMATCHED
             )
         }
-
-        val parsedUri = callbackUri.toHttpUrlOrNull()
-            ?: throw LogtoException.CallbackUriVerificationException(
-                LogtoException.CallbackUriVerification.INVALID_URI_FORMAT
-            )
 
         parsedUri.queryParameter(QueryKey.ERROR)?.let {
             throw LogtoException.CallbackUriVerificationException(
