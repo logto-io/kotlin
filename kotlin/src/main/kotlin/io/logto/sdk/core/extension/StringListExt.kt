@@ -7,15 +7,15 @@ fun List<String>?.ensureDefaultScopes(): List<String> = this?.let {
         return it
     }
 
-    val mutableList = it.toMutableList()
+    val mutableScopes = it.toMutableList()
 
-    if (!mutableList.contains(ReservedScope.OPENID)) {
-        mutableList.add(ReservedScope.OPENID)
+    if (!mutableScopes.contains(ReservedScope.OPENID)) {
+        mutableScopes.add(ReservedScope.OPENID)
     }
 
-    if (!mutableList.contains(ReservedScope.OFFLINE_ACCESS)) {
-        mutableList.add(ReservedScope.OFFLINE_ACCESS)
+    if (!mutableScopes.contains(ReservedScope.OFFLINE_ACCESS)) {
+        mutableScopes.add(ReservedScope.OFFLINE_ACCESS)
     }
 
-    return mutableList.toList()
+    return mutableScopes.toList()
 } ?: listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS)
