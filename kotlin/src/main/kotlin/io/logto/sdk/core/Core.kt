@@ -31,7 +31,7 @@ object Core {
             addQueryParameter(QueryKey.PROMPT, PromptValue.CONSENT)
             addQueryParameter(QueryKey.RESPONSE_TYPE, ResponseType.CODE)
             addQueryParameter(QueryKey.SCOPE, scope.ensureDefaultScopes().joinToString(" "))
-            resource?.let { for (resVal in it) { addQueryParameter(QueryKey.RESOURCE, resVal) } }
+            resource?.let { for (value in it) { addQueryParameter(QueryKey.RESOURCE, value) } }
         }.build().toString()
     }
 
