@@ -17,5 +17,5 @@ fun List<String>?.ensureDefaultScopes(): List<String> = this?.let {
         mutableList.add(ReservedScope.OFFLINE_ACCESS)
     }
 
-    mutableList.toList()
+    return mutableList.toList()
 } ?: listOf(ReservedScope.OPEN_ID, ReservedScope.OFFLINE_ACCESS)
