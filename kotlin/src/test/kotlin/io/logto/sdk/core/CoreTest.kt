@@ -2,12 +2,175 @@ package io.logto.sdk.core
 
 import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.core.constant.QueryKey
+import io.logto.sdk.core.constant.ReservedScope
 import io.logto.sdk.core.exception.UriConstructionException
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Assert
 import org.junit.Test
 
 class CoreTest {
+    private val testAuthorizationEndpoint = "https://logto.dev/oidc/auth"
+    private val testClientId = "clientId"
+    private val testRedirectUri = "https://myapp.com/callback"
+    private val testCodeChallenge = "codeChallenge"
+    private val testState = "state"
+    private val testScope = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS)
+    private val testResourceVal1 = "api1.logto.dev"
+    private val testResourceVal2 = "api2.logto.dev"
+    private val testResource = listOf(testResourceVal1, testResourceVal2)
+
+    @Test
+    fun generateSignInUri() {
+        val signInUri = Core.generateSignInUri(
+            authorizationEndpoint = testAuthorizationEndpoint,
+            clientId = testClientId,
+            redirectUri = testRedirectUri,
+            codeChallenge = testCodeChallenge,
+            state = testState,
+            scope = testScope,
+            resource = testResource,
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(scheme).isEqualTo(testAuthorizationEndpoint.toHttpUrl().scheme)
+            assertThat(host).isEqualTo(testAuthorizationEndpoint.toHttpUrl().host)
+            assertThat(pathSegments).isEqualTo(testAuthorizationEndpoint.toHttpUrl().pathSegments)
+            assertThat(queryParameter(QueryKey.CLIENT_ID)).isEqualTo(testClientId)
+            assertThat(queryParameter(QueryKey.REDIRECT_URI)).isEqualTo(testRedirectUri)
+            assertThat(queryParameter(QueryKey.CODE_CHALLENGE)).isEqualTo(testCodeChallenge)
+            assertThat(queryParameter(QueryKey.STATE)).isEqualTo(testState)
+            assertThat(queryParameter(QueryKey.SCOPE)).apply {
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
+            }
+            assertThat(queryParameterValues(QueryKey.RESOURCE)).apply {
+                contains(testResourceVal1)
+                contains(testResourceVal2)
+            }
+        }
+    }
+
+    @Test
+    fun generateSignInUriShouldContainsExtraScope() {
+        val extraScope = "extraScope"
+        val scope = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, extraScope)
+
+        val signInUri = Core.generateSignInUri(
+            authorizationEndpoint = testAuthorizationEndpoint,
+            clientId = testClientId,
+            redirectUri = testRedirectUri,
+            codeChallenge = testCodeChallenge,
+            state = testState,
+            scope = scope,
+            resource = testResource,
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(queryParameter(QueryKey.SCOPE)).apply {
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
+                contains(extraScope)
+            }
+        }
+    }
+
+    @Test
+    fun generateSignInUriWithoutResource() {
+        val signInUri = Core.generateSignInUri(
+            authorizationEndpoint = testAuthorizationEndpoint,
+            clientId = testClientId,
+            redirectUri = testRedirectUri,
+            codeChallenge = testCodeChallenge,
+            state = testState,
+            scope = testScope,
+            resource = null,
+        )
+
+        signInUri.toHttpUrl().apply {
+            queryParameter(QueryKey.RESOURCE).isNullOrEmpty()
+            queryParameterValues(QueryKey.RESOURCE).isEmpty()
+        }
+    }
+
+    @Test
+    fun generateSignInUriWithInvalidAuthEndpointShouldThrow() {
+        val authorizationEndpoint = "invalid_endpoint"
+
+        val expectedException = Assert.assertThrows(UriConstructionException::class.java) {
+            Core.generateSignInUri(
+                authorizationEndpoint = authorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                scope = testScope,
+                resource = testResource,
+            )
+        }
+
+        assertThat(expectedException).hasMessageThat().contains(UriConstructionException.Message.INVALID_ENDPOINT.name)
+    }
+
+    @Test
+    fun generateSignInUriWithoutScopeShouldContainsDefaultScopes() {
+        val signInUri = Core.generateSignInUri(
+            authorizationEndpoint = testAuthorizationEndpoint,
+            clientId = testClientId,
+            redirectUri = testRedirectUri,
+            codeChallenge = testCodeChallenge,
+            state = testState,
+            scope = null,
+            resource = testResource,
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(queryParameter(QueryKey.SCOPE)).apply {
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
+            }
+        }
+    }
+
+    @Test
+    fun generateSignInUriWithMissingOpenIdScopeShouldContainsDefaultScopes() {
+        val signInUri = Core.generateSignInUri(
+            authorizationEndpoint = testAuthorizationEndpoint,
+            clientId = testClientId,
+            redirectUri = testRedirectUri,
+            codeChallenge = testCodeChallenge,
+            state = testState,
+            scope = listOf(ReservedScope.OFFLINE_ACCESS),
+            resource = testResource,
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(queryParameter(QueryKey.SCOPE)).apply {
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
+            }
+        }
+    }
+
+    @Test
+    fun generateSignInUriWithMissingOfflineAccessScopeShouldContainsDefaultScopes() {
+
+        val signInUri = Core.generateSignInUri(
+            authorizationEndpoint = testAuthorizationEndpoint,
+            clientId = testClientId,
+            redirectUri = testRedirectUri,
+            codeChallenge = testCodeChallenge,
+            state = testState,
+            scope = listOf(ReservedScope.OPENID),
+            resource = testResource,
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(queryParameter(QueryKey.SCOPE)).apply {
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
+            }
+        }
+    }
 
     @Test
     fun generateSignOutUriWithBothIdTokenAndPostLogoutRedirectUri() {
