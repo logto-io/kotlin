@@ -10,10 +10,10 @@ object Core {
         idToken: String,
         postLogoutRedirectUri: String? = null
     ): String {
-        val uri = endSessionEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
+        val constructedUri = endSessionEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
             UriConstructionException.Message.INVALID_ENDPOINT
         )
-        return uri.newBuilder().apply {
+        return constructedUri.newBuilder().apply {
             addQueryParameter(QueryKey.ID_TOKEN_HINT, idToken)
             postLogoutRedirectUri?.let {
                 addQueryParameter(QueryKey.POST_LOGOUT_REDIRECT_URI, postLogoutRedirectUri)
