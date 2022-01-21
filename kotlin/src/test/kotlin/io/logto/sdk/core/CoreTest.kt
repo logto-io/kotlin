@@ -14,7 +14,7 @@ class CoreTest {
     private val testRedirectUri = "https://myapp.com/callback"
     private val testCodeChallenge = "codeChallenge"
     private val testState = "state"
-    private val testScope = listOf(ReservedScope.OPEN_ID, ReservedScope.OFFLINE_ACCESS)
+    private val testScope = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS)
     private val testResourceVal1 = "api1.logto.dev"
     private val testResourceVal2 = "api2.logto.dev"
     private val testResource = listOf(testResourceVal1, testResourceVal2)
@@ -40,7 +40,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.CODE_CHALLENGE)).isEqualTo(testCodeChallenge)
             assertThat(queryParameter(QueryKey.STATE)).isEqualTo(testState)
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
-                contains(ReservedScope.OPEN_ID)
+                contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
             }
             assertThat(queryParameterValues(QueryKey.RESOURCE)).apply {
@@ -53,7 +53,7 @@ class CoreTest {
     @Test
     fun generateSignInUriShouldContainsExtraScope() {
         val extraScope = "extraScope"
-        val scope = listOf(ReservedScope.OPEN_ID, ReservedScope.OFFLINE_ACCESS, extraScope)
+        val scope = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, extraScope)
 
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = testAuthorizationEndpoint,
@@ -67,7 +67,7 @@ class CoreTest {
 
         signInUri.toHttpUrl().apply {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
-                contains(ReservedScope.OPEN_ID)
+                contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
                 contains(extraScope)
             }
@@ -125,7 +125,7 @@ class CoreTest {
 
         signInUri.toHttpUrl().apply {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
-                contains(ReservedScope.OPEN_ID)
+                contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
             }
         }
@@ -145,7 +145,7 @@ class CoreTest {
 
         signInUri.toHttpUrl().apply {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
-                contains(ReservedScope.OPEN_ID)
+                contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
             }
         }
@@ -160,13 +160,13 @@ class CoreTest {
             redirectUri = testRedirectUri,
             codeChallenge = testCodeChallenge,
             state = testState,
-            scope = listOf(ReservedScope.OPEN_ID),
+            scope = listOf(ReservedScope.OPENID),
             resource = testResource,
         )
 
         signInUri.toHttpUrl().apply {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
-                contains(ReservedScope.OPEN_ID)
+                contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
             }
         }
