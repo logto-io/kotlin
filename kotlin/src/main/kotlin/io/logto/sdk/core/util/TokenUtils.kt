@@ -29,5 +29,5 @@ object TokenUtils {
     fun decodeIdToken(token: String): IdTokenClaims = JwtConsumerBuilder().apply {
         setSkipAllValidators()
         setSkipSignatureVerification()
-    }.build().process(token).jwtClaims.toIdTokenClaims()
+    }.build().processToClaims(token).toIdTokenClaims()
 }
