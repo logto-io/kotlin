@@ -5,7 +5,7 @@ import io.logto.sdk.core.exception.CallbackUriVerificationException
 import org.junit.Assert
 import org.junit.Test
 
-class UriUtilsTest {
+class CallbackUriUtilsTest {
     @Test
     fun verifyAndParseCodeFromCallbackUri() {
         val state = GenerateUtils.generateState()
@@ -13,7 +13,7 @@ class UriUtilsTest {
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback?state=$state&code=$code"
 
-        val resultCode = UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+        val resultCode = CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
 
         assertThat(resultCode).isEqualTo(code)
     }
@@ -26,7 +26,7 @@ class UriUtilsTest {
         val callbackUri = "https://yourapp.com/callback?state=$state&code=$code"
 
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
-            UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
         assertThat(expectedException)
@@ -37,7 +37,7 @@ class UriUtilsTest {
     @Test
     fun verifyAndParseCodeFromCallbackUriShouldThrowWithEmptyUri() {
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
-            UriUtils.verifyAndParseCodeFromCallbackUri("", "", "dummyState")
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri("", "", "dummyState")
         }
 
         assertThat(expectedException)
@@ -48,7 +48,7 @@ class UriUtilsTest {
     @Test
     fun verifyAndParseCodeFromCallbackUriShouldThrowWithInvalidUriFormat() {
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
-            UriUtils.verifyAndParseCodeFromCallbackUri("invalidUri", "invalidUri", "dummyState")
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri("invalidUri", "invalidUri", "dummyState")
         }
 
         assertThat(expectedException)
@@ -65,7 +65,7 @@ class UriUtilsTest {
         val callbackUri = "https://myapp.com/callback?error=$error&state=$state&code=$code"
 
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
-            UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
         assertThat(expectedException.error).isEqualTo(error)
@@ -82,7 +82,7 @@ class UriUtilsTest {
         val callbackUri = "https://myapp.com/callback?error_description=$errorDesc&error=$error&state=$state&code=$code"
 
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
-            UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
         assertThat(expectedException.error).isEqualTo(error)
@@ -98,7 +98,7 @@ class UriUtilsTest {
         val callbackUri = "https://myapp.com/callback?state=$state1&code=$testCode"
 
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
-            UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state2)
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state2)
         }
 
         assertThat(expectedException)
@@ -114,7 +114,7 @@ class UriUtilsTest {
         val callbackUri = "https://myapp.com/callback?code=$code"
 
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
-            UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
         assertThat(expectedException)
@@ -129,7 +129,7 @@ class UriUtilsTest {
         val callbackUri = "https://myapp.com/callback?state=$state"
 
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
-            UriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
         assertThat(expectedException)
