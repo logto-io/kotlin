@@ -46,6 +46,8 @@ dependencies {
     detekt("io.gitlab.arturbosch.detekt:detekt-formatting:1.19.0")
     detekt("io.gitlab.arturbosch.detekt:detekt-cli:1.19.0")
 
+    implementation("io.logto.sdk:kotlin:1.0.0")
+
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.32")
     testImplementation("com.google.truth:truth:1.1.3")
 }
