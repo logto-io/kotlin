@@ -1,6 +1,7 @@
 plugins {
     id("com.android.library") version "7.0.0"
     id("org.jetbrains.kotlin.android") version "1.5.32"
+    id("io.gitlab.arturbosch.detekt").version("1.19.0")
 }
 
 group = "io.logto.sdk"
@@ -17,4 +18,34 @@ android {
         minSdk = 24
         targetSdk = 30
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                it.apply {
+                    testLogging {
+                        events("failed", "skipped", "passed", "standardOut", "standardError")
+                    }
+                    outputs.upToDateWhen { false }
+                    reports.html.required.set(false)
+                    reports.junitXml.required.set(false)
+                }
+            }
+        }
+    }
+}
+
+detekt {
+    toolVersion = "1.19.0"
+    config = files("../../config/detekt/detekt.yml")
+    buildUponDefaultConfig = true
+}
+
+dependencies {
+    detekt("io.gitlab.arturbosch.detekt:detekt-formatting:1.19.0")
+    detekt("io.gitlab.arturbosch.detekt:detekt-cli:1.19.0")
+
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.32")
+    testImplementation("com.google.truth:truth:1.1.3")
 }
