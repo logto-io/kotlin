@@ -1,8 +1,8 @@
 package io.logto.sdk.core
 
 import com.google.common.truth.Truth.assertThat
-import io.logto.sdk.core.http.completion.HttpCompletion
-import io.logto.sdk.core.http.completion.HttpEmptyCompletion
+import io.logto.sdk.core.http.HttpCompletion
+import io.logto.sdk.core.http.HttpEmptyCompletion
 import io.logto.sdk.core.type.CodeTokenResponse
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse

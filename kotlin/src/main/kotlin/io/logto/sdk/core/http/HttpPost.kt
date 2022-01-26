@@ -1,7 +1,5 @@
 package io.logto.sdk.core.http
 
-import io.logto.sdk.core.http.completion.HttpCompletion
-import io.logto.sdk.core.http.completion.HttpEmptyCompletion
 import okhttp3.RequestBody
 
 inline fun <reified T> httpPost(

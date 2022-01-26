@@ -5,8 +5,6 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import io.logto.sdk.core.exception.ResponseException
-import io.logto.sdk.core.http.completion.HttpCompletion
-import io.logto.sdk.core.http.completion.HttpEmptyCompletion
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient

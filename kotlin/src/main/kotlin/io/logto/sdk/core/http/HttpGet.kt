@@ -1,8 +1,5 @@
 package io.logto.sdk.core.http
 
-import io.logto.sdk.core.http.completion.HttpCompletion
-import io.logto.sdk.core.http.completion.HttpEmptyCompletion
-
 inline fun <reified T> httpGet(uri: String, completion: HttpCompletion<T>) = httpGet(uri, null, completion)
 
 inline fun <reified T> httpGet(

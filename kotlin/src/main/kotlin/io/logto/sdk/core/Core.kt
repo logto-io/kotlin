@@ -9,8 +9,8 @@ import io.logto.sdk.core.constant.QueryKey
 import io.logto.sdk.core.constant.ResponseType
 import io.logto.sdk.core.exception.UriConstructionException
 import io.logto.sdk.core.extension.ensureDefaultScopes
-import io.logto.sdk.core.http.completion.HttpCompletion
-import io.logto.sdk.core.http.completion.HttpEmptyCompletion
+import io.logto.sdk.core.http.HttpCompletion
+import io.logto.sdk.core.http.HttpEmptyCompletion
 import io.logto.sdk.core.http.httpGet
 import io.logto.sdk.core.http.httpPost
 import io.logto.sdk.core.type.CodeTokenResponse
