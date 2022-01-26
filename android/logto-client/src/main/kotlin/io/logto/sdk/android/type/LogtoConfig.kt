@@ -1,6 +1,6 @@
 package io.logto.sdk.android.type
 
-import io.logto.sdk.core.extension.ensureDefaultScopes
+import io.logto.sdk.core.util.ScopeUtils
 
 class LogtoConfig(
     val endpoint: String,
@@ -9,5 +9,5 @@ class LogtoConfig(
     val resource: List<String>? = null,
     val usingPersistStorage: Boolean = false,
 ) {
-    val scope = scope.ensureDefaultScopes()
+    val scope = ScopeUtils.withDefaultScopes(scope)
 }

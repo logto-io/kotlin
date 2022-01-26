@@ -8,7 +8,6 @@ import io.logto.sdk.core.constant.PromptValue
 import io.logto.sdk.core.constant.QueryKey
 import io.logto.sdk.core.constant.ResponseType
 import io.logto.sdk.core.exception.UriConstructionException
-import io.logto.sdk.core.extension.ensureDefaultScopes
 import io.logto.sdk.core.http.HttpCompletion
 import io.logto.sdk.core.http.HttpEmptyCompletion
 import io.logto.sdk.core.http.httpGet
@@ -17,6 +16,7 @@ import io.logto.sdk.core.type.CodeTokenResponse
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
 import io.logto.sdk.core.type.UserInfoResponse
+import io.logto.sdk.core.util.ScopeUtils
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -43,7 +43,7 @@ object Core {
             addQueryParameter(QueryKey.REDIRECT_URI, redirectUri)
             addQueryParameter(QueryKey.PROMPT, PromptValue.CONSENT)
             addQueryParameter(QueryKey.RESPONSE_TYPE, ResponseType.CODE)
-            addQueryParameter(QueryKey.SCOPE, scope.ensureDefaultScopes().joinToString(" "))
+            addQueryParameter(QueryKey.SCOPE, ScopeUtils.withDefaultScopes(scope).joinToString(" "))
             resource?.let { for (value in it) { addQueryParameter(QueryKey.RESOURCE, value) } }
         }.build().toString()
     }
