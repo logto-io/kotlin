@@ -102,7 +102,7 @@ object Core {
             addProperty(QueryKey.REFRESH_TOKEN, refreshToken)
             addProperty(QueryKey.GRANT_TYPE, GrantType.REFRESH_TOKEN)
             resource?.let { addProperty(QueryKey.RESOURCE, it) }
-            scope?.let { addProperty(QueryKey.SCOPE, it.ensureDefaultScopes().joinToString(" ")) }
+            scope?.let { addProperty(QueryKey.SCOPE, it.joinToString(" ")) }
         }.toString().toRequestBody(MediaType.X_WWW_FORM_URLENCODED.toMediaType())
         httpPost(tokenEndpoint, body, completion)
     }
