@@ -5,5 +5,7 @@ pluginManagement {
     }
 }
 
+includeBuild("../kotlin")
+
 rootProject.name = "android"
 include(":logto-client")
