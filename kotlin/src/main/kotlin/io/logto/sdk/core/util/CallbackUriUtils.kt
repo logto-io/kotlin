@@ -4,7 +4,7 @@ import io.logto.sdk.core.constant.QueryKey
 import io.logto.sdk.core.exception.CallbackUriVerificationException
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
-object UriUtils {
+object CallbackUriUtils {
     fun verifyAndParseCodeFromCallbackUri(
         callbackUri: String,
         redirectUri: String,
