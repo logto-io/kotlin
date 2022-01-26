@@ -1,29 +1,27 @@
 package io.logto.sdk.core
 
 import com.google.gson.JsonObject
-import io.logto.sdk.core.callback.HttpCompletion
-import io.logto.sdk.core.callback.HttpEmptyCompletion
 import io.logto.sdk.core.constant.CodeChallengeMethod
 import io.logto.sdk.core.constant.GrantType
+import io.logto.sdk.core.constant.MediaType
 import io.logto.sdk.core.constant.PromptValue
 import io.logto.sdk.core.constant.QueryKey
 import io.logto.sdk.core.constant.ResponseType
 import io.logto.sdk.core.exception.UriConstructionException
 import io.logto.sdk.core.extension.ensureDefaultScopes
-import io.logto.sdk.core.extension.get
-import io.logto.sdk.core.extension.post
+import io.logto.sdk.core.http.completion.HttpCompletion
+import io.logto.sdk.core.http.completion.HttpEmptyCompletion
+import io.logto.sdk.core.http.httpGet
+import io.logto.sdk.core.http.httpPost
 import io.logto.sdk.core.type.CodeTokenResponse
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
 import io.logto.sdk.core.type.UserInfoResponse
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 
 object Core {
-    private val httpClient by lazy { OkHttpClient() }
-
     @Suppress("LongParameterList")
     fun generateSignInUri(
         authorizationEndpoint: String,
@@ -66,8 +64,8 @@ object Core {
         }.build().toString()
     }
 
-    fun fetchOidConfig(endpoint: String, completion: HttpCompletion<OidcConfigResponse?>) =
-        httpClient.get(endpoint, completion)
+    fun fetchOidConfig(endpoint: String, completion: HttpCompletion<OidcConfigResponse>) =
+        httpGet(endpoint, completion)
 
     @Suppress("LongParameterList")
     fun fetchTokenByAuthorizationCode(
@@ -77,9 +75,8 @@ object Core {
         codeVerifier: String,
         code: String,
         resource: String?,
-        completion: HttpCompletion<CodeTokenResponse?>
+        completion: HttpCompletion<CodeTokenResponse>
     ) {
-        val mediaType = "application/x-www-form-urlencoded".toMediaType()
         val body = JsonObject().apply {
             addProperty(QueryKey.CLIENT_ID, clientId)
             addProperty(QueryKey.REDIRECT_URI, redirectUri)
@@ -87,8 +84,8 @@ object Core {
             addProperty(QueryKey.CODE, code)
             addProperty(QueryKey.GRANT_TYPE, GrantType.AUTHORIZATION_CODE)
             resource?.let { addProperty(QueryKey.RESOURCE, it) }
-        }.toString().toRequestBody(mediaType)
-        httpClient.post(tokenEndpoint, body, completion)
+        }.toString().toRequestBody(MediaType.X_WWW_FORM_URLENCODED.toMediaType())
+        httpPost(tokenEndpoint, body, completion)
     }
 
     @Suppress("LongParameterList")
@@ -98,24 +95,23 @@ object Core {
         refreshToken: String,
         resource: String?,
         scope: List<String>?,
-        completion: HttpCompletion<RefreshTokenTokenResponse?>
+        completion: HttpCompletion<RefreshTokenTokenResponse>
     ) {
-        val mediaType = "application/x-www-form-urlencoded".toMediaType()
         val body = JsonObject().apply {
             addProperty(QueryKey.CLIENT_ID, clientId)
             addProperty(QueryKey.REFRESH_TOKEN, refreshToken)
             addProperty(QueryKey.GRANT_TYPE, GrantType.REFRESH_TOKEN)
             resource?.let { addProperty(QueryKey.RESOURCE, it) }
             scope?.let { addProperty(QueryKey.SCOPE, it.ensureDefaultScopes().joinToString(" ")) }
-        }.toString().toRequestBody(mediaType)
-        httpClient.post(tokenEndpoint, body, completion)
+        }.toString().toRequestBody(MediaType.X_WWW_FORM_URLENCODED.toMediaType())
+        httpPost(tokenEndpoint, body, completion)
     }
 
     fun fetchUserInfo(
         userInfoEndpoint: String,
         accessToken: String,
         completion: HttpCompletion<UserInfoResponse?>
-    ) = httpClient.get(
+    ) = httpGet(
         userInfoEndpoint,
         headers = mapOf("Authorization" to "Bearer $accessToken"),
         completion
@@ -125,13 +121,12 @@ object Core {
         revocationEndpoint: String,
         clientId: String,
         token: String,
-        completion: HttpEmptyCompletion? = null
+        completion: HttpEmptyCompletion
     ) {
-        val mediaType = "application/x-www-form-urlencoded".toMediaType()
         val body = JsonObject().apply {
             addProperty(QueryKey.CLIENT_ID, clientId)
             addProperty(QueryKey.TOKEN, token)
-        }.toString().toRequestBody(mediaType)
-        httpClient.post(revocationEndpoint, body, completion)
+        }.toString().toRequestBody(MediaType.X_WWW_FORM_URLENCODED.toMediaType())
+        httpPost(revocationEndpoint, body, completion)
     }
 }

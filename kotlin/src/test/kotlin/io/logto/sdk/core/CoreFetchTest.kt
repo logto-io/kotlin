@@ -1,8 +1,8 @@
 package io.logto.sdk.core
 
 import com.google.common.truth.Truth.assertThat
-import io.logto.sdk.core.callback.HttpCompletion
-import io.logto.sdk.core.callback.HttpEmptyCompletion
+import io.logto.sdk.core.http.completion.HttpCompletion
+import io.logto.sdk.core.http.completion.HttpEmptyCompletion
 import io.logto.sdk.core.type.CodeTokenResponse
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
@@ -87,7 +87,7 @@ class CoreFetchTest {
         val countDownLatch = CountDownLatch(1)
         Core.fetchOidConfig(
             "${mockWebServer.url("/oidc_config:good")}",
-            object : HttpCompletion<OidcConfigResponse?> {
+            object : HttpCompletion<OidcConfigResponse> {
                 override fun onComplete(throwable: Throwable?, result: OidcConfigResponse?) {
                     throwableReceiver = throwable
                     resultReceiver = result
@@ -109,7 +109,7 @@ class CoreFetchTest {
         val countDownLatch = CountDownLatch(1)
         Core.fetchOidConfig(
             "${mockWebServer.url("/oidc_config:bad")}",
-            object : HttpCompletion<OidcConfigResponse?> {
+            object : HttpCompletion<OidcConfigResponse> {
                 override fun onComplete(throwable: Throwable?, result: OidcConfigResponse?) {
                     throwableReceiver = throwable
                     resultReceiver = result
@@ -136,7 +136,7 @@ class CoreFetchTest {
             codeVerifier = "codeVerifier",
             code = "code",
             resource = null,
-            completion = object : HttpCompletion<CodeTokenResponse?> {
+            completion = object : HttpCompletion<CodeTokenResponse> {
                 override fun onComplete(throwable: Throwable?, result: CodeTokenResponse?) {
                     throwableReceiver = throwable
                     resultReceiver = result
@@ -163,7 +163,7 @@ class CoreFetchTest {
             codeVerifier = "codeVerifier",
             code = "code",
             resource = null,
-            completion = object : HttpCompletion<CodeTokenResponse?> {
+            completion = object : HttpCompletion<CodeTokenResponse> {
                 override fun onComplete(throwable: Throwable?, result: CodeTokenResponse?) {
                     throwableReceiver = throwable
                     resultReceiver = result
@@ -189,7 +189,7 @@ class CoreFetchTest {
             refreshToken = "refreshToken",
             resource = null,
             scope = null,
-            completion = object : HttpCompletion<RefreshTokenTokenResponse?> {
+            completion = object : HttpCompletion<RefreshTokenTokenResponse> {
                 override fun onComplete(throwable: Throwable?, result: RefreshTokenTokenResponse?) {
                     throwableReceiver = throwable
                     resultReceiver = result
@@ -215,7 +215,7 @@ class CoreFetchTest {
             refreshToken = "refreshToken",
             resource = null,
             scope = null,
-            completion = object : HttpCompletion<RefreshTokenTokenResponse?> {
+            completion = object : HttpCompletion<RefreshTokenTokenResponse> {
                 override fun onComplete(throwable: Throwable?, result: RefreshTokenTokenResponse?) {
                     throwableReceiver = throwable
                     resultReceiver = result
