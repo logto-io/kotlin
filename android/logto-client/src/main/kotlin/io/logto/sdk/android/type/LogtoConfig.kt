@@ -9,5 +9,5 @@ class LogtoConfig(
     val resource: List<String>? = null,
     val usingPersistStorage: Boolean = false,
 ) {
-    val scope by lazy { scope.ensureDefaultScopes() }
+    val scope = scope.ensureDefaultScopes()
 }
