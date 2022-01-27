@@ -8,5 +8,6 @@ class ResponseException(
 
     enum class Message {
         ERROR_RESPONSE,
+        EMPTY_RESPONSE,
     }
 }
