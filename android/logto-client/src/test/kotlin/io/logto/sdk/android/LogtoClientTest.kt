@@ -21,7 +21,7 @@ class LogtoClientTest {
         every { logtoConfigMock.endpoint } returns "https://logto.dev/oidc"
 
         mockkObject(Core)
-        every { Core.fetchOidConfig(any(), any()) } answers {
+        every { Core.fetchOidcConfig(any(), any()) } answers {
             secondArg<HttpCompletion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
         }
 
@@ -41,7 +41,7 @@ class LogtoClientTest {
         every { logtoConfigMock.endpoint } returns "https://logto.dev/oidc"
 
         mockkObject(Core)
-        every { Core.fetchOidConfig(any(), any()) } answers {
+        every { Core.fetchOidcConfig(any(), any()) } answers {
             secondArg<HttpCompletion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
         }
 
@@ -61,6 +61,6 @@ class LogtoClientTest {
             }
         })
 
-        verify(exactly = 1) { Core.fetchOidConfig(any(), any()) }
+        verify(exactly = 1) { Core.fetchOidcConfig(any(), any()) }
     }
 }

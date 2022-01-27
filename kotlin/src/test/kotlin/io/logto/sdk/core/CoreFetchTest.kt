@@ -85,7 +85,7 @@ class CoreFetchTest {
         var resultReceiver: OidcConfigResponse? = null
 
         val countDownLatch = CountDownLatch(1)
-        Core.fetchOidConfig(
+        Core.fetchOidcConfig(
             "${mockWebServer.url("/oidc_config:good")}",
             object : HttpCompletion<OidcConfigResponse> {
                 override fun onComplete(throwable: Throwable?, result: OidcConfigResponse?) {
@@ -107,7 +107,7 @@ class CoreFetchTest {
         var resultReceiver: OidcConfigResponse? = null
 
         val countDownLatch = CountDownLatch(1)
-        Core.fetchOidConfig(
+        Core.fetchOidcConfig(
             "${mockWebServer.url("/oidc_config:bad")}",
             object : HttpCompletion<OidcConfigResponse> {
                 override fun onComplete(throwable: Throwable?, result: OidcConfigResponse?) {

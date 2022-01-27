@@ -64,7 +64,7 @@ object Core {
         }.build().toString()
     }
 
-    fun fetchOidConfig(endpoint: String, completion: HttpCompletion<OidcConfigResponse>) =
+    fun fetchOidcConfig(endpoint: String, completion: HttpCompletion<OidcConfigResponse>) =
         httpGet(endpoint, completion)
 
     @Suppress("LongParameterList")

@@ -26,7 +26,7 @@ open class LogtoClient(
             callback.onResult(null, oidcConfig)
             return
         }
-        Core.fetchOidConfig(
+        Core.fetchOidcConfig(
             logtoConfig.oidcConfigEndpoint,
             object : HttpCompletion<OidcConfigResponse> {
                 override fun onComplete(throwable: Throwable?, result: OidcConfigResponse?) {
