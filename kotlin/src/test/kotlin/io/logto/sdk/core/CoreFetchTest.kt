@@ -82,15 +82,15 @@ class CoreFetchTest {
     @Test
     fun fetchOidcConfig() {
         var throwableReceiver: Throwable? = null
-        var resultReceiver: OidcConfigResponse? = null
+        var responseReceiver: OidcConfigResponse? = null
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchOidcConfig(
             "${mockWebServer.url("/oidc_config:good")}",
             object : HttpCompletion<OidcConfigResponse> {
-                override fun onComplete(throwable: Throwable?, result: OidcConfigResponse?) {
+                override fun onComplete(throwable: Throwable?, response: OidcConfigResponse?) {
                     throwableReceiver = throwable
-                    resultReceiver = result
+                    responseReceiver = response
                     countDownLatch.countDown()
                 }
             }
@@ -98,21 +98,21 @@ class CoreFetchTest {
         countDownLatch.await()
 
         assertThat(throwableReceiver).isNull()
-        assertThat(resultReceiver).isNotNull()
+        assertThat(responseReceiver).isNotNull()
     }
 
     @Test
     fun fetchOidcConfigShouldFailWithoutResponse() {
         var throwableReceiver: Throwable? = null
-        var resultReceiver: OidcConfigResponse? = null
+        var responseReceiver: OidcConfigResponse? = null
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchOidcConfig(
             "${mockWebServer.url("/oidc_config:bad")}",
             object : HttpCompletion<OidcConfigResponse> {
-                override fun onComplete(throwable: Throwable?, result: OidcConfigResponse?) {
+                override fun onComplete(throwable: Throwable?, response: OidcConfigResponse?) {
                     throwableReceiver = throwable
-                    resultReceiver = result
+                    responseReceiver = response
                     countDownLatch.countDown()
                 }
             }
@@ -120,13 +120,13 @@ class CoreFetchTest {
         countDownLatch.await()
 
         assertThat(throwableReceiver).isNotNull()
-        assertThat(resultReceiver).isNull()
+        assertThat(responseReceiver).isNull()
     }
 
     @Test
     fun fetchTokenByAuthorizationCode() {
         var throwableReceiver: Throwable? = null
-        var resultReceiver: CodeTokenResponse? = null
+        var responseReceiver: CodeTokenResponse? = null
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchTokenByAuthorizationCode(
@@ -137,9 +137,9 @@ class CoreFetchTest {
             code = "code",
             resource = null,
             completion = object : HttpCompletion<CodeTokenResponse> {
-                override fun onComplete(throwable: Throwable?, result: CodeTokenResponse?) {
+                override fun onComplete(throwable: Throwable?, response: CodeTokenResponse?) {
                     throwableReceiver = throwable
-                    resultReceiver = result
+                    responseReceiver = response
                     countDownLatch.countDown()
                 }
             }
@@ -147,13 +147,13 @@ class CoreFetchTest {
         countDownLatch.await()
 
         assertThat(throwableReceiver).isNull()
-        assertThat(resultReceiver).isNotNull()
+        assertThat(responseReceiver).isNotNull()
     }
 
     @Test
     fun fetchTokenByAuthorizationCodeShouldFailWithoutResponse() {
         var throwableReceiver: Throwable? = null
-        var resultReceiver: CodeTokenResponse? = null
+        var responseReceiver: CodeTokenResponse? = null
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchTokenByAuthorizationCode(
@@ -164,9 +164,9 @@ class CoreFetchTest {
             code = "code",
             resource = null,
             completion = object : HttpCompletion<CodeTokenResponse> {
-                override fun onComplete(throwable: Throwable?, result: CodeTokenResponse?) {
+                override fun onComplete(throwable: Throwable?, response: CodeTokenResponse?) {
                     throwableReceiver = throwable
-                    resultReceiver = result
+                    responseReceiver = response
                     countDownLatch.countDown()
                 }
             }
@@ -174,13 +174,13 @@ class CoreFetchTest {
         countDownLatch.await()
 
         assertThat(throwableReceiver).isNotNull()
-        assertThat(resultReceiver).isNull()
+        assertThat(responseReceiver).isNull()
     }
 
     @Test
     fun fetchTokenByRefreshToken() {
         var throwableReceiver: Throwable? = null
-        var resultReceiver: RefreshTokenTokenResponse? = null
+        var responseReceiver: RefreshTokenTokenResponse? = null
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchTokenByRefreshToken(
@@ -190,9 +190,9 @@ class CoreFetchTest {
             resource = null,
             scope = null,
             completion = object : HttpCompletion<RefreshTokenTokenResponse> {
-                override fun onComplete(throwable: Throwable?, result: RefreshTokenTokenResponse?) {
+                override fun onComplete(throwable: Throwable?, response: RefreshTokenTokenResponse?) {
                     throwableReceiver = throwable
-                    resultReceiver = result
+                    responseReceiver = response
                     countDownLatch.countDown()
                 }
             }
@@ -200,13 +200,13 @@ class CoreFetchTest {
         countDownLatch.await()
 
         assertThat(throwableReceiver).isNull()
-        assertThat(resultReceiver).isNotNull()
+        assertThat(responseReceiver).isNotNull()
     }
 
     @Test
     fun fetchTokenByRefreshTokenShouldFailWithoutResponse() {
         var throwableReceiver: Throwable? = null
-        var resultReceiver: RefreshTokenTokenResponse? = null
+        var responseReceiver: RefreshTokenTokenResponse? = null
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchTokenByRefreshToken(
@@ -216,9 +216,9 @@ class CoreFetchTest {
             resource = null,
             scope = null,
             completion = object : HttpCompletion<RefreshTokenTokenResponse> {
-                override fun onComplete(throwable: Throwable?, result: RefreshTokenTokenResponse?) {
+                override fun onComplete(throwable: Throwable?, response: RefreshTokenTokenResponse?) {
                     throwableReceiver = throwable
-                    resultReceiver = result
+                    responseReceiver = response
                     countDownLatch.countDown()
                 }
             }
@@ -226,22 +226,22 @@ class CoreFetchTest {
         countDownLatch.await()
 
         assertThat(throwableReceiver).isNotNull()
-        assertThat(resultReceiver).isNull()
+        assertThat(responseReceiver).isNull()
     }
 
     @Test
     fun fetchUserInfo() {
         var throwableReceiver: Throwable? = null
-        var resultReceiver: UserInfoResponse? = null
+        var responseReceiver: UserInfoResponse? = null
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchUserInfo(
             userInfoEndpoint = "${mockWebServer.url("/user:good")}",
             accessToken = "accessToken",
             completion = object : HttpCompletion<UserInfoResponse?> {
-                override fun onComplete(throwable: Throwable?, result: UserInfoResponse?) {
+                override fun onComplete(throwable: Throwable?, response: UserInfoResponse?) {
                     throwableReceiver = throwable
-                    resultReceiver = result
+                    responseReceiver = response
                     countDownLatch.countDown()
                 }
             }
@@ -249,22 +249,22 @@ class CoreFetchTest {
         countDownLatch.await()
 
         assertThat(throwableReceiver).isNull()
-        assertThat(resultReceiver).isNotNull()
+        assertThat(responseReceiver).isNotNull()
     }
 
     @Test
     fun fetchUserInfoShouldFailWithoutResponse() {
         var throwableReceiver: Throwable? = null
-        var resultReceiver: UserInfoResponse? = null
+        var responseReceiver: UserInfoResponse? = null
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchUserInfo(
             userInfoEndpoint = "${mockWebServer.url("/user:bad")}",
             accessToken = "accessToken",
             completion = object : HttpCompletion<UserInfoResponse?> {
-                override fun onComplete(throwable: Throwable?, result: UserInfoResponse?) {
+                override fun onComplete(throwable: Throwable?, response: UserInfoResponse?) {
                     throwableReceiver = throwable
-                    resultReceiver = result
+                    responseReceiver = response
                     countDownLatch.countDown()
                 }
             }
@@ -272,7 +272,7 @@ class CoreFetchTest {
         countDownLatch.await()
 
         assertThat(throwableReceiver).isNotNull()
-        assertThat(resultReceiver).isNull()
+        assertThat(responseReceiver).isNull()
     }
 
     @Test
