@@ -44,14 +44,13 @@ inline fun <reified T> makeRequest(
                 return
             }
 
-            try {
-                completion.onComplete(
-                    null,
-                    response.let { it.body?.string() }?.let { gson.fromJson(it, T::class.java) }
-                )
-            } catch (jsonSyntaxException: JsonSyntaxException) {
-                completion.onComplete(jsonSyntaxException, null)
-            }
+            response.let { it.body?.string() }?.let {
+                try {
+                    completion.onComplete(null, gson.fromJson(it, T::class.java))
+                } catch (jsonSyntaxException: JsonSyntaxException) {
+                    completion.onComplete(jsonSyntaxException, null)
+                }
+            } ?: completion.onComplete(ResponseException(ResponseException.Message.EMPTY_RESPONSE), null)
         }
     }
 )
