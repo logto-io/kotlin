@@ -50,4 +50,5 @@ dependencies {
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.32")
     testImplementation("com.google.truth:truth:1.1.3")
+    testImplementation("io.mockk:mockk:1.12.2")
 }
