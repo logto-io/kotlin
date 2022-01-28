@@ -72,7 +72,7 @@ open class LogtoClient(
         refreshToken(
             resource = resource,
             scope = finalScope,
-            refreshTokenCompletion = object : HttpCompletion<RefreshTokenTokenResponse> {
+            completion = object : HttpCompletion<RefreshTokenTokenResponse> {
                 override fun onComplete(throwable: Throwable?, response: RefreshTokenTokenResponse?) {
                     if (throwable != null) {
                         getAccessTokenCallback.onResult(throwable, null)
@@ -100,10 +100,10 @@ open class LogtoClient(
     private fun refreshToken(
         resource: String?,
         scope: List<String>?,
-        refreshTokenCompletion: HttpCompletion<RefreshTokenTokenResponse>,
+        completion: HttpCompletion<RefreshTokenTokenResponse>,
     ) {
         if (refreshToken == null) {
-            refreshTokenCompletion.onComplete(
+            completion.onComplete(
                 LogtoException(LogtoException.Message.MISSING_REFRESH_TOKEN), null
             )
             return
@@ -111,7 +111,7 @@ open class LogtoClient(
         getOidcConfig(object : RetrieveCallback<OidcConfigResponse> {
             override fun onResult(throwable: Throwable?, result: OidcConfigResponse?) {
                 if (throwable != null) {
-                    refreshTokenCompletion.onComplete(throwable, null)
+                    completion.onComplete(throwable, null)
                     return
                 }
                 requireNotNull(result).let { oidcConfig ->
@@ -121,7 +121,7 @@ open class LogtoClient(
                         refreshToken = requireNotNull(refreshToken),
                         resource = resource,
                         scope = scope,
-                        completion = refreshTokenCompletion
+                        completion = completion
                     )
                 }
             }
