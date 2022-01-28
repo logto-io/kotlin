@@ -8,12 +8,15 @@ import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.http.HttpCompletion
+import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
+import io.logto.sdk.core.util.TokenUtils
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.verify
+import org.jose4j.jwt.consumer.InvalidJwtException
 import org.junit.Test
 
 class LogtoClientTest {
@@ -226,6 +229,66 @@ class LogtoClientTest {
         }
 
         verify(exactly = 1) { Core.fetchOidcConfig(any(), any()) }
+    }
+
+    @Test
+    fun getIdTokenClaims() {
+        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        mockkObject(logtoClient)
+        every { logtoClient.isAuthenticated() } returns true
+
+        val idTokenClaimsMock: IdTokenClaims = mockk()
+
+        mockkObject(TokenUtils)
+        every { TokenUtils.decodeIdToken(any()) } returns idTokenClaimsMock
+
+        logtoClient.getIdTokenClaims(object : RetrieveCallback<IdTokenClaims> {
+            override fun onResult(throwable: Throwable?, result: IdTokenClaims?) {
+                assertThat(throwable).isNull()
+                assertThat(result).isEqualTo(idTokenClaimsMock)
+            }
+        })
+    }
+
+    @Test
+    fun `getIdTokenClaims should fail without being authenticated`() {
+        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        mockkObject(logtoClient)
+        every { logtoClient.isAuthenticated() } returns false
+
+        logtoClient.getIdTokenClaims(object : RetrieveCallback<IdTokenClaims> {
+            override fun onResult(throwable: Throwable?, result: IdTokenClaims?) {
+                assertThat(throwable)
+                    .hasMessageThat()
+                    .contains(LogtoException.Message.NOT_AUTHENTICATED.name)
+                assertThat(result).isNull()
+            }
+        })
+    }
+
+    @Test
+    fun `getIdTokenClaims should fail if decodeIdToken failed`() {
+        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        mockkObject(logtoClient)
+        every { logtoClient.isAuthenticated() } returns true
+
+        val invalidJwtExceptionMock: InvalidJwtException = mockk()
+
+        mockkObject(TokenUtils)
+        every { TokenUtils.decodeIdToken(any()) } throws invalidJwtExceptionMock
+
+        logtoClient.getIdTokenClaims(object : RetrieveCallback<IdTokenClaims> {
+            override fun onResult(throwable: Throwable?, result: IdTokenClaims?) {
+                assertThat(throwable).isEqualTo(invalidJwtExceptionMock)
+                assertThat(result).isNull()
+            }
+        })
     }
 
     private fun setupRefreshTokenTestEnv() {
