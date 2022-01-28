@@ -18,7 +18,7 @@ class LogtoClientTest {
     @Test
     fun getOidcConfig() {
         val logtoConfigMock: LogtoConfig = mockk()
-        every { logtoConfigMock.endpoint } returns "https://logto.dev/oidc"
+        every { logtoConfigMock.endpoint } returns "https://logto.dev"
 
         mockkObject(Core)
         every { Core.fetchOidcConfig(any(), any()) } answers {
@@ -38,7 +38,7 @@ class LogtoClientTest {
     @Test
     fun `getOidcConfig success more than one time should only fetch once`() {
         val logtoConfigMock: LogtoConfig = mockk()
-        every { logtoConfigMock.endpoint } returns "https://logto.dev/oidc"
+        every { logtoConfigMock.endpoint } returns "https://logto.dev"
 
         mockkObject(Core)
         every { Core.fetchOidcConfig(any(), any()) } answers {
