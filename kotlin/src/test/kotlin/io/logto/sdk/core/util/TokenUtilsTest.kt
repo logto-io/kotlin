@@ -25,6 +25,7 @@ class TokenUtilsTest {
     private val testRsaJsonWebKey = RsaJwkGenerator.generateJwk(2048).apply {
         keyId = "rsa-json-web-key-id"
     }
+    private val testTimeDelta = 10L
 
     @Test
     fun verifyIdTokenWithValidIdToken() {
@@ -62,7 +63,7 @@ class TokenUtilsTest {
     fun verifyIdTokenWithOverdueIssueAtShouldThrow() {
         val claims = createTestIdTokenClaims()
         claims.issuedAt = NumericDate.fromSeconds(
-            NumericDate.now().value - ISSUED_AT_RESTRICTIONS_IN_SECONDS - 1
+            NumericDate.now().value - ISSUED_AT_RESTRICTIONS_IN_SECONDS.toLong() - testTimeDelta
         )
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -80,7 +81,7 @@ class TokenUtilsTest {
     fun verifyIdTokenWithFutureIssueAtShouldThrow() {
         val claims = createTestIdTokenClaims()
         claims.issuedAt = NumericDate.fromSeconds(
-            NumericDate.now().value + ISSUED_AT_RESTRICTIONS_IN_SECONDS + 1
+            NumericDate.now().value + ISSUED_AT_RESTRICTIONS_IN_SECONDS.toLong() + testTimeDelta
         )
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -98,7 +99,7 @@ class TokenUtilsTest {
     fun verifyIdTokenWithExpiredTokenShouldThrow() {
         val claims = createTestIdTokenClaims()
         claims.expirationTime = NumericDate.fromSeconds(
-            NumericDate.now().value - 1
+            NumericDate.now().value - testTimeDelta
         )
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
