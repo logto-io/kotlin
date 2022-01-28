@@ -38,11 +38,6 @@ open class LogtoClient(
             return
         }
 
-        if (refreshToken == null) {
-            callback.onResult(LogtoException(LogtoException.Message.MISSING_REFRESH_TOKEN), null)
-            return
-        }
-
         resource?.let {
             if (logtoConfig.resource?.contains(it) == false) {
                 callback.onResult(
@@ -70,6 +65,11 @@ open class LogtoClient(
                 callback.onResult(null, it)
                 return
             }
+        }
+
+        if (refreshToken == null) {
+            callback.onResult(LogtoException(LogtoException.Message.MISSING_REFRESH_TOKEN), null)
+            return
         }
 
         getOidcConfig(object : RetrieveCallback<OidcConfigResponse> {

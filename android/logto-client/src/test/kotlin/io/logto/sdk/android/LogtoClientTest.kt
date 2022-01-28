@@ -55,6 +55,9 @@ class LogtoClientTest {
 
     @Test
     fun `getAccessToken should failed without refreshToken`() {
+
+        every { logtoConfigMock.scope } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
+
         logtoClient = LogtoClient(logtoConfigMock)
         logtoClient.setupRefreshToken(null)
 
