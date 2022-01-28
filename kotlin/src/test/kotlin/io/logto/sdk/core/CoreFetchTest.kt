@@ -238,7 +238,7 @@ class CoreFetchTest {
         Core.fetchUserInfo(
             userInfoEndpoint = "${mockWebServer.url("/user:good")}",
             accessToken = "accessToken",
-            completion = object : HttpCompletion<UserInfoResponse?> {
+            completion = object : HttpCompletion<UserInfoResponse> {
                 override fun onComplete(throwable: Throwable?, response: UserInfoResponse?) {
                     throwableReceiver = throwable
                     responseReceiver = response
@@ -261,7 +261,7 @@ class CoreFetchTest {
         Core.fetchUserInfo(
             userInfoEndpoint = "${mockWebServer.url("/user:bad")}",
             accessToken = "accessToken",
-            completion = object : HttpCompletion<UserInfoResponse?> {
+            completion = object : HttpCompletion<UserInfoResponse> {
                 override fun onComplete(throwable: Throwable?, response: UserInfoResponse?) {
                     throwableReceiver = throwable
                     responseReceiver = response

@@ -110,7 +110,7 @@ object Core {
     fun fetchUserInfo(
         userInfoEndpoint: String,
         accessToken: String,
-        completion: HttpCompletion<UserInfoResponse?>
+        completion: HttpCompletion<UserInfoResponse>
     ) = httpGet(
         userInfoEndpoint,
         headers = mapOf("Authorization" to "Bearer $accessToken"),
