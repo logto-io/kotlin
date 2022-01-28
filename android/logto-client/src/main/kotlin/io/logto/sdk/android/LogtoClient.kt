@@ -58,6 +58,7 @@ open class LogtoClient(
             return
         }
 
+        // Retrieve access token from accessTokenMap
         val accessTokenKey = makeAccessTokenKey(finalScope, resource)
         val accessToken = accessTokenMap[accessTokenKey]
         accessToken?.let {
@@ -67,6 +68,7 @@ open class LogtoClient(
             }
         }
 
+        // If no access token is valid, ensure there is a refresh token and fetch new a new token by refresh token
         if (refreshToken == null) {
             callback.onResult(LogtoException(LogtoException.Message.MISSING_REFRESH_TOKEN), null)
             return
