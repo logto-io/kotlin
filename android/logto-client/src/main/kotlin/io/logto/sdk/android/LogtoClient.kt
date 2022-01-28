@@ -31,16 +31,16 @@ open class LogtoClient(
     fun getAccessToken(
         resource: String?,
         scope: List<String>?,
-        callback: RetrieveCallback<AccessToken>,
+        getAccessTokenCallback: RetrieveCallback<AccessToken>,
     ) {
         if (!isAuthenticated()) {
-            callback.onResult(LogtoException(LogtoException.Message.NOT_AUTHENTICATED), null)
+            getAccessTokenCallback.onResult(LogtoException(LogtoException.Message.NOT_AUTHENTICATED), null)
             return
         }
 
         resource?.let {
             if (logtoConfig.resource?.contains(it) == false) {
-                callback.onResult(
+                getAccessTokenCallback.onResult(
                     LogtoException(LogtoException.Message.RESOURCE_IS_NOT_GRANTED).apply { detail = it }, null
                 )
                 return
@@ -49,7 +49,7 @@ open class LogtoClient(
 
         val finalScope = scope ?: logtoConfig.scope
         if (!logtoConfig.scope.containsAll(finalScope)) {
-            callback.onResult(
+            getAccessTokenCallback.onResult(
                 LogtoException(LogtoException.Message.SCOPES_ARE_NOT_ALL_GRANTED).apply {
                     detail = finalScope.toString()
                 },
@@ -63,21 +63,55 @@ open class LogtoClient(
         val accessToken = accessTokenMap[accessTokenKey]
         accessToken?.let {
             if (it.expiresAt > LogtoUtils.nowRoundToSec()) {
-                callback.onResult(null, it)
+                getAccessTokenCallback.onResult(null, it)
                 return
             }
         }
 
-        // If no access token is valid, ensure there is a refresh token and fetch new a new token by refresh token
+        // If no access token is valid, fetch a new token by refresh token
+        refreshToken(
+            resource = resource,
+            scope = finalScope,
+            refreshTokenCompletion = object : HttpCompletion<RefreshTokenTokenResponse> {
+                override fun onComplete(throwable: Throwable?, response: RefreshTokenTokenResponse?) {
+                    if (throwable != null) {
+                        getAccessTokenCallback.onResult(throwable, null)
+                        return
+                    }
+                    requireNotNull(response).let { tokenResponse ->
+                        val refreshedAccessToken = AccessToken(
+                            token = tokenResponse.accessToken,
+                            scope = tokenResponse.scope,
+                            expiresAt = LogtoUtils.expiresAtFrom(
+                                LogtoUtils.nowRoundToSec(),
+                                tokenResponse.expiresIn
+                            )
+                        )
+                        accessTokenMap[accessTokenKey] = refreshedAccessToken
+                        refreshToken = tokenResponse.refreshToken
+                        tokenResponse.idToken?.let { idToken = it }
+                        getAccessTokenCallback.onResult(null, refreshedAccessToken)
+                    }
+                }
+            }
+        )
+    }
+
+    private fun refreshToken(
+        resource: String?,
+        scope: List<String>?,
+        refreshTokenCompletion: HttpCompletion<RefreshTokenTokenResponse>,
+    ) {
         if (refreshToken == null) {
-            callback.onResult(LogtoException(LogtoException.Message.MISSING_REFRESH_TOKEN), null)
+            refreshTokenCompletion.onComplete(
+                LogtoException(LogtoException.Message.MISSING_REFRESH_TOKEN), null
+            )
             return
         }
-
         getOidcConfig(object : RetrieveCallback<OidcConfigResponse> {
             override fun onResult(throwable: Throwable?, result: OidcConfigResponse?) {
                 if (throwable != null) {
-                    callback.onResult(throwable, null)
+                    refreshTokenCompletion.onComplete(throwable, null)
                     return
                 }
                 requireNotNull(result).let { oidcConfig ->
@@ -86,29 +120,8 @@ open class LogtoClient(
                         clientId = logtoConfig.clientId,
                         refreshToken = requireNotNull(refreshToken),
                         resource = resource,
-                        scope = finalScope,
-                        completion = object : HttpCompletion<RefreshTokenTokenResponse> {
-                            override fun onComplete(throwable: Throwable?, response: RefreshTokenTokenResponse?) {
-                                if (throwable != null) {
-                                    callback.onResult(throwable, null)
-                                    return
-                                }
-                                requireNotNull(response).let { tokenResponse ->
-                                    val refreshedAccessToken = AccessToken(
-                                        token = tokenResponse.accessToken,
-                                        scope = tokenResponse.scope,
-                                        expiresAt = LogtoUtils.expiresAtFrom(
-                                            LogtoUtils.nowRoundToSec(),
-                                            tokenResponse.expiresIn
-                                        )
-                                    )
-                                    accessTokenMap[accessTokenKey] = refreshedAccessToken
-                                    refreshToken = tokenResponse.refreshToken
-                                    tokenResponse.idToken?.let { idToken = it }
-                                    callback.onResult(null, refreshedAccessToken)
-                                }
-                            }
-                        }
+                        scope = scope,
+                        completion = refreshTokenCompletion
                     )
                 }
             }
