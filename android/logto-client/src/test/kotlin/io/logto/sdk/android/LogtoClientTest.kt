@@ -130,7 +130,7 @@ class LogtoClientTest {
         logtoClient = LogtoClient(logtoConfigMock)
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
 
-        val testTokenKey = logtoClient.makeAccessTokenKey(listOf(TEST_SCOPE_1), null)
+        val testTokenKey = logtoClient.buildAccessTokenKey(listOf(TEST_SCOPE_1), null)
         val testAccessToken: AccessToken = mockk()
         every { testAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() + 1L
 
@@ -155,7 +155,7 @@ class LogtoClientTest {
     fun `getAccessToken should refresh token when existing accessToken is expired`() {
         setupRefreshTokenTestEnv()
 
-        val expiredAccessTokenKey = logtoClient.makeAccessTokenKey(listOf(TEST_SCOPE_1), null)
+        val expiredAccessTokenKey = logtoClient.buildAccessTokenKey(listOf(TEST_SCOPE_1), null)
         val expiredAccessToken: AccessToken = mockk()
         every { expiredAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() - 1L
         logtoClient.setupAccessTokenMap(mapOf(expiredAccessTokenKey to expiredAccessToken))

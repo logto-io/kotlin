@@ -59,7 +59,7 @@ open class LogtoClient(
         }
 
         // Retrieve access token from accessTokenMap
-        val accessTokenKey = makeAccessTokenKey(finalScope, resource)
+        val accessTokenKey = buildAccessTokenKey(finalScope, resource)
         val accessToken = accessTokenMap[accessTokenKey]
         accessToken?.let {
             if (it.expiresAt > LogtoUtils.nowRoundToSec()) {
@@ -131,7 +131,7 @@ open class LogtoClient(
         )
     }
 
-    internal fun makeAccessTokenKey(scope: List<String>, resource: String?) =
+    internal fun buildAccessTokenKey(scope: List<String>, resource: String?) =
         "${scope.sorted().joinToString(" ")}@$resource"
 
     @TestOnly
