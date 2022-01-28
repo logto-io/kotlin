@@ -17,6 +17,15 @@ import org.junit.Test
 import java.util.concurrent.CountDownLatch
 
 class CoreFetchTest {
+    companion object {
+        private const val TEST_AUTHORIZATION_ENDPOINT = "https://logto.dev/oidc/auth"
+        private const val TEST_TOKEN_ENDPOINT = "https://logto.dev/oidc/token"
+        private const val TEST_END_SESSION_ENDPOINT = "https://logto.dev/oidc/session/end"
+        private const val TEST_USERINFO_ENDPOINT = "https://logto.dev/oidc/me"
+        private const val TEST_REVOCATION_ENDPOINT = "https://logto.dev/oidc/token/revocation"
+        private const val TEST_JWKS_URI = "https://logto.dev/oidc/jwks"
+        private const val TEST_ISSUER = "http://localhost:443/oidc"
+    }
     private lateinit var mockWebServer: MockWebServer
     private val dispatcher = object : Dispatcher() {
         override fun dispatch(request: RecordedRequest): MockResponse {
@@ -26,12 +35,13 @@ class CoreFetchTest {
                     setBody(
                         """
                         {
-                            "authorization_endpoint": "https://logto.dev/oidc/auth",
-                            "token_endpoint": "https://logto.dev/oidc/token",
-                            "end_session_endpoint": "https://logto.dev/oidc/session/end",
-                            "revocation_endpoint": "https://logto.dev/oidc/token/revocation",
-                            "jwks_uri": "https://logto.dev/oidc/jwks",
-                            "issuer": "http://localhost:443/oidc"
+                            "authorization_endpoint": "$TEST_AUTHORIZATION_ENDPOINT",
+                            "token_endpoint": "$TEST_TOKEN_ENDPOINT",
+                            "end_session_endpoint": "$TEST_END_SESSION_ENDPOINT",
+                            "userinfo_endpoint": "$TEST_USERINFO_ENDPOINT",
+                            "revocation_endpoint": "$TEST_REVOCATION_ENDPOINT",
+                            "jwks_uri": "$TEST_JWKS_URI",
+                            "issuer": "$TEST_ISSUER"
                         }
                         """.trimIndent()
                     )
@@ -97,8 +107,18 @@ class CoreFetchTest {
         )
         countDownLatch.await()
 
+        val expectedResponse = OidcConfigResponse(
+            authorizationEndpoint = TEST_AUTHORIZATION_ENDPOINT,
+            tokenEndpoint = TEST_TOKEN_ENDPOINT,
+            endSessionEndpoint = TEST_END_SESSION_ENDPOINT,
+            userinfoEndpoint = TEST_USERINFO_ENDPOINT,
+            revocationEndpoint = TEST_REVOCATION_ENDPOINT,
+            jwksUri = TEST_JWKS_URI,
+            issuer = TEST_ISSUER
+        )
+
         assertThat(throwableReceiver).isNull()
-        assertThat(responseReceiver).isNotNull()
+        assertThat(responseReceiver).isEqualTo(expectedResponse)
     }
 
     @Test
