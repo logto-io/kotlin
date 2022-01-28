@@ -39,7 +39,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `getAccessToken should failed without authenticated`() {
+    fun `getAccessToken should fail without being authenticated`() {
         logtoClient = LogtoClient(logtoConfigMock)
 
         mockkObject(logtoClient)
@@ -54,7 +54,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `getAccessToken should failed without refreshToken`() {
+    fun `getAccessToken should fail without refreshToken`() {
 
         every { logtoConfigMock.scope } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
 
@@ -73,7 +73,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `getAccessToken should failed when scopes are not all granted`() {
+    fun `getAccessToken should fail when scopes are not all granted`() {
 
         every { logtoConfigMock.scope } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
 
@@ -98,7 +98,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `getAccessToken should failed when resource is not granted`() {
+    fun `getAccessToken should fail when resource is not granted`() {
 
         every { logtoConfigMock.resource } returns listOf(TEST_RESOURCE_1, TEST_RESOURCE_2)
 
@@ -152,7 +152,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `getAccessToken should refresh token when accessToken existed is expired`() {
+    fun `getAccessToken should refresh token when existing accessToken is expired`() {
         setupRefreshTokenTestEnv()
 
         val expiredAccessTokenKey = logtoClient.makeAccessTokenKey(listOf(TEST_SCOPE_1), null)
