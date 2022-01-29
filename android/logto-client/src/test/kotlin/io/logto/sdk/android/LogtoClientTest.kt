@@ -46,7 +46,7 @@ class LogtoClientTest {
         logtoClient = LogtoClient(logtoConfigMock)
 
         mockkObject(logtoClient)
-        every { logtoClient.isAuthenticated() } returns false
+        every { logtoClient.isAuthenticated } returns false
 
         logtoClient.getAccessToken { throwable, result ->
             assertThat(throwable).hasMessageThat().contains(LogtoException.Message.NOT_AUTHENTICATED.name)
@@ -63,7 +63,7 @@ class LogtoClientTest {
         logtoClient.setupRefreshToken(null)
 
         mockkObject(logtoClient)
-        every { logtoClient.isAuthenticated() } returns true
+        every { logtoClient.isAuthenticated } returns true
 
         logtoClient.getAccessToken { throwable, result ->
             assertThat(throwable).hasMessageThat().contains(LogtoException.Message.MISSING_REFRESH_TOKEN.name)
@@ -80,7 +80,7 @@ class LogtoClientTest {
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
 
         mockkObject(logtoClient)
-        every { logtoClient.isAuthenticated() } returns true
+        every { logtoClient.isAuthenticated } returns true
 
         logtoClient.getAccessToken(
             resource = null,
@@ -102,7 +102,7 @@ class LogtoClientTest {
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
 
         mockkObject(logtoClient)
-        every { logtoClient.isAuthenticated() } returns true
+        every { logtoClient.isAuthenticated } returns true
 
         logtoClient.getAccessToken(
             resource = TEST_RESOURCE_3,
@@ -130,7 +130,7 @@ class LogtoClientTest {
         logtoClient.setupAccessTokenMap(mapOf(testTokenKey to testAccessToken))
 
         mockkObject(logtoClient)
-        every { logtoClient.isAuthenticated() } returns true
+        every { logtoClient.isAuthenticated } returns true
 
         logtoClient.getAccessToken(
             null,
@@ -237,7 +237,7 @@ class LogtoClientTest {
         logtoClient.setupIdToken(TEST_ID_TOKEN)
 
         mockkObject(logtoClient)
-        every { logtoClient.isAuthenticated() } returns true
+        every { logtoClient.isAuthenticated } returns true
 
         val idTokenClaimsMock: IdTokenClaims = mockk()
 
@@ -256,7 +256,7 @@ class LogtoClientTest {
         logtoClient.setupIdToken(TEST_ID_TOKEN)
 
         mockkObject(logtoClient)
-        every { logtoClient.isAuthenticated() } returns false
+        every { logtoClient.isAuthenticated } returns false
 
         logtoClient.getIdTokenClaims(object : RetrieveCallback<IdTokenClaims> {
             override fun onResult(throwable: Throwable?, result: IdTokenClaims?) {
@@ -274,7 +274,7 @@ class LogtoClientTest {
         logtoClient.setupIdToken(TEST_ID_TOKEN)
 
         mockkObject(logtoClient)
-        every { logtoClient.isAuthenticated() } returns true
+        every { logtoClient.isAuthenticated } returns true
 
         val invalidJwtExceptionMock: InvalidJwtException = mockk()
 
@@ -297,7 +297,7 @@ class LogtoClientTest {
 
         mockkObject(logtoClient)
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
-        every { logtoClient.isAuthenticated() } returns true
+        every { logtoClient.isAuthenticated } returns true
 
         every { oidcConfigResponseMock.tokenEndpoint } returns TEST_TOKEN_ENDPOINT
         every { logtoClient.getOidcConfig(any()) } answers {
