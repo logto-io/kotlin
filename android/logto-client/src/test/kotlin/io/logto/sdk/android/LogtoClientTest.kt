@@ -11,6 +11,7 @@ import io.logto.sdk.core.http.HttpCompletion
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
+import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.TokenUtils
 import io.mockk.every
 import io.mockk.mockk
@@ -36,6 +37,7 @@ class LogtoClientTest {
         private const val TEST_CLIENT_ID = "client_id"
         private const val TEST_REFRESH_TOKEN = "refreshToken"
         private const val TEST_TOKEN_ENDPOINT = "tokenEndpoint"
+        private const val TEST_USERINFO_ENDPOINT = "userinfoEndpoint"
         private const val TEST_ACCESS_TOKEN = "accessToken"
         private const val TEST_ID_TOKEN = "idToken"
         private const val TEST_EXPIRE_IN = 60L
@@ -282,6 +284,35 @@ class LogtoClientTest {
         logtoClient.getIdTokenClaims { throwable, result ->
             assertThat(throwable).isEqualTo(invalidJwtExceptionMock)
             assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun fetchUserInfo() {
+        logtoClient = LogtoClient(logtoConfigMock)
+
+        every { oidcConfigResponseMock.userinfoEndpoint } returns TEST_USERINFO_ENDPOINT
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<RetrieveCallback<OidcConfigResponse>>().onResult(null, oidcConfigResponseMock)
+        }
+        val accessTokenMock: AccessToken = mockk()
+        every { accessTokenMock.token } returns TEST_ACCESS_TOKEN
+        every { logtoClient.getAccessToken(any(), any(), any()) } answers {
+            lastArg<RetrieveCallback<AccessToken>>().onResult(null, accessTokenMock)
+        }
+
+        val userInfoResponseMock: UserInfoResponse = mockk()
+
+        mockkObject(Core)
+        every { Core.fetchUserInfo(any(), any(), any()) } answers {
+            lastArg<HttpCompletion<UserInfoResponse>>().onComplete(null, userInfoResponseMock)
+        }
+
+        logtoClient.fetchUserInfo { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isEqualTo(userInfoResponseMock)
         }
     }
 
