@@ -11,10 +11,12 @@ import io.logto.sdk.core.http.HttpCompletion
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
+import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.TokenUtils
 import org.jetbrains.annotations.TestOnly
 import org.jose4j.jwt.consumer.InvalidJwtException
 
+@Suppress("TooManyFunctions")
 open class LogtoClient(
     val logtoConfig: LogtoConfig
 ) {
@@ -136,6 +138,27 @@ open class LogtoClient(
             callback.onResult(null, idTokenClaims)
         } catch (exception: InvalidJwtException) {
             callback.onResult(exception, null)
+        }
+    }
+
+    fun fetchUserInfo(callback: RetrieveCallback<UserInfoResponse>) {
+        getOidcConfig { throwable, result ->
+            throwable?.let {
+                callback.onResult(it, null)
+                return@getOidcConfig
+            }
+            requireNotNull(result).let { oidcConfig ->
+                getAccessToken { throwable: Throwable?, result: AccessToken? ->
+                    throwable?.let {
+                        callback.onResult(it, null)
+                        return@getAccessToken
+                    }
+                    Core.fetchUserInfo(
+                        oidcConfig.userinfoEndpoint,
+                        requireNotNull(result).token
+                    ) { throwable, response -> callback.onResult(throwable, response) }
+                }
+            }
         }
     }
 
