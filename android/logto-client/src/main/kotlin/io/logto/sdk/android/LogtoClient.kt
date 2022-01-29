@@ -153,10 +153,7 @@ open class LogtoClient(
                         callback.onResult(it, null)
                         return@getAccessToken
                     }
-                    Core.fetchUserInfo(
-                        oidcConfig.userinfoEndpoint,
-                        requireNotNull(result).token
-                    ) { throwable, response -> callback.onResult(throwable, response) }
+                    Core.fetchUserInfo(oidcConfig.userinfoEndpoint, requireNotNull(result).token, callback::onResult)
                 }
             }
         }
