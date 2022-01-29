@@ -258,14 +258,12 @@ class LogtoClientTest {
         mockkObject(logtoClient)
         every { logtoClient.isAuthenticated } returns false
 
-        logtoClient.getIdTokenClaims(object : RetrieveCallback<IdTokenClaims> {
-            override fun onResult(throwable: Throwable?, result: IdTokenClaims?) {
-                assertThat(throwable)
-                    .hasMessageThat()
-                    .contains(LogtoException.Message.NOT_AUTHENTICATED.name)
-                assertThat(result).isNull()
-            }
-        })
+        logtoClient.getIdTokenClaims { throwable, result ->
+            assertThat(throwable)
+                .hasMessageThat()
+                .contains(LogtoException.Message.NOT_AUTHENTICATED.name)
+            assertThat(result).isNull()
+        }
     }
 
     @Test
@@ -281,12 +279,10 @@ class LogtoClientTest {
         mockkObject(TokenUtils)
         every { TokenUtils.decodeIdToken(any()) } throws invalidJwtExceptionMock
 
-        logtoClient.getIdTokenClaims(object : RetrieveCallback<IdTokenClaims> {
-            override fun onResult(throwable: Throwable?, result: IdTokenClaims?) {
-                assertThat(throwable).isEqualTo(invalidJwtExceptionMock)
-                assertThat(result).isNull()
-            }
-        })
+        logtoClient.getIdTokenClaims { throwable, result ->
+            assertThat(throwable).isEqualTo(invalidJwtExceptionMock)
+            assertThat(result).isNull()
+        }
     }
 
     private fun setupRefreshTokenTestEnv() {
