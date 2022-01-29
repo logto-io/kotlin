@@ -26,7 +26,8 @@ open class LogtoClient(
 
     protected var oidcConfig: OidcConfigResponse? = null
 
-    fun isAuthenticated() = idToken != null
+    val isAuthenticated
+        get() = idToken != null
 
     fun getAccessToken(callback: RetrieveCallback<AccessToken>) =
         getAccessToken(null, null, callback)
@@ -36,7 +37,7 @@ open class LogtoClient(
         scope: List<String>?,
         getAccessTokenCallback: RetrieveCallback<AccessToken>,
     ) {
-        if (!isAuthenticated()) {
+        if (!isAuthenticated) {
             getAccessTokenCallback.onResult(LogtoException(LogtoException.Message.NOT_AUTHENTICATED), null)
             return
         }
@@ -127,7 +128,7 @@ open class LogtoClient(
     }
 
     fun getIdTokenClaims(callback: RetrieveCallback<IdTokenClaims>) {
-        if (!isAuthenticated()) {
+        if (!isAuthenticated) {
             callback.onResult(LogtoException(LogtoException.Message.NOT_AUTHENTICATED), null)
             return
         }
