@@ -45,12 +45,10 @@ class LogtoClientTest {
         mockkObject(logtoClient)
         every { logtoClient.isAuthenticated() } returns false
 
-        logtoClient.getAccessToken(object : RetrieveCallback<AccessToken> {
-            override fun onResult(throwable: Throwable?, result: AccessToken?) {
-                assertThat(throwable).hasMessageThat().contains(LogtoException.Message.NOT_AUTHENTICATED.name)
-                assertThat(result).isNull()
-            }
-        })
+        logtoClient.getAccessToken { throwable, result ->
+            assertThat(throwable).hasMessageThat().contains(LogtoException.Message.NOT_AUTHENTICATED.name)
+            assertThat(result).isNull()
+        }
     }
 
     @Test
@@ -64,12 +62,10 @@ class LogtoClientTest {
         mockkObject(logtoClient)
         every { logtoClient.isAuthenticated() } returns true
 
-        logtoClient.getAccessToken(object : RetrieveCallback<AccessToken> {
-            override fun onResult(throwable: Throwable?, result: AccessToken?) {
-                assertThat(throwable).hasMessageThat().contains(LogtoException.Message.MISSING_REFRESH_TOKEN.name)
-                assertThat(result).isNull()
-            }
-        })
+        logtoClient.getAccessToken { throwable, result ->
+            assertThat(throwable).hasMessageThat().contains(LogtoException.Message.MISSING_REFRESH_TOKEN.name)
+            assertThat(result).isNull()
+        }
     }
 
     @Test
@@ -85,16 +81,13 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             resource = null,
-            scope = listOf(TEST_SCOPE_2, TEST_SCOPE_3),
-            object : RetrieveCallback<AccessToken> {
-                override fun onResult(throwable: Throwable?, result: AccessToken?) {
-                    assertThat(throwable)
-                        .hasMessageThat()
-                        .contains(LogtoException.Message.SCOPES_ARE_NOT_ALL_GRANTED.name)
-                    assertThat(result).isNull()
-                }
-            }
-        )
+            scope = listOf(TEST_SCOPE_2, TEST_SCOPE_3)
+        ) { throwable, result ->
+            assertThat(throwable)
+                .hasMessageThat()
+                .contains(LogtoException.Message.SCOPES_ARE_NOT_ALL_GRANTED.name)
+            assertThat(result).isNull()
+        }
     }
 
     @Test
@@ -110,16 +103,13 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             resource = TEST_RESOURCE_3,
-            scope = null,
-            object : RetrieveCallback<AccessToken> {
-                override fun onResult(throwable: Throwable?, result: AccessToken?) {
-                    assertThat(throwable)
-                        .hasMessageThat()
-                        .contains(LogtoException.Message.RESOURCE_IS_NOT_GRANTED.name)
-                    assertThat(result).isNull()
-                }
-            }
-        )
+            scope = null
+        ) { throwable, result ->
+            assertThat(throwable)
+                .hasMessageThat()
+                .contains(LogtoException.Message.RESOURCE_IS_NOT_GRANTED.name)
+            assertThat(result).isNull()
+        }
     }
 
     @Test
@@ -141,14 +131,11 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             null,
-            listOf(TEST_SCOPE_1),
-            object : RetrieveCallback<AccessToken> {
-                override fun onResult(throwable: Throwable?, result: AccessToken?) {
-                    assertThat(throwable).isNull()
-                    assertThat(result).isEqualTo(testAccessToken)
-                }
-            }
-        )
+            listOf(TEST_SCOPE_1)
+        ) { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isEqualTo(testAccessToken)
+        }
     }
 
     @Test
@@ -162,18 +149,15 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             null,
-            listOf(TEST_SCOPE_1),
-            object : RetrieveCallback<AccessToken> {
-                override fun onResult(throwable: Throwable?, result: AccessToken?) {
-                    assertThat(throwable).isNull()
-                    assertThat(result).isNotNull()
-                    requireNotNull(result).apply {
-                        assertThat(token).isEqualTo(TEST_ACCESS_TOKEN)
-                        assertThat(scope).isEqualTo(TEST_SCOPE_1)
-                    }
-                }
+            listOf(TEST_SCOPE_1)
+        ) { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isNotNull()
+            requireNotNull(result).apply {
+                assertThat(token).isEqualTo(TEST_ACCESS_TOKEN)
+                assertThat(scope).isEqualTo(TEST_SCOPE_1)
             }
-        )
+        }
 
         verify(exactly = 1) {
             Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any())
@@ -186,18 +170,15 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             null,
-            listOf(TEST_SCOPE_1),
-            object : RetrieveCallback<AccessToken> {
-                override fun onResult(throwable: Throwable?, result: AccessToken?) {
-                    assertThat(throwable).isNull()
-                    assertThat(result).isNotNull()
-                    requireNotNull(result).apply {
-                        assertThat(token).isEqualTo(TEST_ACCESS_TOKEN)
-                        assertThat(scope).isEqualTo(TEST_SCOPE_1)
-                    }
-                }
+            listOf(TEST_SCOPE_1)
+        ) { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isNotNull()
+            requireNotNull(result).apply {
+                assertThat(token).isEqualTo(TEST_ACCESS_TOKEN)
+                assertThat(scope).isEqualTo(TEST_SCOPE_1)
             }
-        )
+        }
 
         verify(exactly = 1) {
             Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any())
@@ -216,12 +197,10 @@ class LogtoClientTest {
 
         val logtoClient = LogtoClient(logtoConfigMock)
 
-        logtoClient.getOidcConfig(object : RetrieveCallback<OidcConfigResponse> {
-            override fun onResult(throwable: Throwable?, result: OidcConfigResponse?) {
-                assertThat(throwable).isNull()
-                assertThat(result).isEqualTo(oidcConfigResponseMock)
-            }
-        })
+        logtoClient.getOidcConfig { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isEqualTo(oidcConfigResponseMock)
+        }
     }
 
     @Test
@@ -236,19 +215,15 @@ class LogtoClientTest {
 
         val logtoClient = LogtoClient(logtoConfigMock)
 
-        logtoClient.getOidcConfig(object : RetrieveCallback<OidcConfigResponse> {
-            override fun onResult(throwable: Throwable?, result: OidcConfigResponse?) {
-                assertThat(throwable).isNull()
-                assertThat(result).isEqualTo(oidcConfigResponseMock)
-            }
-        })
+        logtoClient.getOidcConfig { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isEqualTo(oidcConfigResponseMock)
+        }
 
-        logtoClient.getOidcConfig(object : RetrieveCallback<OidcConfigResponse> {
-            override fun onResult(throwable: Throwable?, result: OidcConfigResponse?) {
-                assertThat(throwable).isNull()
-                assertThat(result).isEqualTo(oidcConfigResponseMock)
-            }
-        })
+        logtoClient.getOidcConfig { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isEqualTo(oidcConfigResponseMock)
+        }
 
         verify(exactly = 1) { Core.fetchOidcConfig(any(), any()) }
     }
