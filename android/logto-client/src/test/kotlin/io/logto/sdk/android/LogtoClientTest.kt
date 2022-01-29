@@ -244,12 +244,10 @@ class LogtoClientTest {
         mockkObject(TokenUtils)
         every { TokenUtils.decodeIdToken(any()) } returns idTokenClaimsMock
 
-        logtoClient.getIdTokenClaims(object : RetrieveCallback<IdTokenClaims> {
-            override fun onResult(throwable: Throwable?, result: IdTokenClaims?) {
-                assertThat(throwable).isNull()
-                assertThat(result).isEqualTo(idTokenClaimsMock)
-            }
-        })
+        logtoClient.getIdTokenClaims { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isEqualTo(idTokenClaimsMock)
+        }
     }
 
     @Test
