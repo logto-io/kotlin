@@ -71,30 +71,27 @@ open class LogtoClient(
         // If no access token is valid, fetch a new token by refresh token
         refreshToken(
             resource = resource,
-            scope = finalScope,
-            completion = object : HttpCompletion<RefreshTokenTokenResponse> {
-                override fun onComplete(throwable: Throwable?, response: RefreshTokenTokenResponse?) {
-                    if (throwable != null) {
-                        getAccessTokenCallback.onResult(throwable, null)
-                        return
-                    }
-                    requireNotNull(response).let { tokenResponse ->
-                        val refreshedAccessToken = AccessToken(
-                            token = tokenResponse.accessToken,
-                            scope = tokenResponse.scope,
-                            expiresAt = LogtoUtils.expiresAtFrom(
-                                LogtoUtils.nowRoundToSec(),
-                                tokenResponse.expiresIn
-                            )
-                        )
-                        accessTokenMap[accessTokenKey] = refreshedAccessToken
-                        refreshToken = tokenResponse.refreshToken
-                        tokenResponse.idToken?.let { idToken = it }
-                        getAccessTokenCallback.onResult(null, refreshedAccessToken)
-                    }
-                }
+            scope = finalScope
+        ) { throwable, response ->
+            if (throwable != null) {
+                getAccessTokenCallback.onResult(throwable, null)
+                return@refreshToken
             }
-        )
+            requireNotNull(response).let { tokenResponse ->
+                val refreshedAccessToken = AccessToken(
+                    token = tokenResponse.accessToken,
+                    scope = tokenResponse.scope,
+                    expiresAt = LogtoUtils.expiresAtFrom(
+                        LogtoUtils.nowRoundToSec(),
+                        tokenResponse.expiresIn
+                    )
+                )
+                accessTokenMap[accessTokenKey] = refreshedAccessToken
+                refreshToken = tokenResponse.refreshToken
+                tokenResponse.idToken?.let { idToken = it }
+                getAccessTokenCallback.onResult(null, refreshedAccessToken)
+            }
+        }
     }
 
     private fun refreshToken(
@@ -108,24 +105,22 @@ open class LogtoClient(
             )
             return
         }
-        getOidcConfig(object : RetrieveCallback<OidcConfigResponse> {
-            override fun onResult(throwable: Throwable?, result: OidcConfigResponse?) {
-                if (throwable != null) {
-                    completion.onComplete(throwable, null)
-                    return
-                }
-                requireNotNull(result).let { oidcConfig ->
-                    Core.fetchTokenByRefreshToken(
-                        tokenEndpoint = oidcConfig.tokenEndpoint,
-                        clientId = logtoConfig.clientId,
-                        refreshToken = requireNotNull(refreshToken),
-                        resource = resource,
-                        scope = scope,
-                        completion = completion
-                    )
-                }
+        getOidcConfig { throwable, result ->
+            if (throwable != null) {
+                completion.onComplete(throwable, null)
+                return@getOidcConfig
             }
-        })
+            requireNotNull(result).let { oidcConfig ->
+                Core.fetchTokenByRefreshToken(
+                    tokenEndpoint = oidcConfig.tokenEndpoint,
+                    clientId = logtoConfig.clientId,
+                    refreshToken = requireNotNull(refreshToken),
+                    resource = resource,
+                    scope = scope,
+                    completion = completion
+                )
+            }
+        }
     }
 
     internal fun getOidcConfig(callback: RetrieveCallback<OidcConfigResponse>) {
@@ -134,14 +129,11 @@ open class LogtoClient(
             return
         }
         Core.fetchOidcConfig(
-            logtoConfig.oidcConfigEndpoint,
-            object : HttpCompletion<OidcConfigResponse> {
-                override fun onComplete(throwable: Throwable?, response: OidcConfigResponse?) {
-                    oidcConfig = response
-                    callback.onResult(throwable, oidcConfig)
-                }
-            }
-        )
+            logtoConfig.oidcConfigEndpoint
+        ) { throwable, response ->
+            oidcConfig = response
+            callback.onResult(throwable, oidcConfig)
+        }
     }
 
     internal fun buildAccessTokenKey(scope: List<String>, resource: String?) =
