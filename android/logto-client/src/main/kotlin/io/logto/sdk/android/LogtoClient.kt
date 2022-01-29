@@ -8,9 +8,12 @@ import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.http.HttpCompletion
+import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
+import io.logto.sdk.core.util.TokenUtils
 import org.jetbrains.annotations.TestOnly
+import org.jose4j.jwt.consumer.InvalidJwtException
 
 open class LogtoClient(
     val logtoConfig: LogtoConfig
@@ -123,6 +126,19 @@ open class LogtoClient(
         }
     }
 
+    fun getIdTokenClaims(callback: RetrieveCallback<IdTokenClaims>) {
+        if (!isAuthenticated()) {
+            callback.onResult(LogtoException(LogtoException.Message.NOT_AUTHENTICATED), null)
+            return
+        }
+        try {
+            val idTokenClaims = TokenUtils.decodeIdToken(requireNotNull(idToken))
+            callback.onResult(null, idTokenClaims)
+        } catch (exception: InvalidJwtException) {
+            callback.onResult(exception, null)
+        }
+    }
+
     internal fun getOidcConfig(callback: RetrieveCallback<OidcConfigResponse>) {
         if (oidcConfig != null) {
             callback.onResult(null, oidcConfig)
@@ -142,6 +158,11 @@ open class LogtoClient(
     @TestOnly
     fun setupRefreshToken(token: String?) {
         refreshToken = token
+    }
+
+    @TestOnly
+    fun setupIdToken(token: String?) {
+        idToken = token
     }
 
     @TestOnly
