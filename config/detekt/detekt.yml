@@ -1,6 +1,11 @@
+# detekt config reference: https://github.com/detekt/detekt/blob/main/detekt-core/src/main/resources/default-detekt-config.yml
 style:
   active: true
   ReturnCount:
     active: false
   ThrowsCount:
+    active: false
+
+complexity:
+  TooManyFunctions:
     active: false
