@@ -20,8 +20,8 @@ android {
 }
 
 dependencies {
-    implementation("io.logto:client:1.0.0")
-    implementation("io.logto:android-sdk:1.0.0")
+    // Todo: rename module name
+    implementation("io.logto.sdk:logto-client:1.0.0")
 
     implementation("androidx.core:core-ktx:1.6.0")
     implementation("androidx.appcompat:appcompat:1.3.1")
