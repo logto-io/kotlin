@@ -5,7 +5,7 @@ pluginManagement {
     }
 }
 
-includeBuild("../client")
+includeBuild("../kotlin-sdk")
 
 rootProject.name = "android-sdk"
-include(":android-sdk")
+include(":android")

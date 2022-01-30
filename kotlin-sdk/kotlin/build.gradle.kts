@@ -18,7 +18,7 @@ java {
 
 detekt {
     toolVersion = "1.19.0"
-    config = files("../config/detekt/detekt.yml")
+    config = files("../../config/detekt/detekt.yml")
     buildUponDefaultConfig = true
 }
 
