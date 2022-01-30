@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-    <!-- Purpose: Disable the unnecessary MockK DEBUG logs in the test results. -->
-    <root level="INFO" />
-</configuration>
