@@ -59,7 +59,7 @@ class LogtoClientTest {
     @Test
     fun `getAccessToken should fail without refreshToken`() {
 
-        every { logtoConfigMock.scope } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
+        every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
 
         logtoClient = LogtoClient(logtoConfigMock)
         logtoClient.setupRefreshToken(null)
@@ -76,7 +76,7 @@ class LogtoClientTest {
     @Test
     fun `getAccessToken should fail when scopes are not all granted`() {
 
-        every { logtoConfigMock.scope } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
+        every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
 
         logtoClient = LogtoClient(logtoConfigMock)
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
@@ -86,7 +86,7 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             resource = null,
-            scope = listOf(TEST_SCOPE_2, TEST_SCOPE_3)
+            scopes = listOf(TEST_SCOPE_2, TEST_SCOPE_3)
         ) { throwable, result ->
             assertThat(throwable)
                 .hasMessageThat()
@@ -108,7 +108,7 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             resource = TEST_RESOURCE_3,
-            scope = null
+            scopes = null
         ) { throwable, result ->
             assertThat(throwable)
                 .hasMessageThat()
@@ -120,7 +120,7 @@ class LogtoClientTest {
     @Test
     fun `getAccessToken should return valid accessToken which is already exist`() {
 
-        every { logtoConfigMock.scope } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
+        every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
 
         logtoClient = LogtoClient(logtoConfigMock)
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
@@ -317,7 +317,7 @@ class LogtoClientTest {
     }
 
     private fun setupRefreshTokenTestEnv() {
-        every { logtoConfigMock.scope } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
+        every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
         every { logtoConfigMock.clientId } returns TEST_CLIENT_ID
 
         logtoClient = LogtoClient(logtoConfigMock)

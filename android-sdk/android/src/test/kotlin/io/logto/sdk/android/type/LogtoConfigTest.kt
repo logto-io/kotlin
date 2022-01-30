@@ -12,7 +12,7 @@ class LogtoConfigTest {
             clientId = "client",
         )
 
-        assertThat(logtoConfigWithoutScope.scope).apply {
+        assertThat(logtoConfigWithoutScope.scopes).apply {
             contains(ReservedScope.OPENID)
             contains(ReservedScope.OFFLINE_ACCESS)
         }
@@ -20,10 +20,10 @@ class LogtoConfigTest {
         val logtoConfigWithOtherScope = LogtoConfig(
             endpoint = "endpoint",
             clientId = "client",
-            scope = listOf("other_scope")
+            scopes = listOf("other_scope")
         )
 
-        assertThat(logtoConfigWithOtherScope.scope).apply {
+        assertThat(logtoConfigWithOtherScope.scopes).apply {
             contains(ReservedScope.OPENID)
             contains(ReservedScope.OFFLINE_ACCESS)
             contains("other_scope")
