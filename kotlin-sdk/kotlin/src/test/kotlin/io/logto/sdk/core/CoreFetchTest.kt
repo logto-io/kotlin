@@ -194,7 +194,7 @@ class CoreFetchTest {
             clientId = "clientId",
             refreshToken = "refreshToken",
             resource = null,
-            scope = null
+            scopes = null
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response
@@ -217,7 +217,7 @@ class CoreFetchTest {
             clientId = "clientId",
             refreshToken = "refreshToken",
             resource = null,
-            scope = null
+            scopes = null
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response

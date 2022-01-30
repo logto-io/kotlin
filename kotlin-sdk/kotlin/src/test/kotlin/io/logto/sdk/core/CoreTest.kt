@@ -14,10 +14,10 @@ class CoreTest {
     private val testRedirectUri = "https://myapp.com/callback"
     private val testCodeChallenge = "codeChallenge"
     private val testState = "state"
-    private val testScope = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS)
+    private val testScopes = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS)
     private val testResourceVal1 = "api1.logto.dev"
     private val testResourceVal2 = "api2.logto.dev"
-    private val testResource = listOf(testResourceVal1, testResourceVal2)
+    private val testResources = listOf(testResourceVal1, testResourceVal2)
 
     @Test
     fun generateSignInUri() {
@@ -27,8 +27,8 @@ class CoreTest {
             redirectUri = testRedirectUri,
             codeChallenge = testCodeChallenge,
             state = testState,
-            scope = testScope,
-            resource = testResource,
+            scopes = testScopes,
+            resources = testResources,
         )
 
         signInUri.toHttpUrl().apply {
@@ -53,7 +53,7 @@ class CoreTest {
     @Test
     fun generateSignInUriShouldContainsExtraScope() {
         val extraScope = "extraScope"
-        val scope = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, extraScope)
+        val scopes = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, extraScope)
 
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = testAuthorizationEndpoint,
@@ -61,8 +61,8 @@ class CoreTest {
             redirectUri = testRedirectUri,
             codeChallenge = testCodeChallenge,
             state = testState,
-            scope = scope,
-            resource = testResource,
+            scopes = scopes,
+            resources = testResources,
         )
 
         signInUri.toHttpUrl().apply {
@@ -82,8 +82,8 @@ class CoreTest {
             redirectUri = testRedirectUri,
             codeChallenge = testCodeChallenge,
             state = testState,
-            scope = testScope,
-            resource = null,
+            scopes = testScopes,
+            resources = null,
         )
 
         signInUri.toHttpUrl().apply {
@@ -103,8 +103,8 @@ class CoreTest {
                 redirectUri = testRedirectUri,
                 codeChallenge = testCodeChallenge,
                 state = testState,
-                scope = testScope,
-                resource = testResource,
+                scopes = testScopes,
+                resources = testResources,
             )
         }
 
@@ -119,8 +119,8 @@ class CoreTest {
             redirectUri = testRedirectUri,
             codeChallenge = testCodeChallenge,
             state = testState,
-            scope = null,
-            resource = testResource,
+            scopes = null,
+            resources = testResources,
         )
 
         signInUri.toHttpUrl().apply {
@@ -139,8 +139,8 @@ class CoreTest {
             redirectUri = testRedirectUri,
             codeChallenge = testCodeChallenge,
             state = testState,
-            scope = listOf(ReservedScope.OFFLINE_ACCESS),
-            resource = testResource,
+            scopes = listOf(ReservedScope.OFFLINE_ACCESS),
+            resources = testResources,
         )
 
         signInUri.toHttpUrl().apply {
@@ -160,8 +160,8 @@ class CoreTest {
             redirectUri = testRedirectUri,
             codeChallenge = testCodeChallenge,
             state = testState,
-            scope = listOf(ReservedScope.OPENID),
-            resource = testResource,
+            scopes = listOf(ReservedScope.OPENID),
+            resources = testResources,
         )
 
         signInUri.toHttpUrl().apply {

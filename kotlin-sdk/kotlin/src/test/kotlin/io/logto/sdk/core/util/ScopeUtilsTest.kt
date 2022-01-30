@@ -6,9 +6,9 @@ import org.junit.Test
 
 class ScopeUtilsTest {
     @Test
-    fun `withDefaultScopes should contain default scopes with null scope param`() {
+    fun `withReservedScopes should contain default scopes with null scope param`() {
         val nullScope: List<String>? = null
-        val ensuredNullScope = ScopeUtils.withDefaultScopes(nullScope)
+        val ensuredNullScope = ScopeUtils.withReservedScopes(nullScope)
 
         assertThat(ensuredNullScope).apply {
             contains(ReservedScope.OPENID)
@@ -17,9 +17,9 @@ class ScopeUtilsTest {
     }
 
     @Test
-    fun `withDefaultScopes should contain default scopes with scope param have 'openid' only`() {
+    fun `withReservedScopes should contain default scopes with scope param have 'openid' only`() {
         val openidScope = listOf(ReservedScope.OPENID)
-        val ensuredOpenidScope = ScopeUtils.withDefaultScopes(openidScope)
+        val ensuredOpenidScope = ScopeUtils.withReservedScopes(openidScope)
 
         assertThat(ensuredOpenidScope).apply {
             contains(ReservedScope.OPENID)
@@ -28,9 +28,9 @@ class ScopeUtilsTest {
     }
 
     @Test
-    fun `withDefaultScopes should contain default scopes with scope param have 'offline_access' only`() {
+    fun `withReservedScopes should contain default scopes with scope param have 'offline_access' only`() {
         val offlineAccessScope = listOf(ReservedScope.OFFLINE_ACCESS)
-        val ensuredOfflineAccessScope = ScopeUtils.withDefaultScopes(offlineAccessScope)
+        val ensuredOfflineAccessScope = ScopeUtils.withReservedScopes(offlineAccessScope)
 
         assertThat(ensuredOfflineAccessScope).apply {
             contains(ReservedScope.OPENID)
@@ -39,12 +39,12 @@ class ScopeUtilsTest {
     }
 
     @Test
-    fun `withDefaultScopes should contain all scopes`() {
+    fun `withReservedScopes should contain all scopes`() {
         val expectedScope = "exceptedScope"
         val normalScope = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, expectedScope)
-        val scope = ScopeUtils.withDefaultScopes(normalScope)
+        val scopes = ScopeUtils.withReservedScopes(normalScope)
 
-        assertThat(scope).apply {
+        assertThat(scopes).apply {
             contains(ReservedScope.OPENID)
             contains(ReservedScope.OFFLINE_ACCESS)
             contains(expectedScope)

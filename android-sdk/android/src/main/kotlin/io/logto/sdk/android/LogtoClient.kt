@@ -36,7 +36,7 @@ open class LogtoClient(
 
     fun getAccessToken(
         resource: String?,
-        scope: List<String>?,
+        scopes: List<String>?,
         getAccessTokenCallback: RetrieveCallback<AccessToken>,
     ) {
         if (!isAuthenticated) {
@@ -45,7 +45,7 @@ open class LogtoClient(
         }
 
         resource?.let {
-            if (logtoConfig.resource?.contains(it) == false) {
+            if (logtoConfig.resources?.contains(it) == false) {
                 getAccessTokenCallback.onResult(
                     LogtoException(LogtoException.Message.RESOURCE_IS_NOT_GRANTED).apply { detail = it }, null
                 )
@@ -53,8 +53,8 @@ open class LogtoClient(
             }
         }
 
-        val finalScope = scope ?: logtoConfig.scope
-        if (!logtoConfig.scope.containsAll(finalScope)) {
+        val finalScope = scopes ?: logtoConfig.scopes
+        if (!logtoConfig.scopes.containsAll(finalScope)) {
             getAccessTokenCallback.onResult(
                 LogtoException(LogtoException.Message.SCOPES_ARE_NOT_ALL_GRANTED).apply {
                     detail = finalScope.toString()
@@ -77,7 +77,7 @@ open class LogtoClient(
         // If no access token is valid, fetch a new token by refresh token
         refreshToken(
             resource = resource,
-            scope = finalScope
+            scopes = finalScope
         ) { throwable, response ->
             if (throwable != null) {
                 getAccessTokenCallback.onResult(throwable, null)
@@ -102,7 +102,7 @@ open class LogtoClient(
 
     private fun refreshToken(
         resource: String?,
-        scope: List<String>?,
+        scopes: List<String>?,
         completion: HttpCompletion<RefreshTokenTokenResponse>,
     ) {
         if (refreshToken == null) {
@@ -122,7 +122,7 @@ open class LogtoClient(
                     clientId = logtoConfig.clientId,
                     refreshToken = requireNotNull(refreshToken),
                     resource = resource,
-                    scope = scope,
+                    scopes = scopes,
                     completion = completion
                 )
             }
@@ -173,8 +173,8 @@ open class LogtoClient(
         }
     }
 
-    internal fun buildAccessTokenKey(scope: List<String>, resource: String?) =
-        "${scope.sorted().joinToString(" ")}@$resource"
+    internal fun buildAccessTokenKey(scopes: List<String>, resource: String?) =
+        "${scopes.sorted().joinToString(" ")}@$resource"
 
     @TestOnly
     fun setupRefreshToken(token: String?) {

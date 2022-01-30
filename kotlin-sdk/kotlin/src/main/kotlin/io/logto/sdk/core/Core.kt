@@ -29,8 +29,8 @@ object Core {
         redirectUri: String,
         codeChallenge: String,
         state: String,
-        scope: List<String>?,
-        resource: List<String>?,
+        scopes: List<String>?,
+        resources: List<String>?,
     ): String {
         val constructedUri = authorizationEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
             UriConstructionException.Message.INVALID_ENDPOINT
@@ -43,8 +43,8 @@ object Core {
             addQueryParameter(QueryKey.REDIRECT_URI, redirectUri)
             addQueryParameter(QueryKey.PROMPT, PromptValue.CONSENT)
             addQueryParameter(QueryKey.RESPONSE_TYPE, ResponseType.CODE)
-            addQueryParameter(QueryKey.SCOPE, ScopeUtils.withDefaultScopes(scope).joinToString(" "))
-            resource?.let { for (value in it) { addQueryParameter(QueryKey.RESOURCE, value) } }
+            addQueryParameter(QueryKey.SCOPE, ScopeUtils.withReservedScopes(scopes).joinToString(" "))
+            resources?.let { for (value in it) { addQueryParameter(QueryKey.RESOURCE, value) } }
         }.build().toString()
     }
 
@@ -94,7 +94,7 @@ object Core {
         clientId: String,
         refreshToken: String,
         resource: String?,
-        scope: List<String>?,
+        scopes: List<String>?,
         completion: HttpCompletion<RefreshTokenTokenResponse>
     ) {
         val body = JsonObject().apply {
@@ -102,7 +102,7 @@ object Core {
             addProperty(QueryKey.REFRESH_TOKEN, refreshToken)
             addProperty(QueryKey.GRANT_TYPE, GrantType.REFRESH_TOKEN)
             resource?.let { addProperty(QueryKey.RESOURCE, it) }
-            scope?.let { addProperty(QueryKey.SCOPE, it.joinToString(" ")) }
+            scopes?.let { addProperty(QueryKey.SCOPE, it.joinToString(" ")) }
         }.toString().toRequestBody(MediaType.X_WWW_FORM_URLENCODED.toMediaType())
         httpPost(tokenEndpoint, body, completion)
     }

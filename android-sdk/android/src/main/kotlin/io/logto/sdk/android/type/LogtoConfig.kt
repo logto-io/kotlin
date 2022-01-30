@@ -5,9 +5,9 @@ import io.logto.sdk.core.util.ScopeUtils
 class LogtoConfig(
     val endpoint: String,
     val clientId: String,
-    scope: List<String>? = null,
-    val resource: List<String>? = null,
+    scopes: List<String>? = null,
+    val resources: List<String>? = null,
     val usingPersistStorage: Boolean = false,
 ) {
-    val scope = ScopeUtils.withDefaultScopes(scope)
+    val scopes = ScopeUtils.withReservedScopes(scopes)
 }
