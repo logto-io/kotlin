@@ -17,7 +17,7 @@ class CoreTest {
     private val testScopes = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS)
     private val testResourceVal1 = "api1.logto.dev"
     private val testResourceVal2 = "api2.logto.dev"
-    private val testResource = listOf(testResourceVal1, testResourceVal2)
+    private val testResources = listOf(testResourceVal1, testResourceVal2)
 
     @Test
     fun generateSignInUri() {
@@ -28,7 +28,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = testScopes,
-            resource = testResource,
+            resources = testResources,
         )
 
         signInUri.toHttpUrl().apply {
@@ -62,7 +62,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = scopes,
-            resource = testResource,
+            resources = testResources,
         )
 
         signInUri.toHttpUrl().apply {
@@ -83,7 +83,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = testScopes,
-            resource = null,
+            resources = null,
         )
 
         signInUri.toHttpUrl().apply {
@@ -104,7 +104,7 @@ class CoreTest {
                 codeChallenge = testCodeChallenge,
                 state = testState,
                 scopes = testScopes,
-                resource = testResource,
+                resources = testResources,
             )
         }
 
@@ -120,7 +120,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = null,
-            resource = testResource,
+            resources = testResources,
         )
 
         signInUri.toHttpUrl().apply {
@@ -140,7 +140,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = listOf(ReservedScope.OFFLINE_ACCESS),
-            resource = testResource,
+            resources = testResources,
         )
 
         signInUri.toHttpUrl().apply {
@@ -161,7 +161,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = listOf(ReservedScope.OPENID),
-            resource = testResource,
+            resources = testResources,
         )
 
         signInUri.toHttpUrl().apply {

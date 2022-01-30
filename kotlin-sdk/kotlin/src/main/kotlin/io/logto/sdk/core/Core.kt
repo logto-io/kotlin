@@ -30,7 +30,7 @@ object Core {
         codeChallenge: String,
         state: String,
         scopes: List<String>?,
-        resource: List<String>?,
+        resources: List<String>?,
     ): String {
         val constructedUri = authorizationEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
             UriConstructionException.Message.INVALID_ENDPOINT
@@ -44,7 +44,7 @@ object Core {
             addQueryParameter(QueryKey.PROMPT, PromptValue.CONSENT)
             addQueryParameter(QueryKey.RESPONSE_TYPE, ResponseType.CODE)
             addQueryParameter(QueryKey.SCOPE, ScopeUtils.withReservedScopes(scopes).joinToString(" "))
-            resource?.let { for (value in it) { addQueryParameter(QueryKey.RESOURCE, value) } }
+            resources?.let { for (value in it) { addQueryParameter(QueryKey.RESOURCE, value) } }
         }.build().toString()
     }
 

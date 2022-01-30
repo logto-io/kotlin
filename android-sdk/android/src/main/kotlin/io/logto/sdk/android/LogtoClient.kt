@@ -45,7 +45,7 @@ open class LogtoClient(
         }
 
         resource?.let {
-            if (logtoConfig.resource?.contains(it) == false) {
+            if (logtoConfig.resources?.contains(it) == false) {
                 getAccessTokenCallback.onResult(
                     LogtoException(LogtoException.Message.RESOURCE_IS_NOT_GRANTED).apply { detail = it }, null
                 )

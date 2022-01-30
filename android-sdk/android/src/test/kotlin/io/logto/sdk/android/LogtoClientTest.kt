@@ -98,7 +98,7 @@ class LogtoClientTest {
     @Test
     fun `getAccessToken should fail when resource is not granted`() {
 
-        every { logtoConfigMock.resource } returns listOf(TEST_RESOURCE_1, TEST_RESOURCE_2)
+        every { logtoConfigMock.resources } returns listOf(TEST_RESOURCE_1, TEST_RESOURCE_2)
 
         logtoClient = LogtoClient(logtoConfigMock)
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
