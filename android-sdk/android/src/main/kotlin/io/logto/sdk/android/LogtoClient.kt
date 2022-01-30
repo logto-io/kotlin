@@ -16,7 +16,6 @@ import io.logto.sdk.core.util.TokenUtils
 import org.jetbrains.annotations.TestOnly
 import org.jose4j.jwt.consumer.InvalidJwtException
 
-@Suppress("TooManyFunctions")
 open class LogtoClient(
     val logtoConfig: LogtoConfig
 ) {
