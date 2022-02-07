@@ -1,7 +1,7 @@
 package io.logto.sdk.core.constant
 
 object QueryKey {
-    const val CLIENT_ID = "clien_id"
+    const val CLIENT_ID = "client_id"
     const val CODE = "code"
     const val CODE_CHALLENGE = "code_challenge"
     const val CODE_CHALLENGE_METHOD = "code_challenge_method"

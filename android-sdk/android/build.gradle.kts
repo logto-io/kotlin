@@ -48,6 +48,9 @@ dependencies {
 
     api("io.logto.sdk:kotlin:1.0.0")
 
+    implementation("androidx.appcompat:appcompat:1.3.1")
+    implementation("androidx.browser:browser:1.3.0")
+
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.32")
     testImplementation("com.google.truth:truth:1.1.3")
     testImplementation("io.mockk:mockk:1.12.2")
