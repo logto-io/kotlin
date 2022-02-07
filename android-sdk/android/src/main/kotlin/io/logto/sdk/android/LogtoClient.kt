@@ -1,5 +1,8 @@
 package io.logto.sdk.android
 
+import android.app.Activity
+import io.logto.sdk.android.auth.session.SignInSession
+import io.logto.sdk.android.callback.Completion
 import io.logto.sdk.android.callback.RetrieveCallback
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.extension.oidcConfigEndpoint
@@ -29,6 +32,28 @@ open class LogtoClient(
 
     val isAuthenticated
         get() = idToken != null
+
+    // TODO - Notes: get authorization code temporary
+    fun signInWithBrowser(
+        context: Activity,
+        redirectUri: String,
+        completion: Completion<String>,
+    ) = getOidcConfig { getOidcConfigException, oidcConfig ->
+        getOidcConfigException?.let {
+            completion.onComplete(getOidcConfigException, null)
+            return@getOidcConfig
+        }
+
+        val signInSession = SignInSession(
+            context = context,
+            logtoConfig = logtoConfig,
+            oidcConfig = requireNotNull(oidcConfig),
+            redirectUri = redirectUri,
+            completion = completion,
+        )
+
+        signInSession.start()
+    }
 
     fun getAccessToken(callback: RetrieveCallback<AccessToken>) =
         getAccessToken(null, null, callback)

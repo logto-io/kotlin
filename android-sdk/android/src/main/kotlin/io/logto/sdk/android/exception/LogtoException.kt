@@ -10,5 +10,6 @@ class LogtoException(
         MISSING_REFRESH_TOKEN,
         RESOURCE_IS_NOT_GRANTED,
         SCOPES_ARE_NOT_ALL_GRANTED,
+        USER_CANCELED,
     }
 }

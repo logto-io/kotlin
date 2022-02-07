@@ -1,4 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.logto.sdk.android">
+          package="io.logto.sdk.android">
+    <queries>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+    </queries>
+
+    <application>
+        <activity android:name=".auth.activity.SignInActivity"
+                  android:exported="true"
+                  android:launchMode="singleTask"/>
+
+        <activity android:name=".auth.activity.CallbackUriActivity"
+                  android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="@string/logto_redirect_scheme" />
+            </intent-filter>
+        </activity>
+    </application>
 </manifest>

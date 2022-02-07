@@ -7,8 +7,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import io.logto.demo.R
+import io.logto.sdk.android.LogtoClient
+import io.logto.sdk.android.type.LogtoConfig
 
 class LoginFragment : Fragment() {
+
+    val logtoConfig = LogtoConfig(
+        endpoint = "https://logto.dev",
+        clientId = "z4skkM1Z8LLVSl1JCmVZO",
+        scopes = null,
+        resources = null,
+        usingPersistStorage = false
+    )
+
+    val logtoClient = LogtoClient(logtoConfig)
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -21,7 +34,13 @@ class LoginFragment : Fragment() {
 
     private fun initView(view: View) {
         view.findViewById<Button>(R.id.sign_in_button).setOnClickListener {
-            println("Sign In Click")
+            logtoClient.signInWithBrowser(
+                requireActivity(),
+                "io.logto.android://io.logto.sample/callback",
+            ) { throwable: Throwable?, result: String? ->
+                println(throwable)
+                println(result)
+            }
         }
     }
 }
