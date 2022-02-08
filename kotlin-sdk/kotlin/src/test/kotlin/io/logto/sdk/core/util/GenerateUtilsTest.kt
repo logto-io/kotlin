@@ -12,6 +12,12 @@ class GenerateUtilsTest {
     }
 
     @Test
+    fun generateCodeVerifierShouldLessThen128Characters() {
+        val codeVerifier = GenerateUtils.generateCodeVerifier()
+        assertThat(codeVerifier.length).isLessThan(128)
+    }
+
+    @Test
     fun generateCodeChallengeShouldGenerateCorrectString() {
         assertThat(
             GenerateUtils.generateCodeChallenge(
@@ -60,5 +66,11 @@ class GenerateUtilsTest {
         val state1 = GenerateUtils.generateState()
         val state2 = GenerateUtils.generateState()
         assertThat(state1).isNotEqualTo(state2)
+    }
+
+    @Test
+    fun generateStateShouldLessThen128Characters() {
+        val state = GenerateUtils.generateState()
+        assertThat(state.length).isLessThan(128)
     }
 }

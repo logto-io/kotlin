@@ -23,9 +23,9 @@ object GenerateUtils {
     }
 
     private fun generateRandomString(length: Int = DEFAULT_RANDOM_STRING_LENGTH): String {
-        val randomString = (1..length).map {
-            (UByte.MIN_VALUE.toInt()..UByte.MAX_VALUE.toInt()).random().toChar()
-        }.joinToString("")
-        return Base64Url.encode(randomString.toByteArray())
+        val randomUnit8Arr = (1..length).map {
+            (UByte.MIN_VALUE.toInt()..UByte.MAX_VALUE.toInt()).random().toByte()
+        }.toByteArray()
+        return Base64Url.encode(randomUnit8Arr)
     }
 }
