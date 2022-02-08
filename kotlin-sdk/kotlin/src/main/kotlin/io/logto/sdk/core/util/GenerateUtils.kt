@@ -6,9 +6,10 @@ import java.security.MessageDigest
 object GenerateUtils {
     private const val DEFAULT_ALGORITHM = "SHA-256"
     private const val DEFAULT_RANDOM_STRING_LENGTH = 64
+    private const val DEFAULT_CODE_VERIFIER_LENGTH = 16
 
     fun generateCodeVerifier(): String {
-        return generateRandomString()
+        return generateRandomString(DEFAULT_CODE_VERIFIER_LENGTH)
     }
 
     fun generateCodeChallenge(codeVerifier: String): String {
