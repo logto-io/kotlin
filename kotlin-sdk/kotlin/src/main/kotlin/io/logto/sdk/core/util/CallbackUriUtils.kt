@@ -10,16 +10,28 @@ object CallbackUriUtils {
         redirectUri: String,
         state: String,
     ): String {
-        val parsedUri = callbackUri.toHttpUrlOrNull()
-            ?: throw CallbackUriVerificationException(
-                CallbackUriVerificationException.Message.INVALID_URI_FORMAT
-            )
-
+        // Note: Check scheme
         if (!callbackUri.startsWith(redirectUri)) {
             throw CallbackUriVerificationException(
                 CallbackUriVerificationException.Message.URI_MISMATCHED
             )
         }
+
+        // Note: Support custom scheme
+        // TODO - LOG-1487: Replace HttpUrl with More Suitable Utils
+        var validFormatUri = callbackUri
+        if (!callbackUri.startsWith("http")) {
+            val schemePos = callbackUri.indexOf("://")
+            if (schemePos < 0) {
+                throw CallbackUriVerificationException(CallbackUriVerificationException.Message.INVALID_URI_FORMAT)
+            }
+            validFormatUri = callbackUri.replaceBefore("://", "http")
+        }
+
+        val parsedUri = validFormatUri.toHttpUrlOrNull()
+            ?: throw CallbackUriVerificationException(
+                CallbackUriVerificationException.Message.INVALID_URI_FORMAT
+            )
 
         parsedUri.queryParameter(QueryKey.ERROR)?.let {
             throw CallbackUriVerificationException(
