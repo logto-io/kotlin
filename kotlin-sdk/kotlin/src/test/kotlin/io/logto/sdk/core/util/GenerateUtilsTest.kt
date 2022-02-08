@@ -67,4 +67,10 @@ class GenerateUtilsTest {
         val state2 = GenerateUtils.generateState()
         assertThat(state1).isNotEqualTo(state2)
     }
+
+    @Test
+    fun generateStateShouldLessThen128Characters() {
+        val state = GenerateUtils.generateState()
+        assertThat(state.length).isLessThan(128)
+    }
 }
