@@ -1,9 +1,7 @@
 package io.logto.sdk.core
 
-import com.google.gson.JsonObject
 import io.logto.sdk.core.constant.CodeChallengeMethod
 import io.logto.sdk.core.constant.GrantType
-import io.logto.sdk.core.constant.MediaType
 import io.logto.sdk.core.constant.PromptValue
 import io.logto.sdk.core.constant.QueryKey
 import io.logto.sdk.core.constant.ResponseType
@@ -17,9 +15,8 @@ import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
 import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.ScopeUtils
+import okhttp3.FormBody
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 
 object Core {
     @Suppress("LongParameterList")
@@ -77,15 +74,15 @@ object Core {
         resource: String?,
         completion: HttpCompletion<CodeTokenResponse>
     ) {
-        val body = JsonObject().apply {
-            addProperty(QueryKey.CLIENT_ID, clientId)
-            addProperty(QueryKey.REDIRECT_URI, redirectUri)
-            addProperty(QueryKey.CODE_VERIFIER, codeVerifier)
-            addProperty(QueryKey.CODE, code)
-            addProperty(QueryKey.GRANT_TYPE, GrantType.AUTHORIZATION_CODE)
-            resource?.let { addProperty(QueryKey.RESOURCE, it) }
-        }.toString().toRequestBody(MediaType.X_WWW_FORM_URLENCODED.toMediaType())
-        httpPost(tokenEndpoint, body, completion)
+        val formBody = FormBody.Builder().apply {
+            add(QueryKey.CLIENT_ID, clientId)
+            add(QueryKey.REDIRECT_URI, redirectUri)
+            add(QueryKey.CODE_VERIFIER, codeVerifier)
+            add(QueryKey.CODE, code)
+            add(QueryKey.GRANT_TYPE, GrantType.AUTHORIZATION_CODE)
+            resource?.let { add(QueryKey.RESOURCE, it) }
+        }.build()
+        httpPost(tokenEndpoint, formBody, completion)
     }
 
     @Suppress("LongParameterList")
@@ -97,14 +94,14 @@ object Core {
         scopes: List<String>?,
         completion: HttpCompletion<RefreshTokenTokenResponse>
     ) {
-        val body = JsonObject().apply {
-            addProperty(QueryKey.CLIENT_ID, clientId)
-            addProperty(QueryKey.REFRESH_TOKEN, refreshToken)
-            addProperty(QueryKey.GRANT_TYPE, GrantType.REFRESH_TOKEN)
-            resource?.let { addProperty(QueryKey.RESOURCE, it) }
-            scopes?.let { addProperty(QueryKey.SCOPE, it.joinToString(" ")) }
-        }.toString().toRequestBody(MediaType.X_WWW_FORM_URLENCODED.toMediaType())
-        httpPost(tokenEndpoint, body, completion)
+        val formBody = FormBody.Builder().apply {
+            add(QueryKey.CLIENT_ID, clientId)
+            add(QueryKey.REFRESH_TOKEN, refreshToken)
+            add(QueryKey.GRANT_TYPE, GrantType.REFRESH_TOKEN)
+            resource?.let { add(QueryKey.RESOURCE, it) }
+            scopes?.let { add(QueryKey.SCOPE, it.joinToString(" ")) }
+        }.build()
+        httpPost(tokenEndpoint, formBody, completion)
     }
 
     fun fetchUserInfo(
@@ -123,10 +120,10 @@ object Core {
         token: String,
         completion: HttpEmptyCompletion
     ) {
-        val body = JsonObject().apply {
-            addProperty(QueryKey.CLIENT_ID, clientId)
-            addProperty(QueryKey.TOKEN, token)
-        }.toString().toRequestBody(MediaType.X_WWW_FORM_URLENCODED.toMediaType())
-        httpPost(revocationEndpoint, body, completion)
+        val formBody = FormBody.Builder().apply {
+            add(QueryKey.CLIENT_ID, clientId)
+            add(QueryKey.TOKEN, token)
+        }.build()
+        httpPost(revocationEndpoint, formBody, completion)
     }
 }
