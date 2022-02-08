@@ -19,6 +19,16 @@ class CallbackUriUtilsTest {
     }
 
     @Test
+    fun verifyAndParseCodeFromCallbackUriShouldSupportedCustomScheme() {
+        val state = GenerateUtils.generateState()
+        val code = "testCode"
+        val redirectUri = "io.logto.android://io.logto.sample/callback"
+        val callbackUri = "io.logto.android://io.logto.sample/callback?state=$state&code=$code"
+        val resultCode = CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+        assertThat(resultCode).isEqualTo(code)
+    }
+
+    @Test
     fun verifyAndParseCodeFromCallbackUriShouldThrowWithMismatchedUri() {
         val state = GenerateUtils.generateState()
         val code = "testCode"
