@@ -21,8 +21,7 @@ object CallbackUriUtils {
         // TODO - LOG-1487: Replace HttpUrl with More Suitable Utils
         var validFormatUri = callbackUri
         if (!callbackUri.startsWith("http")) {
-            val schemePos = callbackUri.indexOf("://")
-            if (schemePos < 0) {
+            if (!callbackUri.contains("://")) {
                 throw CallbackUriVerificationException(CallbackUriVerificationException.Message.INVALID_URI_FORMAT)
             }
             validFormatUri = callbackUri.replaceBefore("://", "http")
