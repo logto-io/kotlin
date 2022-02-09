@@ -2,7 +2,7 @@ package io.logto.sdk.android
 
 import android.app.Activity
 import io.logto.sdk.android.auth.session.SignInSession
-import io.logto.sdk.android.callback.Completion
+import io.logto.sdk.android.callback.EmptyCompletion
 import io.logto.sdk.android.callback.RetrieveCallback
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.extension.oidcConfigEndpoint
@@ -36,14 +36,13 @@ open class LogtoClient(
     val isAuthenticated
         get() = idToken != null
 
-    // TODO - LOG-1489: LogtoCompletion
     fun signInWithBrowser(
         context: Activity,
         redirectUri: String,
-        completion: Completion<String>,
+        completion: EmptyCompletion,
     ) = getOidcConfig { getOidcConfigException, oidcConfig ->
         getOidcConfigException?.let {
-            completion.onComplete(getOidcConfigException, null)
+            completion.onComplete(getOidcConfigException)
             return@getOidcConfig
         }
 
@@ -55,7 +54,7 @@ open class LogtoClient(
         ) { throwable, response ->
             if (throwable != null) {
                 println((throwable as ResponseException).description)
-                completion.onComplete(throwable, null)
+                completion.onComplete(throwable)
                 return@SignInSession
             }
             requireNotNull(response).let { codeTokenResponse ->
@@ -72,7 +71,7 @@ open class LogtoClient(
                 refreshToken = codeTokenResponse.refreshToken
                 idToken = codeTokenResponse.idToken
 
-                completion.onComplete(null, codeTokenResponse.accessToken)
+                completion.onComplete(null)
             }
         }
 

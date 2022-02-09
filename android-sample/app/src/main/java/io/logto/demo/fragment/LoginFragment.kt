@@ -37,9 +37,8 @@ class LoginFragment : Fragment() {
             logtoClient.signInWithBrowser(
                 requireActivity(),
                 "io.logto.android://io.logto.sample/callback",
-            ) { throwable: Throwable?, result: String? ->
-                println(throwable)
-                println(result)
+            ) { throwable: Throwable? ->
+                throwable?.let { println("Sign In Failed: ${it.printStackTrace()}") } ?: println("Sign In Successful")
             }
         }
     }

@@ -1,6 +1,6 @@
 package io.logto.sdk.core.http
 
-fun interface HttpCompletion<T> {
+fun interface HttpCompletion<T : Any> {
     fun onComplete(throwable: Throwable?, response: T?)
 }
 
