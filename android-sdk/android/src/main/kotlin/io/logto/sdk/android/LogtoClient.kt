@@ -78,6 +78,34 @@ open class LogtoClient(
         signInSession.start()
     }
 
+    fun signOut(completion: EmptyCompletion? = null) {
+        if (!isAuthenticated) {
+            completion?.onComplete(LogtoException(LogtoException.Message.NOT_AUTHENTICATED))
+            return
+        }
+
+        // TODO - LOG-1112: Storage - Need clear storage here
+        accessTokenMap.clear()
+        idToken = null
+
+        refreshToken?.let {
+            getOidcConfig { getOidcConfigException, oidcConfig ->
+                if (getOidcConfigException != null) {
+                    completion?.onComplete(getOidcConfigException)
+                    return@getOidcConfig
+                }
+
+                Core.revoke(
+                    revocationEndpoint = requireNotNull(oidcConfig).revocationEndpoint,
+                    clientId = logtoConfig.clientId,
+                    token = it
+                ) { throwable -> completion?.onComplete(throwable) }
+            }
+        }
+
+        refreshToken = null
+    }
+
     fun getAccessToken(callback: RetrieveCallback<AccessToken>) =
         getAccessToken(null, null, callback)
 
