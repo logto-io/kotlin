@@ -19,7 +19,7 @@ val gson: Gson by lazy {
 
 val httpClient by lazy { OkHttpClient() }
 
-inline fun <reified T> makeRequest(
+inline fun <reified T : Any> makeRequest(
     uri: String,
     body: RequestBody? = null,
     headers: Map<String, String>? = null,
