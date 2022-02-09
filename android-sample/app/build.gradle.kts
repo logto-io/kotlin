@@ -24,8 +24,7 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.6.0")
     implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0")
-    implementation("org.bitbucket.b_c:jose4j:0.7.9")
+    implementation("com.google.code.gson:gson:2.8.9")
 
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("androidx.navigation:navigation-fragment-ktx:2.3.5")
