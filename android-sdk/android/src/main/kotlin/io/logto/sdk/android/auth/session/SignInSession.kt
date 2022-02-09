@@ -2,11 +2,14 @@ package io.logto.sdk.android.auth.session
 
 import android.app.Activity
 import io.logto.sdk.android.auth.activity.SignInActivity
-import io.logto.sdk.android.callback.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.core.Core
+import io.logto.sdk.core.exception.CallbackUriVerificationException
+import io.logto.sdk.core.http.HttpCompletion
+import io.logto.sdk.core.type.CodeTokenResponse
 import io.logto.sdk.core.type.OidcConfigResponse
+import io.logto.sdk.core.util.CallbackUriUtils
 import io.logto.sdk.core.util.GenerateUtils
 
 class SignInSession(
@@ -14,7 +17,7 @@ class SignInSession(
     val logtoConfig: LogtoConfig,
     val oidcConfig: OidcConfigResponse,
     val redirectUri: String,
-    val completion: Completion<String>,
+    val completion: HttpCompletion<CodeTokenResponse>,
 ) {
     private val codeVerifier = GenerateUtils.generateCodeVerifier()
     private val state = GenerateUtils.generateState()
@@ -35,8 +38,22 @@ class SignInSession(
     }
 
     fun handleCallbackUri(callbackUri: String) {
-        // TODO - fetch token by authorization code
-        completion.onComplete(null, callbackUri)
+        val authorizationCode = try {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+        } catch (exception: CallbackUriVerificationException) {
+            completion.onComplete(exception, null)
+            return
+        }
+
+        Core.fetchTokenByAuthorizationCode(
+            tokenEndpoint = oidcConfig.tokenEndpoint,
+            clientId = logtoConfig.clientId,
+            redirectUri = redirectUri,
+            codeVerifier = codeVerifier,
+            code = authorizationCode,
+            resource = null,
+            completion::onComplete,
+        )
     }
 
     fun handleUserCancel() {

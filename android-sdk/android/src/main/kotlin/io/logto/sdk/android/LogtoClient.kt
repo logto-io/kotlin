@@ -9,7 +9,10 @@ import io.logto.sdk.android.extension.oidcConfigEndpoint
 import io.logto.sdk.android.type.AccessToken
 import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils
+import io.logto.sdk.android.util.LogtoUtils.expiresAtFrom
+import io.logto.sdk.android.util.LogtoUtils.nowRoundToSec
 import io.logto.sdk.core.Core
+import io.logto.sdk.core.exception.ResponseException
 import io.logto.sdk.core.http.HttpCompletion
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
@@ -33,7 +36,7 @@ open class LogtoClient(
     val isAuthenticated
         get() = idToken != null
 
-    // TODO - Notes: get authorization code temporary
+    // TODO - LOG-1489: LogtoCompletion
     fun signInWithBrowser(
         context: Activity,
         redirectUri: String,
@@ -49,8 +52,29 @@ open class LogtoClient(
             logtoConfig = logtoConfig,
             oidcConfig = requireNotNull(oidcConfig),
             redirectUri = redirectUri,
-            completion = completion,
-        )
+        ) { throwable, response ->
+            if (throwable != null) {
+                println((throwable as ResponseException).description)
+                completion.onComplete(throwable, null)
+                return@SignInSession
+            }
+            requireNotNull(response).let { codeTokenResponse ->
+                // TODO - LOG-1483: Verify Token Response
+                // TODO - LOG-1112: Storage
+
+                // Note - Treat `resource` as `null`: https://github.com/logto-io/swift/pull/35#discussion_r795145645
+                accessTokenMap[buildAccessTokenKey(logtoConfig.scopes, null)] = AccessToken(
+                    codeTokenResponse.accessToken,
+                    codeTokenResponse.scope,
+                    expiresAtFrom(nowRoundToSec(), codeTokenResponse.expiresIn)
+                )
+
+                refreshToken = codeTokenResponse.refreshToken
+                idToken = codeTokenResponse.idToken
+
+                completion.onComplete(null, codeTokenResponse.accessToken)
+            }
+        }
 
         signInSession.start()
     }
