@@ -84,31 +84,26 @@ open class LogtoClient(
             return
         }
 
-        if (refreshToken == null) {
-            completion?.onComplete(LogtoException(LogtoException.Message.MISSING_REFRESH_TOKEN))
-            return
-        }
-
-        val tokenToBeRevoked = requireNotNull(refreshToken)
-
+        // TODO - LOG-1112: Storage - Need clear storage here
         accessTokenMap.clear()
         idToken = null
-        refreshToken = null
 
-        // TODO - LOG-1112: Storage - Need clear storage here
+        refreshToken?.let {
+            getOidcConfig { getOidcConfigException, oidcConfig ->
+                if (getOidcConfigException != null) {
+                    completion?.onComplete(getOidcConfigException)
+                    return@getOidcConfig
+                }
 
-        getOidcConfig { getOidcConfigException, oidcConfig ->
-            if (getOidcConfigException != null) {
-                completion?.onComplete(getOidcConfigException)
-                return@getOidcConfig
+                Core.revoke(
+                    revocationEndpoint = requireNotNull(oidcConfig).revocationEndpoint,
+                    clientId = logtoConfig.clientId,
+                    token = it
+                ) { throwable -> completion?.onComplete(throwable) }
             }
-
-            Core.revoke(
-                revocationEndpoint = requireNotNull(oidcConfig).revocationEndpoint,
-                clientId = logtoConfig.clientId,
-                token = tokenToBeRevoked
-            ) { throwable -> completion?.onComplete(throwable) }
         }
+
+        refreshToken = null
     }
 
     fun getAccessToken(callback: RetrieveCallback<AccessToken>) =
