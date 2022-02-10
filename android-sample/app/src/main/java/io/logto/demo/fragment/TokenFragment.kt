@@ -40,6 +40,10 @@ class TokenFragment : Fragment() {
         view.findViewById<Button>(R.id.get_access_token_button).setOnClickListener {
             logtoViewModel.getAccessToken()
         }
+
+        view.findViewById<Button>(R.id.sign_out_button).setOnClickListener {
+            logtoViewModel.signOut()
+        }
     }
 
     private fun initViewModel() {

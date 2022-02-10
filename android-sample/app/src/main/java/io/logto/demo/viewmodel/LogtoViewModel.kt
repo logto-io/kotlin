@@ -45,6 +45,13 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun signOut() {
+        logtoClient.signOut {
+            it?.let { _exception.postValue(it) }
+            _authenticated.postValue(logtoClient.isAuthenticated)
+        }
+    }
+
     fun getAccessToken() {
         logtoClient.getAccessToken { throwable, accessToken ->
             throwable?.let { _exception.postValue(it) } ?: _accessToken.postValue(accessToken)
