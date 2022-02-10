@@ -18,6 +18,7 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.verify
 import org.jose4j.jwt.consumer.InvalidJwtException
+import org.junit.Before
 import org.junit.Test
 
 class LogtoClientTest {
@@ -43,9 +44,16 @@ class LogtoClientTest {
         private const val TEST_EXPIRE_IN = 60L
     }
 
+    @Before
+    fun setup() {
+        // Note: Disable persist storage temporarily
+        // TODO - Android Test Env Setup : LOG-1086
+        every { logtoConfigMock.usingPersistStorage } returns false
+    }
+
     @Test
     fun `getAccessToken should fail without being authenticated`() {
-        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
 
         mockkObject(logtoClient)
         every { logtoClient.isAuthenticated } returns false
@@ -61,7 +69,7 @@ class LogtoClientTest {
 
         every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
 
-        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
         logtoClient.setupRefreshToken(null)
 
         mockkObject(logtoClient)
@@ -78,7 +86,7 @@ class LogtoClientTest {
 
         every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
 
-        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
 
         mockkObject(logtoClient)
@@ -100,7 +108,7 @@ class LogtoClientTest {
 
         every { logtoConfigMock.resources } returns listOf(TEST_RESOURCE_1, TEST_RESOURCE_2)
 
-        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
 
         mockkObject(logtoClient)
@@ -122,7 +130,7 @@ class LogtoClientTest {
 
         every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
 
-        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
 
         val testTokenKey = logtoClient.buildAccessTokenKey(listOf(TEST_SCOPE_1), null)
@@ -192,7 +200,6 @@ class LogtoClientTest {
 
     @Test
     fun getOidcConfig() {
-        val logtoConfigMock: LogtoConfig = mockk()
         every { logtoConfigMock.endpoint } returns "https://logto.dev"
 
         mockkObject(Core)
@@ -200,7 +207,7 @@ class LogtoClientTest {
             secondArg<HttpCompletion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
         }
 
-        val logtoClient = LogtoClient(logtoConfigMock)
+        val logtoClient = LogtoClient(logtoConfigMock, mockk())
 
         logtoClient.getOidcConfig { throwable, result ->
             assertThat(throwable).isNull()
@@ -210,7 +217,6 @@ class LogtoClientTest {
 
     @Test
     fun `getOidcConfig success more than one time should only fetch once`() {
-        val logtoConfigMock: LogtoConfig = mockk()
         every { logtoConfigMock.endpoint } returns "https://logto.dev"
 
         mockkObject(Core)
@@ -218,7 +224,7 @@ class LogtoClientTest {
             secondArg<HttpCompletion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
         }
 
-        val logtoClient = LogtoClient(logtoConfigMock)
+        val logtoClient = LogtoClient(logtoConfigMock, mockk())
 
         logtoClient.getOidcConfig { throwable, result ->
             assertThat(throwable).isNull()
@@ -235,7 +241,7 @@ class LogtoClientTest {
 
     @Test
     fun getIdTokenClaims() {
-        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
         logtoClient.setupIdToken(TEST_ID_TOKEN)
 
         mockkObject(logtoClient)
@@ -254,7 +260,7 @@ class LogtoClientTest {
 
     @Test
     fun `getIdTokenClaims should fail without being authenticated`() {
-        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
         logtoClient.setupIdToken(TEST_ID_TOKEN)
 
         mockkObject(logtoClient)
@@ -270,7 +276,7 @@ class LogtoClientTest {
 
     @Test
     fun `getIdTokenClaims should fail if decodeIdToken failed`() {
-        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
         logtoClient.setupIdToken(TEST_ID_TOKEN)
 
         mockkObject(logtoClient)
@@ -289,7 +295,7 @@ class LogtoClientTest {
 
     @Test
     fun fetchUserInfo() {
-        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
 
         every { oidcConfigResponseMock.userinfoEndpoint } returns TEST_USERINFO_ENDPOINT
 
@@ -320,7 +326,7 @@ class LogtoClientTest {
         every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
         every { logtoConfigMock.clientId } returns TEST_CLIENT_ID
 
-        logtoClient = LogtoClient(logtoConfigMock)
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
 
         mockkObject(logtoClient)
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)

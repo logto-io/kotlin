@@ -1,11 +1,14 @@
 package io.logto.sdk.android
 
 import android.app.Activity
+import android.app.Application
 import io.logto.sdk.android.auth.session.SignInSession
 import io.logto.sdk.android.callback.EmptyCompletion
 import io.logto.sdk.android.callback.RetrieveCallback
+import io.logto.sdk.android.constant.StorageKey
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.extension.oidcConfigEndpoint
+import io.logto.sdk.android.storage.PersistStorage
 import io.logto.sdk.android.type.AccessToken
 import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils
@@ -23,18 +26,37 @@ import org.jetbrains.annotations.TestOnly
 import org.jose4j.jwt.consumer.InvalidJwtException
 
 open class LogtoClient(
-    val logtoConfig: LogtoConfig
+    val logtoConfig: LogtoConfig,
+    application: Application,
 ) {
     protected val accessTokenMap: MutableMap<String, AccessToken> = mutableMapOf()
 
     protected var refreshToken: String? = null
+        set(value) {
+            storage?.setItem(StorageKey.REFRESH_TOKEN, value)
+            field = value
+        }
 
     protected var idToken: String? = null
+        set(value) {
+            storage?.setItem(StorageKey.ID_TOKEN, value)
+            field = value
+        }
 
     protected var oidcConfig: OidcConfigResponse? = null
 
     val isAuthenticated
         get() = idToken != null
+
+    private val storage = if (logtoConfig.usingPersistStorage) {
+        PersistStorage(application, "${StorageKey.STORAGE_NAME_PREFIX}:${logtoConfig.clientId}")
+    } else {
+        null
+    }
+
+    init {
+        loadFromStorage()
+    }
 
     fun signInWithBrowser(
         context: Activity,
@@ -59,7 +81,6 @@ open class LogtoClient(
             }
             requireNotNull(response).let { codeTokenResponse ->
                 // TODO - LOG-1483: Verify Token Response
-                // TODO - LOG-1112: Storage
 
                 // Note - Treat `resource` as `null`: https://github.com/logto-io/swift/pull/35#discussion_r795145645
                 accessTokenMap[buildAccessTokenKey(logtoConfig.scopes, null)] = AccessToken(
@@ -84,7 +105,6 @@ open class LogtoClient(
             return
         }
 
-        // TODO - LOG-1112: Storage - Need clear storage here
         accessTokenMap.clear()
         idToken = null
 
@@ -246,6 +266,11 @@ open class LogtoClient(
             oidcConfig = response
             callback.onResult(throwable, oidcConfig)
         }
+    }
+
+    private fun loadFromStorage() {
+        refreshToken = storage?.getItem(StorageKey.REFRESH_TOKEN)
+        idToken = storage?.getItem(StorageKey.ID_TOKEN)
     }
 
     internal fun buildAccessTokenKey(scopes: List<String>, resource: String?) =
