@@ -24,5 +24,8 @@ jobs:
       - name: Check Code Style
         run: ./gradlew checkCodeStyle
 
+      - name: Lint Android
+        run: ./gradlew lintAndroid
+
       - name: Build & Test
         run: ./gradlew test

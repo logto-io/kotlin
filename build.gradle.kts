@@ -8,6 +8,10 @@ tasks.register("checkCodeStyle") {
     dependsOn(gradle.includedBuild("android-sdk").task(":android:detekt"))
 }
 
+tasks.register("lintAndroid") {
+    dependsOn(gradle.includedBuild("android-sdk").task(":android:lint"))
+}
+
 tasks.register("test") {
     dependsOn(gradle.includedBuild("kotlin-sdk").task(":kotlin:test"))
     dependsOn(gradle.includedBuild("android-sdk").task(":android:testDebugUnitTest"))
