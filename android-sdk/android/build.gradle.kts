@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.LintOptions
+
 plugins {
     id("com.android.library") version "7.0.0"
     id("org.jetbrains.kotlin.android") version "1.5.32"
@@ -33,6 +35,11 @@ android {
                 }
             }
         }
+    }
+
+    lintOptions.apply {
+        htmlReport = false
+        xmlReport = false
     }
 }
 
