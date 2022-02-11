@@ -1,7 +1,7 @@
 package io.logto.sdk.android
 
 import com.google.common.truth.Truth.assertThat
-import io.logto.sdk.android.callback.RetrieveCallback
+import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.AccessToken
 import io.logto.sdk.android.type.LogtoConfig
@@ -58,8 +58,8 @@ class LogtoClientTest {
         mockkObject(logtoClient)
         every { logtoClient.isAuthenticated } returns false
 
-        logtoClient.getAccessToken { throwable, result ->
-            assertThat(throwable).hasMessageThat().contains(LogtoException.Message.NOT_AUTHENTICATED.name)
+        logtoClient.getAccessToken { logtoException, result ->
+            assertThat(logtoException).hasMessageThat().contains(LogtoException.Message.NOT_AUTHENTICATED.name)
             assertThat(result).isNull()
         }
     }
@@ -75,8 +75,8 @@ class LogtoClientTest {
         mockkObject(logtoClient)
         every { logtoClient.isAuthenticated } returns true
 
-        logtoClient.getAccessToken { throwable, result ->
-            assertThat(throwable).hasMessageThat().contains(LogtoException.Message.MISSING_REFRESH_TOKEN.name)
+        logtoClient.getAccessToken { logtoException, result ->
+            assertThat(logtoException).hasMessageThat().contains(LogtoException.Message.NO_REFRESH_TOKEN_FOUND.name)
             assertThat(result).isNull()
         }
     }
@@ -95,10 +95,10 @@ class LogtoClientTest {
         logtoClient.getAccessToken(
             resource = null,
             scopes = listOf(TEST_SCOPE_2, TEST_SCOPE_3)
-        ) { throwable, result ->
-            assertThat(throwable)
+        ) { logtoException, result ->
+            assertThat(logtoException)
                 .hasMessageThat()
-                .contains(LogtoException.Message.SCOPES_ARE_NOT_ALL_GRANTED.name)
+                .contains(LogtoException.Message.UNGRANTED_SCOPE_FOUND.name)
             assertThat(result).isNull()
         }
     }
@@ -117,10 +117,10 @@ class LogtoClientTest {
         logtoClient.getAccessToken(
             resource = TEST_RESOURCE_3,
             scopes = null
-        ) { throwable, result ->
-            assertThat(throwable)
+        ) { logtoException, result ->
+            assertThat(logtoException)
                 .hasMessageThat()
-                .contains(LogtoException.Message.RESOURCE_IS_NOT_GRANTED.name)
+                .contains(LogtoException.Message.UNGRANTED_RESOURCE_FOUND.name)
             assertThat(result).isNull()
         }
     }
@@ -145,8 +145,8 @@ class LogtoClientTest {
         logtoClient.getAccessToken(
             null,
             listOf(TEST_SCOPE_1)
-        ) { throwable, result ->
-            assertThat(throwable).isNull()
+        ) { logtoException, result ->
+            assertThat(logtoException).isNull()
             assertThat(result).isEqualTo(testAccessToken)
         }
     }
@@ -163,8 +163,8 @@ class LogtoClientTest {
         logtoClient.getAccessToken(
             null,
             listOf(TEST_SCOPE_1)
-        ) { throwable, result ->
-            assertThat(throwable).isNull()
+        ) { logtoException, result ->
+            assertThat(logtoException).isNull()
             assertThat(result).isNotNull()
             requireNotNull(result).apply {
                 assertThat(token).isEqualTo(TEST_ACCESS_TOKEN)
@@ -184,8 +184,8 @@ class LogtoClientTest {
         logtoClient.getAccessToken(
             null,
             listOf(TEST_SCOPE_1)
-        ) { throwable, result ->
-            assertThat(throwable).isNull()
+        ) { logtoException, result ->
+            assertThat(logtoException).isNull()
             assertThat(result).isNotNull()
             requireNotNull(result).apply {
                 assertThat(token).isEqualTo(TEST_ACCESS_TOKEN)
@@ -287,8 +287,10 @@ class LogtoClientTest {
         mockkObject(TokenUtils)
         every { TokenUtils.decodeIdToken(any()) } throws invalidJwtExceptionMock
 
-        logtoClient.getIdTokenClaims { throwable, result ->
-            assertThat(throwable).isEqualTo(invalidJwtExceptionMock)
+        logtoClient.getIdTokenClaims { logtoException, result ->
+            assertThat(logtoException)
+                .hasMessageThat()
+                .contains(LogtoException.Message.UNABLE_TO_PARSE_ID_TOKEN_CLAIMS.name)
             assertThat(result).isNull()
         }
     }
@@ -301,12 +303,12 @@ class LogtoClientTest {
 
         mockkObject(logtoClient)
         every { logtoClient.getOidcConfig(any()) } answers {
-            firstArg<RetrieveCallback<OidcConfigResponse>>().onResult(null, oidcConfigResponseMock)
+            firstArg<Completion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
         }
         val accessTokenMock: AccessToken = mockk()
         every { accessTokenMock.token } returns TEST_ACCESS_TOKEN
         every { logtoClient.getAccessToken(any(), any(), any()) } answers {
-            lastArg<RetrieveCallback<AccessToken>>().onResult(null, accessTokenMock)
+            lastArg<Completion<AccessToken>>().onComplete(null, accessTokenMock)
         }
 
         val userInfoResponseMock: UserInfoResponse = mockk()
@@ -316,8 +318,8 @@ class LogtoClientTest {
             lastArg<HttpCompletion<UserInfoResponse>>().onComplete(null, userInfoResponseMock)
         }
 
-        logtoClient.fetchUserInfo { throwable, result ->
-            assertThat(throwable).isNull()
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException).isNull()
             assertThat(result).isEqualTo(userInfoResponseMock)
         }
     }
@@ -334,7 +336,7 @@ class LogtoClientTest {
 
         every { oidcConfigResponseMock.tokenEndpoint } returns TEST_TOKEN_ENDPOINT
         every { logtoClient.getOidcConfig(any()) } answers {
-            firstArg<RetrieveCallback<OidcConfigResponse>>().onResult(null, oidcConfigResponseMock)
+            firstArg<Completion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
         }
 
         val refreshTokenTokenResponseMock: RefreshTokenTokenResponse = mockk()

@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.logto.sdk.android.LogtoClient
+import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.AccessToken
 import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.core.type.IdTokenClaims
@@ -34,36 +35,36 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
     val idTokenClaims: LiveData<IdTokenClaims>
         get() = _idTokenClaims
 
-    private val _exception = MutableLiveData<Throwable>()
-    val exception: LiveData<Throwable>
-        get() = _exception
+    private val _logtoException = MutableLiveData<LogtoException>()
+    val logtoException: LiveData<LogtoException>
+        get() = _logtoException
 
     fun signInWithBrowser(context: Activity) {
         logtoClient.signInWithBrowser(context, "io.logto.android://io.logto.sample/callback",) {
-            it?.let { _exception.postValue(it) } ?: _authenticated.postValue(logtoClient.isAuthenticated)
+            it?.let { _logtoException.postValue(it) } ?: _authenticated.postValue(logtoClient.isAuthenticated)
         }
     }
 
     fun signOut() {
         logtoClient.signOut {
-            it?.let { _exception.postValue(it) }
+            it?.let { _logtoException.postValue(it) }
             _authenticated.postValue(logtoClient.isAuthenticated)
         }
     }
 
     fun getAccessToken() {
-        logtoClient.getAccessToken { throwable, accessToken ->
-            throwable?.let { _exception.postValue(it) } ?: _accessToken.postValue(accessToken)
+        logtoClient.getAccessToken { logtoException, accessToken ->
+            logtoException?.let { _logtoException.postValue(it) } ?: _accessToken.postValue(accessToken)
         }
     }
 
     fun getIdTokenClaims() {
-        logtoClient.getIdTokenClaims { throwable, idTokenClaims ->
-            throwable?.let { _exception.postValue(it) } ?: _idTokenClaims.postValue(idTokenClaims)
+        logtoClient.getIdTokenClaims { logtoException, idTokenClaims ->
+            logtoException?.let { _logtoException.postValue(it) } ?: _idTokenClaims.postValue(idTokenClaims)
         }
     }
 
     fun clearException() {
-        _exception.postValue(null)
+        _logtoException.postValue(null)
     }
 }

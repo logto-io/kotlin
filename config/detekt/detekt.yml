@@ -9,3 +9,7 @@ style:
 complexity:
   TooManyFunctions:
     active: false
+  LongMethod:
+    active: false
+  ComplexMethod:
+    active: false

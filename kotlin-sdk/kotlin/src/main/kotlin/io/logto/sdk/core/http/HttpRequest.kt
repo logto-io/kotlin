@@ -36,8 +36,9 @@ inline fun <reified T : Any> makeRequest(
         override fun onResponse(call: Call, response: Response) {
             if (!response.isSuccessful) {
                 completion.onComplete(
-                    ResponseException(ResponseException.Message.ERROR_RESPONSE).apply {
-                        description = response.message
+                    ResponseException(ResponseException.Message.REQUEST_FAILED).apply {
+                        responseMessage = response.message
+                        responseContent = response.body?.toString()
                     },
                     null
                 )
@@ -48,7 +49,10 @@ inline fun <reified T : Any> makeRequest(
                 try {
                     completion.onComplete(null, gson.fromJson(it, T::class.java))
                 } catch (jsonSyntaxException: JsonSyntaxException) {
-                    completion.onComplete(jsonSyntaxException, null)
+                    completion.onComplete(
+                        ResponseException(ResponseException.Message.ERROR_RESPONSE, jsonSyntaxException),
+                        null
+                    )
                 }
             } ?: completion.onComplete(ResponseException(ResponseException.Message.EMPTY_RESPONSE), null)
         }
@@ -73,8 +77,9 @@ fun makeRequest(
             response.takeIf { it.isSuccessful }?.let {
                 completion.onComplete(null)
             } ?: completion.onComplete(
-                ResponseException(ResponseException.Message.ERROR_RESPONSE).apply {
-                    description = response.message
+                ResponseException(ResponseException.Message.REQUEST_FAILED).apply {
+                    responseMessage = response.message
+                    responseContent = response.body?.toString()
                 }
             )
         }
