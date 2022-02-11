@@ -18,9 +18,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         supportActionBar?.hide()
 
-        logtoViewModel.exception.observe(this) { exception ->
-            exception?.let {
-                Toast.makeText(this, "${exception.message}", Toast.LENGTH_LONG).show()
+        logtoViewModel.logtoException.observe(this) { logtoException ->
+            logtoException?.let {
+                Toast.makeText(this, "${logtoException.message}", Toast.LENGTH_LONG).show()
                 logtoViewModel.clearException()
             }
         }
