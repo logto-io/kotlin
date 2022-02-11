@@ -12,18 +12,17 @@ import io.logto.sdk.core.type.IdTokenClaims
 
 class LogtoViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val logtoClient by lazy {
-        val logtoConfig = LogtoConfig(
-            endpoint = "https://logto.dev",
-            clientId = "z4skkM1Z8LLVSl1JCmVZO",
-            scopes = null,
-            resources = null,
-            usingPersistStorage = false
-        )
-        LogtoClient(logtoConfig)
-    }
+    private val logtoConfig = LogtoConfig(
+        endpoint = "https://logto.dev",
+        clientId = "z4skkM1Z8LLVSl1JCmVZO",
+        scopes = null,
+        resources = null,
+        usingPersistStorage = true
+    )
 
-    private val _authenticated = MutableLiveData(false)
+    private val logtoClient = LogtoClient(logtoConfig, getApplication())
+
+    private val _authenticated = MutableLiveData(logtoClient.isAuthenticated)
     val authenticated: LiveData<Boolean>
         get() = _authenticated
 
