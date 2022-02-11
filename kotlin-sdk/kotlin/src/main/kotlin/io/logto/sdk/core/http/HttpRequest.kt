@@ -47,7 +47,11 @@ inline fun <reified T : Any> makeRequest(
 
             response.let { it.body?.string() }?.let {
                 try {
-                    completion.onComplete(null, gson.fromJson(it, T::class.java))
+                    // TODO - LOG-1518: Better Solution for Kotlin's Basic Types Processing
+                    when (T::class) {
+                        String::class -> completion.onComplete(null, it as T)
+                        else -> completion.onComplete(null, gson.fromJson(it, T::class.java))
+                    }
                 } catch (jsonSyntaxException: JsonSyntaxException) {
                     completion.onComplete(
                         ResponseException(ResponseException.Message.ERROR_RESPONSE, jsonSyntaxException),

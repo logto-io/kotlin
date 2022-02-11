@@ -14,12 +14,15 @@ import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils.expiresAtFrom
 import io.logto.sdk.android.util.LogtoUtils.nowRoundToSec
 import io.logto.sdk.core.Core
+import io.logto.sdk.core.http.httpGet
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.TokenUtils
 import org.jetbrains.annotations.TestOnly
+import org.jose4j.jwk.JsonWebKeySet
 import org.jose4j.jwt.consumer.InvalidJwtException
+import org.jose4j.lang.JoseException
 
 open class LogtoClient(
     val logtoConfig: LogtoConfig,
@@ -40,6 +43,8 @@ open class LogtoClient(
         }
 
     protected var oidcConfig: OidcConfigResponse? = null
+
+    protected var jwks: JsonWebKeySet? = null
 
     val isAuthenticated
         get() = idToken != null
@@ -69,26 +74,43 @@ open class LogtoClient(
             logtoConfig = logtoConfig,
             oidcConfig = requireNotNull(oidcConfig),
             redirectUri = redirectUri,
-        ) { fetchCodeTokenException, response ->
+        ) { fetchCodeTokenException, fetchedTokenResponse ->
             fetchCodeTokenException?.let {
                 completion.onComplete(
                     LogtoException(LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE, it)
                 )
                 return@SignInSession
             }
-            requireNotNull(response).let { codeTokenResponse ->
-                // TODO - LOG-1483: Verify Token Response
+
+            getJwks { getJwksException, jwks ->
+                getJwksException?.let {
+                    completion.onComplete(it)
+                    return@getJwks
+                }
+
+                val codeToken = requireNotNull(fetchedTokenResponse)
+
+                try {
+                    TokenUtils.verifyIdToken(
+                        idToken = codeToken.idToken,
+                        clientId = logtoConfig.clientId,
+                        issuer = oidcConfig.issuer,
+                        jwks = requireNotNull(jwks)
+                    )
+                } catch (exception: InvalidJwtException) {
+                    completion.onComplete(LogtoException(LogtoException.Message.INVALID_ID_TOKEN, exception))
+                    return@getJwks
+                }
 
                 // Note - Treat `resource` as `null`: https://github.com/logto-io/swift/pull/35#discussion_r795145645
                 accessTokenMap[buildAccessTokenKey(logtoConfig.scopes, null)] = AccessToken(
-                    codeTokenResponse.accessToken,
-                    codeTokenResponse.scope,
-                    expiresAtFrom(nowRoundToSec(), codeTokenResponse.expiresIn)
+                    codeToken.accessToken,
+                    codeToken.scope,
+                    expiresAtFrom(nowRoundToSec(), codeToken.expiresIn)
                 )
 
-                refreshToken = codeTokenResponse.refreshToken
-                idToken = codeTokenResponse.idToken
-
+                refreshToken = codeToken.refreshToken
+                idToken = codeToken.idToken
                 completion.onComplete(null)
             }
         }
@@ -111,7 +133,6 @@ open class LogtoClient(
                     completion?.onComplete(it)
                     return@getOidcConfig
                 }
-                println("Token To Revoke: $tokenToRevoke")
                 Core.revoke(
                     revocationEndpoint = requireNotNull(oidcConfig).revocationEndpoint,
                     clientId = logtoConfig.clientId,
@@ -190,7 +211,7 @@ open class LogtoClient(
                 refreshToken = requireNotNull(refreshToken),
                 resource = resource,
                 scopes = scopes,
-            ) { fetchRefreshedTokenException, refreshTokenTokenResponse ->
+            ) { fetchRefreshedTokenException, fetchedTokenResponse ->
                 fetchRefreshedTokenException?.let {
                     completion.onComplete(
                         LogtoException(
@@ -201,18 +222,36 @@ open class LogtoClient(
                     )
                     return@fetchTokenByRefreshToken
                 }
-                requireNotNull(refreshTokenTokenResponse).let { tokenResponse ->
+
+                getJwks { getJwksException, jwks ->
+                    getJwksException?.let {
+                        completion.onComplete(it, null)
+                        return@getJwks
+                    }
+                    val refreshedToken = requireNotNull(fetchedTokenResponse)
+                    refreshedToken.idToken?.let {
+                        try {
+                            TokenUtils.verifyIdToken(it, logtoConfig.clientId, oidcConfig.issuer, requireNotNull(jwks))
+                        } catch (exception: InvalidJwtException) {
+                            completion.onComplete(
+                                LogtoException(LogtoException.Message.INVALID_ID_TOKEN, exception),
+                                null
+                            )
+                            return@getJwks
+                        }
+                    }
+
                     val refreshedAccessToken = AccessToken(
-                        token = tokenResponse.accessToken,
-                        scope = tokenResponse.scope,
+                        token = refreshedToken.accessToken,
+                        scope = refreshedToken.scope,
                         expiresAt = expiresAtFrom(
                             nowRoundToSec(),
-                            tokenResponse.expiresIn
+                            refreshedToken.expiresIn
                         )
                     )
                     accessTokenMap[accessTokenKey] = refreshedAccessToken
-                    refreshToken = tokenResponse.refreshToken
-                    tokenResponse.idToken?.let { idToken = it }
+                    refreshToken = refreshedToken.refreshToken
+                    refreshedToken.idToken?.let { idToken = it }
                     completion.onComplete(null, refreshedAccessToken)
                 }
             }
@@ -277,6 +316,39 @@ open class LogtoClient(
             }
             oidcConfig = oidcConfigResponse
             completion.onComplete(null, oidcConfig)
+        }
+    }
+
+    internal fun getJwks(completion: Completion<JsonWebKeySet>) {
+        jwks?.let {
+            completion.onComplete(null, it)
+            return
+        }
+
+        getOidcConfig { getOidcConfigException, oidcConfig ->
+            getOidcConfigException?.let {
+                completion.onComplete(it, null)
+                return@getOidcConfig
+            }
+
+            httpGet<String>(requireNotNull(oidcConfig).jwksUri) { fetchJwksJsonException, jwksJson ->
+                fetchJwksJsonException?.let {
+                    completion.onComplete(LogtoException(LogtoException.Message.UNABLE_TO_FETCH_JWKS_JSON, it), null)
+                    return@httpGet
+                }
+
+                try {
+                    jwks = JsonWebKeySet(jwksJson)
+                } catch (joseException: JoseException) {
+                    completion.onComplete(
+                        LogtoException(LogtoException.Message.UNABLE_TO_PARSE_JWKS, joseException),
+                        null
+                    )
+                    return@httpGet
+                }
+
+                completion.onComplete(null, jwks)
+            }
         }
     }
 
