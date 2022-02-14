@@ -82,37 +82,23 @@ open class LogtoClient(
                 return@SignInSession
             }
 
-            getJwks { getJwksException, jwks ->
-                getJwksException?.let {
-                    completion.onComplete(it)
-                    return@getJwks
-                }
+            val codeToken = requireNotNull(fetchedTokenResponse)
+            // Note - Treat `resource` as `null`: https://github.com/logto-io/swift/pull/35#discussion_r795145645
+            val accessTokenKey = buildAccessTokenKey(logtoConfig.scopes, null)
+            val accessToken = AccessToken(
+                codeToken.accessToken,
+                codeToken.scope,
+                expiresAtFrom(nowRoundToSec(), codeToken.expiresIn)
+            )
 
-                val codeToken = requireNotNull(fetchedTokenResponse)
-
-                try {
-                    TokenUtils.verifyIdToken(
-                        idToken = codeToken.idToken,
-                        clientId = logtoConfig.clientId,
-                        issuer = oidcConfig.issuer,
-                        jwks = requireNotNull(jwks)
-                    )
-                } catch (exception: InvalidJwtException) {
-                    completion.onComplete(LogtoException(LogtoException.Message.INVALID_ID_TOKEN, exception))
-                    return@getJwks
-                }
-
-                // Note - Treat `resource` as `null`: https://github.com/logto-io/swift/pull/35#discussion_r795145645
-                accessTokenMap[buildAccessTokenKey(logtoConfig.scopes, null)] = AccessToken(
-                    codeToken.accessToken,
-                    codeToken.scope,
-                    expiresAtFrom(nowRoundToSec(), codeToken.expiresIn)
-                )
-
-                refreshToken = codeToken.refreshToken
-                idToken = codeToken.idToken
-                completion.onComplete(null)
-            }
+            verifyAndSafeTokenResponse(
+                issuer = oidcConfig.issuer,
+                responseIdToken = codeToken.idToken,
+                responseRefreshToken = codeToken.refreshToken,
+                accessTokenKey = accessTokenKey,
+                accessToken = accessToken,
+                completion = completion
+            )
         }
 
         signInSession.start()
@@ -223,36 +209,25 @@ open class LogtoClient(
                     return@fetchTokenByRefreshToken
                 }
 
-                getJwks { getJwksException, jwks ->
-                    getJwksException?.let {
-                        completion.onComplete(it, null)
-                        return@getJwks
-                    }
-                    val refreshedToken = requireNotNull(fetchedTokenResponse)
-                    refreshedToken.idToken?.let {
-                        try {
-                            TokenUtils.verifyIdToken(it, logtoConfig.clientId, oidcConfig.issuer, requireNotNull(jwks))
-                        } catch (exception: InvalidJwtException) {
-                            completion.onComplete(
-                                LogtoException(LogtoException.Message.INVALID_ID_TOKEN, exception),
-                                null
-                            )
-                            return@getJwks
-                        }
-                    }
-
-                    val refreshedAccessToken = AccessToken(
-                        token = refreshedToken.accessToken,
-                        scope = refreshedToken.scope,
-                        expiresAt = expiresAtFrom(
-                            nowRoundToSec(),
-                            refreshedToken.expiresIn
-                        )
+                val refreshedToken = requireNotNull(fetchedTokenResponse)
+                val refreshedAccessToken = AccessToken(
+                    token = refreshedToken.accessToken,
+                    scope = refreshedToken.scope,
+                    expiresAt = expiresAtFrom(
+                        nowRoundToSec(),
+                        refreshedToken.expiresIn
                     )
-                    accessTokenMap[accessTokenKey] = refreshedAccessToken
-                    refreshToken = refreshedToken.refreshToken
-                    refreshedToken.idToken?.let { idToken = it }
-                    completion.onComplete(null, refreshedAccessToken)
+                )
+
+                verifyAndSafeTokenResponse(
+                    issuer = oidcConfig.issuer,
+                    responseIdToken = refreshedToken.idToken,
+                    responseRefreshToken = refreshedToken.refreshToken,
+                    accessTokenKey = accessTokenKey,
+                    accessToken = refreshedAccessToken
+                ) { verifyException ->
+                    verifyException?.let { completion.onComplete(it, null) }
+                        ?: completion.onComplete(null, refreshedAccessToken)
                 }
             }
         }
@@ -299,6 +274,36 @@ open class LogtoClient(
                     completion.onComplete(null, userInfoResponse)
                 }
             }
+        }
+    }
+
+    @Suppress("LongParameterList")
+    private fun verifyAndSafeTokenResponse(
+        issuer: String,
+        responseIdToken: String?,
+        responseRefreshToken: String,
+        accessTokenKey: String,
+        accessToken: AccessToken,
+        completion: EmptyCompletion,
+    ) {
+        getJwks { getJwksException, jwks ->
+            getJwksException?.let {
+                completion.onComplete(it)
+                return@getJwks
+            }
+            responseIdToken?.let {
+                try {
+                    TokenUtils.verifyIdToken(it, logtoConfig.clientId, issuer, requireNotNull(jwks))
+                } catch (exception: InvalidJwtException) {
+                    completion.onComplete(LogtoException(LogtoException.Message.INVALID_ID_TOKEN, exception))
+                    return@getJwks
+                }
+                idToken = it
+            }
+
+            accessTokenMap[accessTokenKey] = accessToken
+            refreshToken = responseRefreshToken
+            completion.onComplete(null)
         }
     }
 
