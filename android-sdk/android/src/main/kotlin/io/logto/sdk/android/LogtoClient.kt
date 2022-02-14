@@ -91,7 +91,7 @@ open class LogtoClient(
                 expiresAtFrom(nowRoundToSec(), codeToken.expiresIn)
             )
 
-            verifyAndSafeTokenResponse(
+            verifyAndSaveTokenResponse(
                 issuer = oidcConfig.issuer,
                 responseIdToken = codeToken.idToken,
                 responseRefreshToken = codeToken.refreshToken,
@@ -219,7 +219,7 @@ open class LogtoClient(
                     )
                 )
 
-                verifyAndSafeTokenResponse(
+                verifyAndSaveTokenResponse(
                     issuer = oidcConfig.issuer,
                     responseIdToken = refreshedToken.idToken,
                     responseRefreshToken = refreshedToken.refreshToken,
@@ -278,7 +278,7 @@ open class LogtoClient(
     }
 
     @Suppress("LongParameterList")
-    private fun verifyAndSafeTokenResponse(
+    private fun verifyAndSaveTokenResponse(
         issuer: String,
         responseIdToken: String?,
         responseRefreshToken: String,
