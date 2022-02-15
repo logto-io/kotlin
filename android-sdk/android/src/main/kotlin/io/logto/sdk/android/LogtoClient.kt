@@ -14,12 +14,15 @@ import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils.expiresAtFrom
 import io.logto.sdk.android.util.LogtoUtils.nowRoundToSec
 import io.logto.sdk.core.Core
+import io.logto.sdk.core.http.httpGet
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.TokenUtils
 import org.jetbrains.annotations.TestOnly
+import org.jose4j.jwk.JsonWebKeySet
 import org.jose4j.jwt.consumer.InvalidJwtException
+import org.jose4j.lang.JoseException
 
 open class LogtoClient(
     val logtoConfig: LogtoConfig,
@@ -41,6 +44,8 @@ open class LogtoClient(
 
     protected var oidcConfig: OidcConfigResponse? = null
 
+    protected var jwks: JsonWebKeySet? = null
+
     val isAuthenticated
         get() = idToken != null
 
@@ -58,42 +63,47 @@ open class LogtoClient(
         context: Activity,
         redirectUri: String,
         completion: EmptyCompletion,
-    ) = getOidcConfig { getOidcConfigException, oidcConfig ->
-        getOidcConfigException?.let {
-            completion.onComplete(it)
-            return@getOidcConfig
-        }
-
-        val signInSession = SignInSession(
-            context = context,
-            logtoConfig = logtoConfig,
-            oidcConfig = requireNotNull(oidcConfig),
-            redirectUri = redirectUri,
-        ) { fetchCodeTokenException, response ->
-            fetchCodeTokenException?.let {
-                completion.onComplete(
-                    LogtoException(LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE, it)
-                )
-                return@SignInSession
+    ) {
+        getOidcConfig { getOidcConfigException, oidcConfig ->
+            getOidcConfigException?.let {
+                completion.onComplete(it)
+                return@getOidcConfig
             }
-            requireNotNull(response).let { codeTokenResponse ->
-                // TODO - LOG-1483: Verify Token Response
 
+            val signInSession = SignInSession(
+                context = context,
+                logtoConfig = logtoConfig,
+                oidcConfig = requireNotNull(oidcConfig),
+                redirectUri = redirectUri,
+            ) { fetchCodeTokenException, fetchedTokenResponse ->
+                fetchCodeTokenException?.let {
+                    completion.onComplete(
+                        LogtoException(LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE, it)
+                    )
+                    return@SignInSession
+                }
+
+                val codeToken = requireNotNull(fetchedTokenResponse)
                 // Note - Treat `resource` as `null`: https://github.com/logto-io/swift/pull/35#discussion_r795145645
-                accessTokenMap[buildAccessTokenKey(logtoConfig.scopes, null)] = AccessToken(
-                    codeTokenResponse.accessToken,
-                    codeTokenResponse.scope,
-                    expiresAtFrom(nowRoundToSec(), codeTokenResponse.expiresIn)
+                val accessTokenKey = buildAccessTokenKey(logtoConfig.scopes, null)
+                val accessToken = AccessToken(
+                    codeToken.accessToken,
+                    codeToken.scope,
+                    expiresAtFrom(nowRoundToSec(), codeToken.expiresIn)
                 )
 
-                refreshToken = codeTokenResponse.refreshToken
-                idToken = codeTokenResponse.idToken
-
-                completion.onComplete(null)
+                verifyAndSaveTokenResponse(
+                    issuer = oidcConfig.issuer,
+                    responseIdToken = codeToken.idToken,
+                    responseRefreshToken = codeToken.refreshToken,
+                    accessTokenKey = accessTokenKey,
+                    accessToken = accessToken,
+                    completion = completion
+                )
             }
-        }
 
-        signInSession.start()
+            signInSession.start()
+        }
     }
 
     fun signOut(completion: EmptyCompletion? = null) {
@@ -111,7 +121,6 @@ open class LogtoClient(
                     completion?.onComplete(it)
                     return@getOidcConfig
                 }
-                println("Token To Revoke: $tokenToRevoke")
                 Core.revoke(
                     revocationEndpoint = requireNotNull(oidcConfig).revocationEndpoint,
                     clientId = logtoConfig.clientId,
@@ -190,7 +199,7 @@ open class LogtoClient(
                 refreshToken = requireNotNull(refreshToken),
                 resource = resource,
                 scopes = scopes,
-            ) { fetchRefreshedTokenException, refreshTokenTokenResponse ->
+            ) { fetchRefreshedTokenException, fetchedTokenResponse ->
                 fetchRefreshedTokenException?.let {
                     completion.onComplete(
                         LogtoException(
@@ -201,19 +210,26 @@ open class LogtoClient(
                     )
                     return@fetchTokenByRefreshToken
                 }
-                requireNotNull(refreshTokenTokenResponse).let { tokenResponse ->
-                    val refreshedAccessToken = AccessToken(
-                        token = tokenResponse.accessToken,
-                        scope = tokenResponse.scope,
-                        expiresAt = expiresAtFrom(
-                            nowRoundToSec(),
-                            tokenResponse.expiresIn
-                        )
+
+                val refreshedToken = requireNotNull(fetchedTokenResponse)
+                val refreshedAccessToken = AccessToken(
+                    token = refreshedToken.accessToken,
+                    scope = refreshedToken.scope,
+                    expiresAt = expiresAtFrom(
+                        nowRoundToSec(),
+                        refreshedToken.expiresIn
                     )
-                    accessTokenMap[accessTokenKey] = refreshedAccessToken
-                    refreshToken = tokenResponse.refreshToken
-                    tokenResponse.idToken?.let { idToken = it }
-                    completion.onComplete(null, refreshedAccessToken)
+                )
+
+                verifyAndSaveTokenResponse(
+                    issuer = oidcConfig.issuer,
+                    responseIdToken = refreshedToken.idToken,
+                    responseRefreshToken = refreshedToken.refreshToken,
+                    accessTokenKey = accessTokenKey,
+                    accessToken = refreshedAccessToken
+                ) { verifyException ->
+                    verifyException?.let { completion.onComplete(it, null) }
+                        ?: completion.onComplete(null, refreshedAccessToken)
                 }
             }
         }
@@ -263,6 +279,36 @@ open class LogtoClient(
         }
     }
 
+    @Suppress("LongParameterList")
+    private fun verifyAndSaveTokenResponse(
+        issuer: String,
+        responseIdToken: String?,
+        responseRefreshToken: String,
+        accessTokenKey: String,
+        accessToken: AccessToken,
+        completion: EmptyCompletion,
+    ) {
+        getJwks { getJwksException, jwks ->
+            getJwksException?.let {
+                completion.onComplete(it)
+                return@getJwks
+            }
+            responseIdToken?.let {
+                try {
+                    TokenUtils.verifyIdToken(it, logtoConfig.clientId, issuer, requireNotNull(jwks))
+                } catch (exception: InvalidJwtException) {
+                    completion.onComplete(LogtoException(LogtoException.Message.INVALID_ID_TOKEN, exception))
+                    return@getJwks
+                }
+                idToken = it
+            }
+
+            accessTokenMap[accessTokenKey] = accessToken
+            refreshToken = responseRefreshToken
+            completion.onComplete(null)
+        }
+    }
+
     internal fun getOidcConfig(completion: Completion<OidcConfigResponse>) {
         if (oidcConfig != null) {
             completion.onComplete(null, oidcConfig)
@@ -277,6 +323,39 @@ open class LogtoClient(
             }
             oidcConfig = oidcConfigResponse
             completion.onComplete(null, oidcConfig)
+        }
+    }
+
+    internal fun getJwks(completion: Completion<JsonWebKeySet>) {
+        jwks?.let {
+            completion.onComplete(null, it)
+            return
+        }
+
+        getOidcConfig { getOidcConfigException, oidcConfig ->
+            getOidcConfigException?.let {
+                completion.onComplete(it, null)
+                return@getOidcConfig
+            }
+
+            httpGet<String>(requireNotNull(oidcConfig).jwksUri) { fetchJwksJsonException, jwksJson ->
+                fetchJwksJsonException?.let {
+                    completion.onComplete(LogtoException(LogtoException.Message.UNABLE_TO_FETCH_JWKS_JSON, it), null)
+                    return@httpGet
+                }
+
+                try {
+                    jwks = JsonWebKeySet(jwksJson)
+                } catch (joseException: JoseException) {
+                    completion.onComplete(
+                        LogtoException(LogtoException.Message.UNABLE_TO_PARSE_JWKS, joseException),
+                        null
+                    )
+                    return@httpGet
+                }
+
+                completion.onComplete(null, jwks)
+            }
         }
     }
 

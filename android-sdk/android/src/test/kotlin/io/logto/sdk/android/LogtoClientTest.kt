@@ -13,16 +13,20 @@ import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
 import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.TokenUtils
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.verify
+import org.jose4j.jwk.JsonWebKeySet
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.junit.Before
 import org.junit.Test
 
 class LogtoClientTest {
     private val oidcConfigResponseMock: OidcConfigResponse = mockk()
+    private val jwksMock: JsonWebKeySet = mockk()
     private val logtoConfigMock: LogtoConfig = mockk()
     private lateinit var logtoClient: LogtoClient
 
@@ -39,6 +43,7 @@ class LogtoClientTest {
         private const val TEST_REFRESH_TOKEN = "refreshToken"
         private const val TEST_TOKEN_ENDPOINT = "tokenEndpoint"
         private const val TEST_USERINFO_ENDPOINT = "userinfoEndpoint"
+        private const val TEST_ISSUER = "issuer"
         private const val TEST_ACCESS_TOKEN = "accessToken"
         private const val TEST_ID_TOKEN = "idToken"
         private const val TEST_EXPIRE_IN = 60L
@@ -335,8 +340,13 @@ class LogtoClientTest {
         every { logtoClient.isAuthenticated } returns true
 
         every { oidcConfigResponseMock.tokenEndpoint } returns TEST_TOKEN_ENDPOINT
+        every { oidcConfigResponseMock.issuer } returns TEST_ISSUER
         every { logtoClient.getOidcConfig(any()) } answers {
             firstArg<Completion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        every { logtoClient.getJwks((any())) } answers {
+            firstArg<Completion<JsonWebKeySet>>().onComplete(null, jwksMock)
         }
 
         val refreshTokenTokenResponseMock: RefreshTokenTokenResponse = mockk()
@@ -351,5 +361,8 @@ class LogtoClientTest {
             lastArg<HttpCompletion<RefreshTokenTokenResponse>>()
                 .onComplete(null, refreshTokenTokenResponseMock)
         }
+
+        mockkObject(TokenUtils)
+        every { TokenUtils.verifyIdToken(any(), any(), any(), any()) } just Runs
     }
 }

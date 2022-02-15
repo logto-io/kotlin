@@ -17,5 +17,8 @@ class LogtoException(
         UNABLE_TO_REVOKE_TOKEN,
         UNABLE_TO_PARSE_ID_TOKEN_CLAIMS,
         UNABLE_TO_FETCH_USER_INFO,
+        UNABLE_TO_FETCH_JWKS_JSON,
+        UNABLE_TO_PARSE_JWKS,
+        INVALID_ID_TOKEN,
     }
 }
