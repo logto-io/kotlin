@@ -63,45 +63,47 @@ open class LogtoClient(
         context: Activity,
         redirectUri: String,
         completion: EmptyCompletion,
-    ) = getOidcConfig { getOidcConfigException, oidcConfig ->
-        getOidcConfigException?.let {
-            completion.onComplete(it)
-            return@getOidcConfig
-        }
-
-        val signInSession = SignInSession(
-            context = context,
-            logtoConfig = logtoConfig,
-            oidcConfig = requireNotNull(oidcConfig),
-            redirectUri = redirectUri,
-        ) { fetchCodeTokenException, fetchedTokenResponse ->
-            fetchCodeTokenException?.let {
-                completion.onComplete(
-                    LogtoException(LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE, it)
-                )
-                return@SignInSession
+    ) {
+        getOidcConfig { getOidcConfigException, oidcConfig ->
+            getOidcConfigException?.let {
+                completion.onComplete(it)
+                return@getOidcConfig
             }
 
-            val codeToken = requireNotNull(fetchedTokenResponse)
-            // Note - Treat `resource` as `null`: https://github.com/logto-io/swift/pull/35#discussion_r795145645
-            val accessTokenKey = buildAccessTokenKey(logtoConfig.scopes, null)
-            val accessToken = AccessToken(
-                codeToken.accessToken,
-                codeToken.scope,
-                expiresAtFrom(nowRoundToSec(), codeToken.expiresIn)
-            )
+            val signInSession = SignInSession(
+                context = context,
+                logtoConfig = logtoConfig,
+                oidcConfig = requireNotNull(oidcConfig),
+                redirectUri = redirectUri,
+            ) { fetchCodeTokenException, fetchedTokenResponse ->
+                fetchCodeTokenException?.let {
+                    completion.onComplete(
+                        LogtoException(LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE, it)
+                    )
+                    return@SignInSession
+                }
 
-            verifyAndSaveTokenResponse(
-                issuer = oidcConfig.issuer,
-                responseIdToken = codeToken.idToken,
-                responseRefreshToken = codeToken.refreshToken,
-                accessTokenKey = accessTokenKey,
-                accessToken = accessToken,
-                completion = completion
-            )
+                val codeToken = requireNotNull(fetchedTokenResponse)
+                // Note - Treat `resource` as `null`: https://github.com/logto-io/swift/pull/35#discussion_r795145645
+                val accessTokenKey = buildAccessTokenKey(logtoConfig.scopes, null)
+                val accessToken = AccessToken(
+                    codeToken.accessToken,
+                    codeToken.scope,
+                    expiresAtFrom(nowRoundToSec(), codeToken.expiresIn)
+                )
+
+                verifyAndSaveTokenResponse(
+                    issuer = oidcConfig.issuer,
+                    responseIdToken = codeToken.idToken,
+                    responseRefreshToken = codeToken.refreshToken,
+                    accessTokenKey = accessTokenKey,
+                    accessToken = accessToken,
+                    completion = completion
+                )
+            }
+
+            signInSession.start()
         }
-
-        signInSession.start()
     }
 
     fun signOut(completion: EmptyCompletion? = null) {
