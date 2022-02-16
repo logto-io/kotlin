@@ -139,11 +139,10 @@ open class LogtoClient(
     }
 
     fun getAccessToken(completion: Completion<AccessToken>) =
-        getAccessToken(null, null, completion)
+        getAccessToken(null, completion)
 
     fun getAccessToken(
         resource: String?,
-        scopes: List<String>?,
         completion: Completion<AccessToken>,
     ) {
         if (!isAuthenticated) {
@@ -160,19 +159,8 @@ open class LogtoClient(
             }
         }
 
-        val finalScope = scopes ?: logtoConfig.scopes
-        if (!logtoConfig.scopes.containsAll(finalScope)) {
-            completion.onComplete(
-                LogtoException(LogtoException.Message.UNGRANTED_SCOPE_FOUND).apply {
-                    detail = finalScope.toString()
-                },
-                null
-            )
-            return
-        }
-
         // MARK: Retrieve access token from accessTokenMap
-        val accessTokenKey = buildAccessTokenKey(finalScope, resource)
+        val accessTokenKey = buildAccessTokenKey(null, resource)
         val accessToken = accessTokenMap[accessTokenKey]
         accessToken?.let {
             if (it.expiresAt > nowRoundToSec()) {
@@ -198,7 +186,7 @@ open class LogtoClient(
                 clientId = logtoConfig.clientId,
                 refreshToken = requireNotNull(refreshToken),
                 resource = resource,
-                scopes = scopes,
+                scopes = null,
             ) { fetchRefreshedTokenException, fetchedTokenResponse ->
                 fetchRefreshedTokenException?.let {
                     completion.onComplete(
@@ -364,8 +352,11 @@ open class LogtoClient(
         idToken = storage?.getItem(StorageKey.ID_TOKEN)
     }
 
-    internal fun buildAccessTokenKey(scopes: List<String>, resource: String?) =
-        "${scopes.sorted().joinToString(" ")}@$resource"
+    internal fun buildAccessTokenKey(scopes: List<String>?, resource: String?): String {
+        val scopesPart = scopes?.sorted()?.joinToString(" ") ?: ""
+        val resourcePart = resource ?: ""
+        return "$scopesPart@$resourcePart"
+    }
 
     @TestOnly
     fun setupRefreshToken(token: String?) {

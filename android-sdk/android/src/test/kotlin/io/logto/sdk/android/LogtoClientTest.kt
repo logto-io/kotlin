@@ -31,9 +31,7 @@ class LogtoClientTest {
     private lateinit var logtoClient: LogtoClient
 
     companion object {
-        private const val TEST_SCOPE_1 = "scope_1"
-        private const val TEST_SCOPE_2 = "scope_2"
-        private const val TEST_SCOPE_3 = "scope_3"
+        private const val TEST_SCOPE = "scope"
 
         private const val TEST_RESOURCE_1 = "resource_1"
         private const val TEST_RESOURCE_2 = "resource_2"
@@ -72,8 +70,6 @@ class LogtoClientTest {
     @Test
     fun `getAccessToken should fail without refreshToken`() {
 
-        every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
-
         logtoClient = LogtoClient(logtoConfigMock, mockk())
         logtoClient.setupRefreshToken(null)
 
@@ -82,28 +78,6 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken { logtoException, result ->
             assertThat(logtoException).hasMessageThat().contains(LogtoException.Message.NO_REFRESH_TOKEN_FOUND.name)
-            assertThat(result).isNull()
-        }
-    }
-
-    @Test
-    fun `getAccessToken should fail when scopes are not all granted`() {
-
-        every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
-
-        logtoClient = LogtoClient(logtoConfigMock, mockk())
-        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
-
-        mockkObject(logtoClient)
-        every { logtoClient.isAuthenticated } returns true
-
-        logtoClient.getAccessToken(
-            resource = null,
-            scopes = listOf(TEST_SCOPE_2, TEST_SCOPE_3)
-        ) { logtoException, result ->
-            assertThat(logtoException)
-                .hasMessageThat()
-                .contains(LogtoException.Message.UNGRANTED_SCOPE_FOUND.name)
             assertThat(result).isNull()
         }
     }
@@ -121,7 +95,6 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             resource = TEST_RESOURCE_3,
-            scopes = null
         ) { logtoException, result ->
             assertThat(logtoException)
                 .hasMessageThat()
@@ -133,12 +106,10 @@ class LogtoClientTest {
     @Test
     fun `getAccessToken should return valid accessToken which is already exist`() {
 
-        every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
-
         logtoClient = LogtoClient(logtoConfigMock, mockk())
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
 
-        val testTokenKey = logtoClient.buildAccessTokenKey(listOf(TEST_SCOPE_1), null)
+        val testTokenKey = logtoClient.buildAccessTokenKey(null, null)
         val testAccessToken: AccessToken = mockk()
         every { testAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() + 1L
 
@@ -149,7 +120,6 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             null,
-            listOf(TEST_SCOPE_1)
         ) { logtoException, result ->
             assertThat(logtoException).isNull()
             assertThat(result).isEqualTo(testAccessToken)
@@ -160,20 +130,18 @@ class LogtoClientTest {
     fun `getAccessToken should refresh token when existing accessToken is expired`() {
         setupRefreshTokenTestEnv()
 
-        val expiredAccessTokenKey = logtoClient.buildAccessTokenKey(listOf(TEST_SCOPE_1), null)
+        val expiredAccessTokenKey = logtoClient.buildAccessTokenKey(null, null)
         val expiredAccessToken: AccessToken = mockk()
         every { expiredAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() - 1L
         logtoClient.setupAccessTokenMap(mapOf(expiredAccessTokenKey to expiredAccessToken))
 
         logtoClient.getAccessToken(
             null,
-            listOf(TEST_SCOPE_1)
         ) { logtoException, result ->
             assertThat(logtoException).isNull()
             assertThat(result).isNotNull()
             requireNotNull(result).apply {
                 assertThat(token).isEqualTo(TEST_ACCESS_TOKEN)
-                assertThat(scope).isEqualTo(TEST_SCOPE_1)
             }
         }
 
@@ -188,13 +156,11 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             null,
-            listOf(TEST_SCOPE_1)
         ) { logtoException, result ->
             assertThat(logtoException).isNull()
             assertThat(result).isNotNull()
             requireNotNull(result).apply {
                 assertThat(token).isEqualTo(TEST_ACCESS_TOKEN)
-                assertThat(scope).isEqualTo(TEST_SCOPE_1)
             }
         }
 
@@ -312,7 +278,7 @@ class LogtoClientTest {
         }
         val accessTokenMock: AccessToken = mockk()
         every { accessTokenMock.token } returns TEST_ACCESS_TOKEN
-        every { logtoClient.getAccessToken(any(), any(), any()) } answers {
+        every { logtoClient.getAccessToken(any(), any()) } answers {
             lastArg<Completion<AccessToken>>().onComplete(null, accessTokenMock)
         }
 
@@ -330,7 +296,6 @@ class LogtoClientTest {
     }
 
     private fun setupRefreshTokenTestEnv() {
-        every { logtoConfigMock.scopes } returns listOf(TEST_SCOPE_1, TEST_SCOPE_2)
         every { logtoConfigMock.clientId } returns TEST_CLIENT_ID
 
         logtoClient = LogtoClient(logtoConfigMock, mockk())
@@ -351,7 +316,7 @@ class LogtoClientTest {
 
         val refreshTokenTokenResponseMock: RefreshTokenTokenResponse = mockk()
         every { refreshTokenTokenResponseMock.accessToken } returns TEST_ACCESS_TOKEN
-        every { refreshTokenTokenResponseMock.scope } returns TEST_SCOPE_1
+        every { refreshTokenTokenResponseMock.scope } returns TEST_SCOPE
         every { refreshTokenTokenResponseMock.expiresIn } returns TEST_EXPIRE_IN
         every { refreshTokenTokenResponseMock.refreshToken } returns TEST_REFRESH_TOKEN
         every { refreshTokenTokenResponseMock.idToken } returns TEST_ID_TOKEN
