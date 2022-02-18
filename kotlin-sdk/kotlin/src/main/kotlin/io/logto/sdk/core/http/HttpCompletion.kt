@@ -7,3 +7,5 @@ fun interface HttpCompletion<T : Any> {
 fun interface HttpEmptyCompletion {
     fun onComplete(throwable: Throwable?)
 }
+
+typealias HttpRawStringCompletion = HttpCompletion<String>

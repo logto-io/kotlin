@@ -326,7 +326,7 @@ open class LogtoClient(
                 return@getOidcConfig
             }
 
-            httpGet<String>(requireNotNull(oidcConfig).jwksUri) { fetchJwksJsonException, jwksJson ->
+            httpGet(requireNotNull(oidcConfig).jwksUri) { fetchJwksJsonException, jwksJson ->
                 fetchJwksJsonException?.let {
                     completion.onComplete(LogtoException(LogtoException.Message.UNABLE_TO_FETCH_JWKS_JSON, it), null)
                     return@httpGet

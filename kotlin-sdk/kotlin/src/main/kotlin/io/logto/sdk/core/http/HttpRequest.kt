@@ -3,7 +3,6 @@ package io.logto.sdk.core.http
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonSyntaxException
 import io.logto.sdk.core.exception.ResponseException
 import okhttp3.Call
 import okhttp3.Callback
@@ -19,11 +18,11 @@ val gson: Gson by lazy {
 
 val httpClient by lazy { OkHttpClient() }
 
-inline fun <reified T : Any> makeRequest(
+fun makeRequest(
     uri: String,
-    body: RequestBody? = null,
-    headers: Map<String, String>? = null,
-    completion: HttpCompletion<T>,
+    body: RequestBody?,
+    headers: Map<String, String>?,
+    completion: HttpRawStringCompletion,
 ) = makeRequest(
     uri,
     body,
@@ -46,18 +45,7 @@ inline fun <reified T : Any> makeRequest(
             }
 
             response.let { it.body?.string() }?.let {
-                try {
-                    // TODO - LOG-1518: Better Solution for Kotlin's Basic Types Processing
-                    when (T::class) {
-                        String::class -> completion.onComplete(null, it as T)
-                        else -> completion.onComplete(null, gson.fromJson(it, T::class.java))
-                    }
-                } catch (jsonSyntaxException: JsonSyntaxException) {
-                    completion.onComplete(
-                        ResponseException(ResponseException.Message.ERROR_RESPONSE, jsonSyntaxException),
-                        null
-                    )
-                }
+                completion.onComplete(null, it)
             } ?: completion.onComplete(ResponseException(ResponseException.Message.EMPTY_RESPONSE), null)
         }
     }
@@ -65,8 +53,8 @@ inline fun <reified T : Any> makeRequest(
 
 fun makeRequest(
     uri: String,
-    body: RequestBody? = null,
-    headers: Map<String, String>? = null,
+    body: RequestBody?,
+    headers: Map<String, String>?,
     completion: HttpEmptyCompletion,
 ) = makeRequest(
     uri,
@@ -92,8 +80,8 @@ fun makeRequest(
 
 fun makeRequest(
     uri: String,
-    body: RequestBody? = null,
-    headers: Map<String, String>? = null,
+    body: RequestBody?,
+    headers: Map<String, String>?,
     responseCallback: Callback,
 ) {
     val request = Request.Builder().url(uri).apply {
