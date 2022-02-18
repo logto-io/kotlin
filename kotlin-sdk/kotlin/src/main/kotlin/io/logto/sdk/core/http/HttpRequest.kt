@@ -20,8 +20,8 @@ val httpClient by lazy { OkHttpClient() }
 
 fun makeRequest(
     uri: String,
-    body: RequestBody? = null,
-    headers: Map<String, String>? = null,
+    body: RequestBody?,
+    headers: Map<String, String>?,
     completion: HttpRawStringCompletion,
 ) = makeRequest(
     uri,
@@ -53,8 +53,8 @@ fun makeRequest(
 
 fun makeRequest(
     uri: String,
-    body: RequestBody? = null,
-    headers: Map<String, String>? = null,
+    body: RequestBody?,
+    headers: Map<String, String>?,
     completion: HttpEmptyCompletion,
 ) = makeRequest(
     uri,
@@ -80,8 +80,8 @@ fun makeRequest(
 
 fun makeRequest(
     uri: String,
-    body: RequestBody? = null,
-    headers: Map<String, String>? = null,
+    body: RequestBody?,
+    headers: Map<String, String>?,
     responseCallback: Callback,
 ) {
     val request = Request.Builder().url(uri).apply {
