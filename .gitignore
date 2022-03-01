@@ -7,3 +7,6 @@ build/
 .externalNativeBuild
 .cxx
 local.properties
+*/gradlew
+*/gradlew.bat
+*/gradle
