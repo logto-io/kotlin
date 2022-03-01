@@ -30,14 +30,14 @@ jobs:
       - name: Build & Test
         run: ./gradlew test
 
-      - name: Codecov Android sdk
+      - name: Codecov Android SDK
         uses: codecov/codecov-action@v2
         with:
           flags: android-sdk
-          directory: ./android-sdk/android/build
+          directory: ./android-sdk
 
-       - name: Codecov Kotlin sdk
+      - name: Codecov Kotlin SDK
         uses: codecov/codecov-action@v2
         with:
           flags: kotlin-sdk
-          directory: ./android-sdk/kotlin/build
+          directory: ./kotlin-sdk
