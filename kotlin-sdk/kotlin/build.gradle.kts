@@ -2,6 +2,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.5.31"
     `java-library`
     id("io.gitlab.arturbosch.detekt").version("1.19.0")
+    id("jacoco")
 }
 
 group = "io.logto.sdk"
@@ -28,8 +29,11 @@ tasks {
             events("failed", "skipped", "passed", "standardOut", "standardError")
             outputs.upToDateWhen { false }
         }
-        reports.html.required.set(true)
-        reports.junitXml.required.set(true)
+        finalizedBy(jacocoTestReport)
+    }
+    jacocoTestReport {
+        dependsOn(test)
+        reports.xml.required.set(true)
     }
 }
 
@@ -40,6 +44,10 @@ tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
         txt.required.set(false)
         sarif.required.set(false)
     }
+}
+
+jacoco {
+    toolVersion = "0.8.7"
 }
 
 dependencies {
@@ -59,4 +67,5 @@ dependencies {
     testImplementation("io.mockk:mockk:1.12.2")
     testImplementation("com.google.truth:truth:1.1.3")
     testImplementation("com.squareup.okhttp3:mockwebserver")
+    testImplementation("org.jacoco:org.jacoco.core:0.8.7")
 }
