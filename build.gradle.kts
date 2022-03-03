@@ -16,3 +16,8 @@ tasks.register("test") {
     dependsOn(gradle.includedBuild("kotlin-sdk").task(":kotlin:test"))
     dependsOn(gradle.includedBuild("android-sdk").task(":android:testDebugUnitTest"))
 }
+
+tasks.register("testWithReport") {
+    dependsOn(gradle.includedBuild("kotlin-sdk").task(":kotlin:koverReport"))
+    dependsOn(gradle.includedBuild("android-sdk").task(":android:koverReport"))
+}

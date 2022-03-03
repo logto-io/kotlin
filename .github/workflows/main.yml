@@ -28,7 +28,7 @@ jobs:
         run: ./gradlew lintAndroid
 
       - name: Build & Test
-        run: ./gradlew test
+        run: ./gradlew testWithReport
 
       - name: Codecov Android SDK
         uses: codecov/codecov-action@v2
