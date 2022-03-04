@@ -20,6 +20,12 @@ android {
         targetSdk = 30
     }
 
+    sourceSets {
+        getByName("main") {
+            java.srcDir("src/main/kotlin")
+        }
+    }
+
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
