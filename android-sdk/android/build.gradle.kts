@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library") version "7.0.0"
     id("org.jetbrains.kotlin.android") version "1.5.32"
-    id("io.gitlab.arturbosch.detekt").version("1.19.0")
+    id("io.logto.detekt")
     id("org.jetbrains.kotlinx.kover").version("0.5.0")
 }
 
@@ -48,16 +48,7 @@ android {
     }
 }
 
-detekt {
-    toolVersion = "1.19.0"
-    config = files("../../config/detekt/detekt.yml")
-    buildUponDefaultConfig = true
-}
-
 dependencies {
-    detekt("io.gitlab.arturbosch.detekt:detekt-formatting:1.19.0")
-    detekt("io.gitlab.arturbosch.detekt:detekt-cli:1.19.0")
-
     api("io.logto.sdk:kotlin:1.0.0")
 
     implementation("androidx.appcompat:appcompat:1.3.1")

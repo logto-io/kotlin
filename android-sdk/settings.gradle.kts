@@ -3,6 +3,7 @@ pluginManagement {
         gradlePluginPortal()
         google()
     }
+    includeBuild("../build-logic")
 }
 
 includeBuild("../kotlin-sdk")
