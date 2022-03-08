@@ -15,5 +15,5 @@ dependencyResolutionManagement {
 
 includeBuild("../android-sdk")
 
-rootProject.name = "android-sample-java"
+rootProject.name = "android-sample-kotlin"
 include(":app")

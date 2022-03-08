@@ -1,5 +1,5 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.5.31"
+    id("org.jetbrains.kotlin.jvm") version "1.5.32"
     `java-library`
     id("io.logto.detekt")
     id("org.jetbrains.kotlinx.kover").version("0.5.0")
@@ -27,7 +27,7 @@ tasks {
 }
 
 dependencies {
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.5.31"))
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.5.32"))
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.3"))
 
     implementation("com.squareup.okhttp3:okhttp")

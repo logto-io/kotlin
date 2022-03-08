@@ -42,7 +42,7 @@ android {
         }
     }
 
-    lintOptions.apply {
+    lint {
         htmlReport = false
         xmlReport = false
     }
