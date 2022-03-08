@@ -1,12 +1,14 @@
+// https://youtrack.jetbrains.com/issue/KTIJ-19369
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    id("com.android.library") version "7.0.0"
-    id("org.jetbrains.kotlin.android") version "1.5.32"
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kover)
     id("io.logto.detekt")
-    id("org.jetbrains.kotlinx.kover").version("0.5.0")
 }
 
 group = "io.logto.sdk"
-version = "1.0.0"
+version = libs.versions.logtoSdk.get()
 
 repositories {
     google()
@@ -49,12 +51,12 @@ android {
 }
 
 dependencies {
-    api("io.logto.sdk:kotlin:1.0.0")
+    api(libs.logtoSdk.kotlin)
 
-    implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("androidx.browser:browser:1.3.0")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.browser)
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.32")
-    testImplementation("com.google.truth:truth:1.1.3")
-    testImplementation("io.mockk:mockk:1.12.2")
+    testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.truth)
+    testImplementation(libs.mockk)
 }

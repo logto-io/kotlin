@@ -1,13 +1,15 @@
-import org.gradle.kotlin.dsl.dependencies
+import org.gradle.accessors.dm.LibrariesForLibs
 import utils.DetektUtil
 
 plugins {
     id("io.gitlab.arturbosch.detekt")
 }
 
+val libs = the<LibrariesForLibs>()
+
 dependencies {
-    detekt("io.gitlab.arturbosch.detekt:detekt-cli:1.19.0")
-    detekt("io.gitlab.arturbosch.detekt:detekt-formatting:1.19.0")
+    detekt(libs.detekt.cli)
+    detekt(libs.detekt.formatting)
 }
 
 detekt {

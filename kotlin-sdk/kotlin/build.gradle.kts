@@ -1,12 +1,14 @@
+// https://youtrack.jetbrains.com/issue/KTIJ-19369
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.5.32"
     `java-library`
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kover)
     id("io.logto.detekt")
-    id("org.jetbrains.kotlinx.kover").version("0.5.0")
 }
 
 group = "io.logto.sdk"
-version = "1.0.0"
+version = libs.versions.logtoSdk.get()
 
 repositories {
     mavenCentral()
@@ -27,17 +29,14 @@ tasks {
 }
 
 dependencies {
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.5.32"))
-    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.3"))
+    api(libs.jose4j)
 
-    implementation("com.squareup.okhttp3:okhttp")
-    implementation("com.google.code.gson:gson:2.8.9")
-    implementation("ch.qos.logback:logback-classic:1.2.10")
+    implementation(libs.okhttp)
+    implementation(libs.gson)
+    implementation(libs.logbackClassic)
 
-    api("org.bitbucket.b_c:jose4j:0.7.9")
-
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
-    testImplementation("io.mockk:mockk:1.12.2")
-    testImplementation("com.google.truth:truth:1.1.3")
-    testImplementation("com.squareup.okhttp3:mockwebserver")
+    testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.truth)
+    testImplementation(libs.mockwebserver)
 }

@@ -1,6 +1,8 @@
+// https://youtrack.jetbrains.com/issue/KTIJ-19369
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("io.logto.android-sample")
-    id("org.jetbrains.kotlin.android") version "1.5.32"
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -12,8 +14,7 @@ android {
 }
 
 dependencies {
-    implementation("io.logto.sdk:android:1.0.0")
-
-    implementation("androidx.core:core-ktx:1.6.0")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.3.5")
+    implementation(libs.logtoSdk.android)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.navigation.fragment.ktx)
 }

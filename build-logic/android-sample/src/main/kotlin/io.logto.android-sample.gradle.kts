@@ -1,3 +1,5 @@
+import org.gradle.accessors.dm.LibrariesForLibs
+
 plugins {
     id("com.android.application")
 }
@@ -12,13 +14,20 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    lint {
+        htmlReport = false
+        xmlReport = false
+        textReport = false
+    }
 }
 
+val libs = the<LibrariesForLibs>()
+
 dependencies {
-    implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.2")
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("androidx.navigation:navigation-ui:2.3.5")
-    implementation("com.google.android.material:material:1.4.0")
-    implementation("com.google.code.gson:gson:2.8.9")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.legacy)
+    implementation(libs.androidx.navigation.ui)
+    implementation(libs.material)
+    implementation(libs.gson)
 }

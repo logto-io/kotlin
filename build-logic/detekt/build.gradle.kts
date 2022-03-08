@@ -7,5 +7,8 @@ repositories {
 }
 
 dependencies {
-    implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.19.0")
+    implementation(libs.detekt.gradle.plugin)
+
+    // https://github.com/gradle/gradle/issues/15383
+    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }

@@ -1,3 +1,5 @@
+enableFeaturePreview("VERSION_CATALOGS")
+
 rootProject.name = "logto-kotlin"
 includeBuild("build-logic")
 includeBuild("kotlin-sdk")

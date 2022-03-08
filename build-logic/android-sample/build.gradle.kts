@@ -3,5 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation("com.android.tools.build:gradle:7.0.0")
+    implementation(libs.android.gradle.tool)
+
+    // https://github.com/gradle/gradle/issues/15383
+    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }

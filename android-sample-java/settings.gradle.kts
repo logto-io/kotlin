@@ -11,6 +11,11 @@ dependencyResolutionManagement {
         mavenCentral()
         google()
     }
+    versionCatalogs {
+        create("libs") {
+            from(files("../gradle/libs.versions.toml"))
+        }
+    }
 }
 
 includeBuild("../android-sdk")
