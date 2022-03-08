@@ -1,5 +1,6 @@
 plugins {
-    id("io.logto.kotlin-library")
+    id("org.jetbrains.kotlin.jvm") version "1.5.31"
+    `java-library`
     id("io.logto.detekt")
     id("org.jetbrains.kotlinx.kover").version("0.5.0")
 }
@@ -9,6 +10,11 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 tasks {
