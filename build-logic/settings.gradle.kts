@@ -1,13 +1,15 @@
-pluginManagement {
+dependencyResolutionManagement {
     repositories {
         gradlePluginPortal()
         google()
     }
-    includeBuild("../build-logic")
 }
 
-
 dependencyResolutionManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+    }
     versionCatalogs {
         create("libs") {
             from(files("../gradle/libs.versions.toml"))
@@ -15,7 +17,6 @@ dependencyResolutionManagement {
     }
 }
 
-includeBuild("../kotlin-sdk")
-
-rootProject.name = "android-sdk"
-include(":android")
+rootProject.name = "build-logic"
+include("detekt")
+include("android-sample")

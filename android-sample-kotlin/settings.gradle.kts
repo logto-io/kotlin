@@ -6,8 +6,11 @@ pluginManagement {
     includeBuild("../build-logic")
 }
 
-
 dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        google()
+    }
     versionCatalogs {
         create("libs") {
             from(files("../gradle/libs.versions.toml"))
@@ -15,7 +18,7 @@ dependencyResolutionManagement {
     }
 }
 
-includeBuild("../kotlin-sdk")
+includeBuild("../android-sdk")
 
-rootProject.name = "android-sdk"
-include(":android")
+rootProject.name = "android-sample-kotlin"
+include(":app")

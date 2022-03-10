@@ -1,12 +1,14 @@
+// https://youtrack.jetbrains.com/issue/KTIJ-19369
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    id("com.android.library") version "7.0.0"
-    id("org.jetbrains.kotlin.android") version "1.5.32"
-    id("io.gitlab.arturbosch.detekt").version("1.19.0")
-    id("org.jetbrains.kotlinx.kover").version("0.5.0")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kover)
+    id("io.logto.detekt")
 }
 
 group = "io.logto.sdk"
-version = "1.0.0"
+version = libs.versions.logtoSdk.get()
 
 repositories {
     google()
@@ -42,28 +44,19 @@ android {
         }
     }
 
-    lintOptions.apply {
+    lint {
         htmlReport = false
         xmlReport = false
     }
 }
 
-detekt {
-    toolVersion = "1.19.0"
-    config = files("../../config/detekt/detekt.yml")
-    buildUponDefaultConfig = true
-}
-
 dependencies {
-    detekt("io.gitlab.arturbosch.detekt:detekt-formatting:1.19.0")
-    detekt("io.gitlab.arturbosch.detekt:detekt-cli:1.19.0")
+    api(libs.logtoSdk.kotlin)
 
-    api("io.logto.sdk:kotlin:1.0.0")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.browser)
 
-    implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("androidx.browser:browser:1.3.0")
-
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.32")
-    testImplementation("com.google.truth:truth:1.1.3")
-    testImplementation("io.mockk:mockk:1.12.2")
+    testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.truth)
+    testImplementation(libs.mockk)
 }
