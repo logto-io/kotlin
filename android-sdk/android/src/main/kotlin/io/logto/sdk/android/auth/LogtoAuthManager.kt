@@ -3,7 +3,9 @@ package io.logto.sdk.android.auth
 import android.net.Uri
 
 internal object LogtoAuthManager {
+    // Note - We will add "SOCIAL_AUTH_SESSION" in the future
     private const val LOGTO_AUTH_SESSION = "LOGTO_AUTH_SESSION"
+
     private val delegations = mutableMapOf<String, AuthSession>()
 
     fun handleAuthStart(authSession: AuthSession) {
