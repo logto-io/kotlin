@@ -15,7 +15,7 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
 
     private val logtoConfig = LogtoConfig(
         endpoint = "https://logto.dev",
-        clientId = "z4skkM1Z8LLVSl1JCmVZO",
+        clientId = "94fKrpteyMI6BAy9K3pdX",
         scopes = null,
         resources = null,
         usingPersistStorage = true

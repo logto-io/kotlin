@@ -8,11 +8,11 @@
     </queries>
 
     <application>
-        <activity android:name=".auth.activity.SignInActivity"
-                  android:exported="true"
-                  android:launchMode="singleTask"/>
+        <activity android:name=".auth.webview.WebViewAuthActivity"
+            android:exported="true"
+            android:launchMode="singleTop"/>
 
-        <activity android:name=".auth.activity.CallbackUriActivity"
+        <activity android:name=".auth.CallbackUriActivity"
                   android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

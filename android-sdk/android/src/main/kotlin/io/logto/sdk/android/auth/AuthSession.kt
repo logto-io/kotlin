@@ -1,29 +1,30 @@
-package io.logto.sdk.android.auth.session
+package io.logto.sdk.android.auth
 
 import android.app.Activity
-import io.logto.sdk.android.auth.activity.SignInActivity
+import android.net.Uri
+import io.logto.sdk.android.auth.webview.WebViewAuthActivity
+import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.exception.CallbackUriVerificationException
-import io.logto.sdk.core.http.HttpCompletion
 import io.logto.sdk.core.type.CodeTokenResponse
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.util.CallbackUriUtils
 import io.logto.sdk.core.util.GenerateUtils
 
-class SignInSession(
+class AuthSession(
     val context: Activity,
     val logtoConfig: LogtoConfig,
     val oidcConfig: OidcConfigResponse,
     val redirectUri: String,
-    val completion: HttpCompletion<CodeTokenResponse>,
+    private val completion: Completion<CodeTokenResponse>,
 ) {
     private val codeVerifier = GenerateUtils.generateCodeVerifier()
     private val state = GenerateUtils.generateState()
 
     fun start() {
-        SignInSessionManager.setSession(this)
+        LogtoAuthManager.handleAuthStart(this)
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = oidcConfig.authorizationEndpoint,
             clientId = logtoConfig.clientId,
@@ -33,15 +34,20 @@ class SignInSession(
             scopes = logtoConfig.scopes,
             resources = logtoConfig.resources
         )
-        val intent = SignInActivity.createIntent(context, signInUri, redirectUri)
-        context.startActivity(intent)
+        WebViewAuthActivity.launch(context, signInUri)
     }
 
-    fun handleCallbackUri(callbackUri: String) {
+    fun handleCallbackUri(callbackUri: Uri) {
         val authorizationCode = try {
-            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(
+                callbackUri.toString(),
+                redirectUri, state,
+            )
         } catch (exception: CallbackUriVerificationException) {
-            completion.onComplete(exception, null)
+            completion.onComplete(
+                LogtoException(LogtoException.Message.INVALID_CALLBACK_URI, exception),
+                null
+            )
             return
         }
 
@@ -52,12 +58,21 @@ class SignInSession(
             codeVerifier = codeVerifier,
             code = authorizationCode,
             resource = null,
-            completion::onComplete,
-        )
+        ) { fetchTokenException, codeTokenResponse ->
+            fetchTokenException?.let {
+                completion.onComplete(
+                    LogtoException(
+                        LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE
+                    ),
+                    null
+                )
+                return@fetchTokenByAuthorizationCode
+            }
+            completion.onComplete(null, codeTokenResponse)
+        }
     }
 
     fun handleUserCancel() {
-        SignInSessionManager.clearSession()
         completion.onComplete(LogtoException(LogtoException.Message.USER_CANCELED), null)
     }
 }
