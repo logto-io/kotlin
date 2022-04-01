@@ -41,7 +41,8 @@ class AuthSession(
         val authorizationCode = try {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri(
                 callbackUri.toString(),
-                redirectUri, state,
+                redirectUri,
+                state
             )
         } catch (exception: CallbackUriVerificationException) {
             completion.onComplete(
