@@ -1,7 +1,8 @@
-package io.logto.sdk.android.auth
+package io.logto.sdk.android.auth.session
 
 import android.app.Activity
 import android.net.Uri
+import io.logto.sdk.android.auth.LogtoAuthManager
 import io.logto.sdk.android.auth.webview.WebViewAuthActivity
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
@@ -13,18 +14,26 @@ import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.util.CallbackUriUtils
 import io.logto.sdk.core.util.GenerateUtils
 
-class AuthSession(
+class LogtoAuthSession(
     val context: Activity,
     val logtoConfig: LogtoConfig,
     val oidcConfig: OidcConfigResponse,
     val redirectUri: String,
-    private val completion: Completion<CodeTokenResponse>,
-) {
+    override val completion: Completion<CodeTokenResponse>,
+) : AuthSession<CodeTokenResponse> {
+
     private val codeVerifier = GenerateUtils.generateCodeVerifier()
     private val state = GenerateUtils.generateState()
 
-    fun start() {
-        LogtoAuthManager.handleAuthStart(this)
+    override fun start() {
+        val redirectUriScheme = Uri.parse(redirectUri).scheme
+        if (redirectUriScheme == null) {
+            completion.onComplete(LogtoException(LogtoException.Message.INVALID_REDIRECT_URI), null)
+            return
+        }
+
+        LogtoAuthManager.handleAuthStart(redirectUriScheme, this)
+
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = oidcConfig.authorizationEndpoint,
             clientId = logtoConfig.clientId,
@@ -34,10 +43,11 @@ class AuthSession(
             scopes = logtoConfig.scopes,
             resources = logtoConfig.resources
         )
+
         WebViewAuthActivity.launch(context, signInUri)
     }
 
-    fun handleCallbackUri(callbackUri: Uri) {
+    override fun handleCallbackUri(callbackUri: Uri) {
         val authorizationCode = try {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri(
                 callbackUri.toString(),
@@ -73,7 +83,7 @@ class AuthSession(
         }
     }
 
-    fun handleUserCancel() {
+    override fun handleUserCancel() {
         completion.onComplete(LogtoException(LogtoException.Message.USER_CANCELED), null)
     }
 }

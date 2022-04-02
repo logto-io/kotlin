@@ -2,7 +2,7 @@ package io.logto.sdk.android
 
 import android.app.Activity
 import android.app.Application
-import io.logto.sdk.android.auth.AuthSession
+import io.logto.sdk.android.auth.session.LogtoAuthSession
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.completion.EmptyCompletion
 import io.logto.sdk.android.constant.StorageKey
@@ -70,7 +70,7 @@ open class LogtoClient(
                 return@getOidcConfig
             }
 
-            val authSession = AuthSession(
+            val logtoAuthSession = LogtoAuthSession(
                 context = context,
                 logtoConfig = logtoConfig,
                 oidcConfig = requireNotNull(oidcConfig),
@@ -78,7 +78,7 @@ open class LogtoClient(
             ) { authException, fetchedTokenResponse ->
                 authException?.let {
                     completion.onComplete(it)
-                    return@AuthSession
+                    return@LogtoAuthSession
                 }
 
                 val codeToken = requireNotNull(fetchedTokenResponse)
@@ -100,7 +100,7 @@ open class LogtoClient(
                 )
             }
 
-            authSession.start()
+            logtoAuthSession.start()
         }
     }
 

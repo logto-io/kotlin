@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.webkit.WebSettings
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
 import io.logto.sdk.android.auth.LogtoAuthManager
@@ -17,14 +18,22 @@ class WebViewAuthActivity : AppCompatActivity() {
         supportActionBar?.hide()
 
         val uri = intent.getStringExtra(EXTRA_URI)
-        uri?.let {
+
+        if (uri !== null) {
             webView = WebView(this).apply {
                 settings.javaScriptEnabled = true
+                settings.cacheMode = WebSettings.LOAD_NO_CACHE
                 webViewClient = WebViewAuthClient(this@WebViewAuthActivity)
             }
-            webView.loadUrl(it)
+
+            WebViewSocialHandler.injectToWebView(webView, this)
+
+            webView.loadUrl(uri)
             setContentView(webView)
-        } ?: finish()
+            return
+        }
+
+        finish()
     }
 
     override fun onDestroy() {

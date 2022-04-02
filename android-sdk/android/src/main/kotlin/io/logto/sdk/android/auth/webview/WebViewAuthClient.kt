@@ -15,7 +15,7 @@ class WebViewAuthClient(
             return super.shouldOverrideUrlLoading(view, request)
         }
 
-        if (LogtoAuthManager.isCurrentAuthingResult(request.url.toString())) {
+        if (LogtoAuthManager.isLogtoAuthCallbackUriScheme(request.url.scheme)) {
             hostActivity.apply {
                 val toCallbackUriActivity = Intent(Intent.ACTION_VIEW).apply {
                     data = request.url

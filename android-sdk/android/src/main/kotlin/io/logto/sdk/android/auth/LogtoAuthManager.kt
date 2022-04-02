@@ -1,29 +1,34 @@
 package io.logto.sdk.android.auth
 
 import android.net.Uri
+import io.logto.sdk.android.auth.session.AuthSession
+import io.logto.sdk.android.auth.session.LogtoAuthSession
 
 internal object LogtoAuthManager {
-    // Note - We will add "SOCIAL_AUTH_SESSION" in the future
-    private const val LOGTO_AUTH_SESSION = "LOGTO_AUTH_SESSION"
+    private var logtoAuthCallbackUriScheme: String? = null
+    private val delegations = mutableMapOf<String, AuthSession<Any>>()
 
-    private val delegations = mutableMapOf<String, AuthSession>()
+    fun handleAuthStart(scheme: String, logtoAuthSession: AuthSession<Any>) {
+        // Todo - Deduplicate
+        delegations[scheme] = logtoAuthSession
 
-    fun handleAuthStart(authSession: AuthSession) {
-        delegations[LOGTO_AUTH_SESSION] = authSession
+        if (logtoAuthSession is LogtoAuthSession) {
+            logtoAuthCallbackUriScheme = scheme
+        }
     }
 
     fun handleCallbackUri(uri: Uri) {
-        delegations.remove(LOGTO_AUTH_SESSION)?.handleCallbackUri(uri)
+        delegations.remove(uri.scheme)?.handleCallbackUri(uri)
     }
 
     fun handleUserCancel() {
-        delegations.remove(LOGTO_AUTH_SESSION)?.handleUserCancel()
+        // TODO - handle user cancel in the real situation of the web auth process
+        delegations.remove(logtoAuthCallbackUriScheme)?.handleUserCancel()
     }
 
-    fun isCurrentAuthingResult(redirectUri: String): Boolean {
-        val sessionRedirectUri = delegations[LOGTO_AUTH_SESSION]?.redirectUri
-        return sessionRedirectUri?.let {
-            return redirectUri.startsWith(it)
+    fun isLogtoAuthCallbackUriScheme(uriScheme: String?): Boolean {
+        return uriScheme?.let {
+            it == logtoAuthCallbackUriScheme
         } ?: false
     }
 }
