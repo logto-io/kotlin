@@ -24,12 +24,16 @@ class WebViewAuthActivity : AppCompatActivity() {
                 settings.javaScriptEnabled = true
                 settings.cacheMode = WebSettings.LOAD_NO_CACHE
                 webViewClient = WebViewAuthClient(this@WebViewAuthActivity)
-            }
 
-            WebViewSocialHandler.injectToWebView(webView, this)
+                addJavascriptInterface(
+                    WebViewSocialHandler(webView, this@WebViewAuthActivity),
+                    WebViewSocialHandler.SOCIAL_HANDLER_NAME,
+                )
+            }
 
             webView.loadUrl(uri)
             setContentView(webView)
+
             return
         }
 

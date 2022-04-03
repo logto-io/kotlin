@@ -10,17 +10,7 @@ class WebViewSocialHandler(
     private val hostActivity: Activity,
 ) {
     companion object {
-        private const val SOCIAL_HANDLER_NAME = "SocialHandler"
-
-        fun injectToWebView(
-            webView: WebView,
-            hostActivity: Activity,
-        ) {
-            webView.addJavascriptInterface(
-                WebViewSocialHandler(webView, hostActivity),
-                SOCIAL_HANDLER_NAME,
-            )
-        }
+        const val SOCIAL_HANDLER_NAME = "SocialHandler"
     }
 
     @JavascriptInterface
