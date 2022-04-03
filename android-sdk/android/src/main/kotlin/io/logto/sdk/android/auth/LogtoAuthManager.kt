@@ -8,11 +8,11 @@ internal object LogtoAuthManager {
     private var logtoAuthCallbackUriScheme: String? = null
     private val delegations = mutableMapOf<String, AuthSession<Any>>()
 
-    fun handleAuthStart(scheme: String, logtoAuthSession: AuthSession<Any>) {
+    fun handleAuthStart(scheme: String, authSession: AuthSession<Any>) {
         // Todo - Deduplicate
-        delegations[scheme] = logtoAuthSession
+        delegations[scheme] = authSession
 
-        if (logtoAuthSession is LogtoAuthSession) {
+        if (authSession is LogtoAuthSession) {
             logtoAuthCallbackUriScheme = scheme
         }
     }
