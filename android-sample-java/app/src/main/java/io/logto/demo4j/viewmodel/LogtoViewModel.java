@@ -20,7 +20,7 @@ public class LogtoViewModel extends AndroidViewModel {
 
     private LogtoConfig logtoConfig = new LogtoConfig(
             "https://logto.dev",
-            "z4skkM1Z8LLVSl1JCmVZO",
+            "94fKrpteyMI6BAy9K3pdX",
             null,
             null,
             true
