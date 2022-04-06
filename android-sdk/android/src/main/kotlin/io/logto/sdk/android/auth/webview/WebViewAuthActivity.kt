@@ -19,25 +19,22 @@ class WebViewAuthActivity : AppCompatActivity() {
 
         val uri = intent.getStringExtra(EXTRA_URI)
 
-        if (uri !== null) {
-            webView = WebView(this).apply {
-                settings.javaScriptEnabled = true
-                settings.cacheMode = WebSettings.LOAD_NO_CACHE
-                webViewClient = WebViewAuthClient(this@WebViewAuthActivity)
-
-                addJavascriptInterface(
-                    WebViewSocialHandler(webView, this@WebViewAuthActivity),
-                    WebViewSocialHandler.SOCIAL_HANDLER_NAME,
-                )
-            }
-
-            webView.loadUrl(uri)
-            setContentView(webView)
-
+        if (uri == null) {
+            finish()
             return
         }
 
-        finish()
+        webView = WebView(this).apply {
+            settings.javaScriptEnabled = true
+            settings.cacheMode = WebSettings.LOAD_NO_CACHE
+            webViewClient = WebViewAuthClient(this@WebViewAuthActivity)
+            addJavascriptInterface(
+                WebViewSocialHandler(this, this@WebViewAuthActivity),
+                WebViewSocialHandler.SOCIAL_HANDLER_NAME
+            )
+        }
+        webView.loadUrl(uri)
+        setContentView(webView)
     }
 
     override fun onDestroy() {
