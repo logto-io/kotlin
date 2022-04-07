@@ -1,13 +1,12 @@
-package io.logto.sdk.android.auth.webview
+package io.logto.sdk.android.auth.logto
 
 import android.app.Activity
 import android.content.Intent
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import io.logto.sdk.android.auth.LogtoAuthManager
 
-class WebViewAuthClient(
+class LogtoWebViewAuthClient(
     private val hostActivity: Activity,
 ) : WebViewClient() {
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {

@@ -1,4 +1,4 @@
-package io.logto.demo.fragment
+package io.logto.android.sample4k.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,9 +11,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.gson.Gson
-import io.logto.demo.R
-import io.logto.demo.viewmodel.LogtoViewModel
-import io.logto.demo.viewmodel.LogtoViewModelFactory
+import io.logto.android.sample4k.R
+import io.logto.android.sample4k.viewmodel.LogtoViewModel
+import io.logto.android.sample4k.viewmodel.LogtoViewModelFactory
 import io.logto.sdk.core.type.IdTokenClaims
 import org.json.JSONObject
 
