@@ -1,4 +1,4 @@
-package io.logto.sdk.android.auth.webview
+package io.logto.sdk.android.auth.logto
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -7,9 +7,8 @@ import android.os.Bundle
 import android.webkit.WebSettings
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
-import io.logto.sdk.android.auth.LogtoAuthManager
 
-class WebViewAuthActivity : AppCompatActivity() {
+class LogtoWebViewAuthActivity : AppCompatActivity() {
     private lateinit var webView: WebView
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -27,10 +26,10 @@ class WebViewAuthActivity : AppCompatActivity() {
         webView = WebView(this).apply {
             settings.javaScriptEnabled = true
             settings.cacheMode = WebSettings.LOAD_NO_CACHE
-            webViewClient = WebViewAuthClient(this@WebViewAuthActivity)
+            webViewClient = LogtoWebViewAuthClient(this@LogtoWebViewAuthActivity)
             addJavascriptInterface(
-                WebViewSocialHandler(this, this@WebViewAuthActivity),
-                WebViewSocialHandler.SOCIAL_HANDLER_NAME
+                LogtoWebViewSocialHandler(this, this@LogtoWebViewAuthActivity),
+                LogtoWebViewSocialHandler.SOCIAL_HANDLER_NAME
             )
         }
         webView.loadUrl(uri)
@@ -48,7 +47,7 @@ class WebViewAuthActivity : AppCompatActivity() {
 
         fun launch(context: Activity, uri: String) {
             context.startActivity(
-                Intent(context, WebViewAuthActivity::class.java).apply {
+                Intent(context, LogtoWebViewAuthActivity::class.java).apply {
                     putExtra(EXTRA_URI, uri)
                 }
             )

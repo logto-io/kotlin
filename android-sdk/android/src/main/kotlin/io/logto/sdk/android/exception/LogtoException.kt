@@ -21,5 +21,7 @@ class LogtoException(
         UNABLE_TO_FETCH_JWKS_JSON,
         UNABLE_TO_PARSE_JWKS,
         INVALID_ID_TOKEN,
+        ALIPAY_AUTH_FAILED,
+        WECHAT_AUTH_FAILED,
     }
 }

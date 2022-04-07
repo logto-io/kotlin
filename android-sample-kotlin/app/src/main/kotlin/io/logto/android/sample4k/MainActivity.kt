@@ -1,11 +1,11 @@
-package io.logto.demo
+package io.logto.android.sample4k
 
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import io.logto.demo.viewmodel.LogtoViewModel
-import io.logto.demo.viewmodel.LogtoViewModelFactory
+import io.logto.android.sample4k.viewmodel.LogtoViewModel
+import io.logto.android.sample4k.viewmodel.LogtoViewModelFactory
 
 class MainActivity : AppCompatActivity() {
 

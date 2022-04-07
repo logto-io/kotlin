@@ -2,7 +2,7 @@ package io.logto.sdk.android
 
 import android.app.Activity
 import android.app.Application
-import io.logto.sdk.android.auth.session.LogtoAuthSession
+import io.logto.sdk.android.auth.logto.LogtoAuthSession
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.completion.EmptyCompletion
 import io.logto.sdk.android.constant.StorageKey

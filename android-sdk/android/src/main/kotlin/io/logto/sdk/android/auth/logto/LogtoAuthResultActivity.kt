@@ -1,9 +1,9 @@
-package io.logto.sdk.android.auth
+package io.logto.sdk.android.auth.logto
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 
-class CallbackUriActivity : AppCompatActivity() {
+class LogtoAuthResultActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
