@@ -12,21 +12,19 @@ class LogtoWebViewSocialHandler(
     private val hostActivity: Activity,
 ) {
     companion object {
-        const val SOCIAL_HANDLER_NAME = "SocialHandler"
+        const val NAME = "SocialHandler"
     }
 
     @JavascriptInterface
     fun postSocialMessage(socialType: String) {
-        // TODO - Conventions Between UI and Native
+        // TODO - LOG-2125: Protocol for the Communication Between the Native and the WebView
         webView.post {
             handleSocial(socialType)
         }
     }
 
     private fun handleSocial(socialType: String) {
-        println("Social == Social Sign In Click")
-        println("Social == SocialType: $socialType")
-        // TODO - Create Social Sessions Dynamically
+        // TODO - LOG-2124: Create Social Sessions Dynamically
         when (socialType) {
             "web" -> {
                 // TODO - Get Auth Uri From UI

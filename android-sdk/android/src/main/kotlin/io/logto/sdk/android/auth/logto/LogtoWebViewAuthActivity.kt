@@ -29,7 +29,7 @@ class LogtoWebViewAuthActivity : AppCompatActivity() {
             webViewClient = LogtoWebViewAuthClient(this@LogtoWebViewAuthActivity)
             addJavascriptInterface(
                 LogtoWebViewSocialHandler(this, this@LogtoWebViewAuthActivity),
-                LogtoWebViewSocialHandler.SOCIAL_HANDLER_NAME
+                LogtoWebViewSocialHandler.NAME
             )
         }
         webView.loadUrl(uri)
