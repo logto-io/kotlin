@@ -46,6 +46,8 @@ open class LogtoClient(
 
     protected var jwks: JsonWebKeySet? = null
 
+    private val pendingRefreshTokenCompletion = mutableMapOf<String, MutableList<Completion<AccessToken>>>()
+
     val isAuthenticated
         get() = idToken != null
 
@@ -173,27 +175,41 @@ open class LogtoClient(
             return
         }
 
+        val byRefreshToken = requireNotNull(refreshToken)
+
+        if (pendingRefreshTokenCompletion.containsKey(byRefreshToken)) {
+            val completionList = pendingRefreshTokenCompletion[byRefreshToken]
+            completionList?.add(completion)
+            return
+        }
+
+        pendingRefreshTokenCompletion[byRefreshToken] = mutableListOf(completion)
+
         getOidcConfig { getOidcConfigException, oidcConfig ->
             getOidcConfigException?.let {
-                completion.onComplete(it, null)
+                pendingRefreshTokenCompletion.remove(byRefreshToken)?.map { pendingCompletion ->
+                    pendingCompletion.onComplete(it, null)
+                }
                 return@getOidcConfig
             }
 
             Core.fetchTokenByRefreshToken(
                 tokenEndpoint = requireNotNull(oidcConfig).tokenEndpoint,
                 clientId = logtoConfig.clientId,
-                refreshToken = requireNotNull(refreshToken),
+                refreshToken = byRefreshToken,
                 resource = resource,
                 scopes = null,
             ) { fetchRefreshedTokenException, fetchedTokenResponse ->
                 fetchRefreshedTokenException?.let {
-                    completion.onComplete(
-                        LogtoException(
-                            LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_REFRESH_TOKEN,
-                            it
-                        ),
-                        null
-                    )
+                    pendingRefreshTokenCompletion.remove(byRefreshToken)?.map { pendingCompletion ->
+                        pendingCompletion.onComplete(
+                            LogtoException(
+                                LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_REFRESH_TOKEN,
+                                it
+                            ),
+                            null
+                        )
+                    }
                     return@fetchTokenByRefreshToken
                 }
 
@@ -214,8 +230,13 @@ open class LogtoClient(
                     accessTokenKey = accessTokenKey,
                     accessToken = refreshedAccessToken
                 ) { verifyException ->
-                    verifyException?.let { completion.onComplete(it, null) }
-                        ?: completion.onComplete(null, refreshedAccessToken)
+                    verifyException?.let {
+                        pendingRefreshTokenCompletion.remove(byRefreshToken)?.map { pendingCompletion ->
+                            pendingCompletion.onComplete(it, null)
+                        }
+                    } ?: pendingRefreshTokenCompletion.remove(byRefreshToken)?.map { pendingCompletion ->
+                        pendingCompletion.onComplete(null, refreshedAccessToken)
+                    }
                 }
             }
         }
