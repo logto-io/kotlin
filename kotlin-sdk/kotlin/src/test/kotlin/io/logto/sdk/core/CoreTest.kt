@@ -1,8 +1,7 @@
 package io.logto.sdk.core
 
 import com.google.common.truth.Truth.assertThat
-import io.logto.sdk.core.constant.QueryKey
-import io.logto.sdk.core.constant.ReservedScope
+import io.logto.sdk.core.constant.*
 import io.logto.sdk.core.exception.UriConstructionException
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Assert
@@ -36,9 +35,12 @@ class CoreTest {
             assertThat(host).isEqualTo(testAuthorizationEndpoint.toHttpUrl().host)
             assertThat(pathSegments).isEqualTo(testAuthorizationEndpoint.toHttpUrl().pathSegments)
             assertThat(queryParameter(QueryKey.CLIENT_ID)).isEqualTo(testClientId)
-            assertThat(queryParameter(QueryKey.REDIRECT_URI)).isEqualTo(testRedirectUri)
             assertThat(queryParameter(QueryKey.CODE_CHALLENGE)).isEqualTo(testCodeChallenge)
+            assertThat(queryParameter(QueryKey.CODE_CHALLENGE_METHOD)).isEqualTo(CodeChallengeMethod.S256)
             assertThat(queryParameter(QueryKey.STATE)).isEqualTo(testState)
+            assertThat(queryParameter(QueryKey.REDIRECT_URI)).isEqualTo(testRedirectUri)
+            assertThat(queryParameter(QueryKey.PROMPT)).isEqualTo(PromptValue.LOGIN)
+            assertThat(queryParameter(QueryKey.RESPONSE_TYPE)).isEqualTo(ResponseType.CODE)
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
