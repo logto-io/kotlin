@@ -33,7 +33,7 @@ fun httpGet(uri: String, completion: HttpEmptyCompletion) = makeRequest(uri, nul
 fun httpGet(
     uri: String,
     headers: Map<String, String>?,
-    completion: HttpRawStringCompletion
+    completion: HttpRawStringCompletion,
 ) = makeRequest(uri, null, headers, completion)
 
 @JvmName("httpRawGet")

@@ -76,7 +76,7 @@ open class LogtoClient(
                 context = context,
                 logtoConfig = logtoConfig,
                 oidcConfig = requireNotNull(oidcConfig),
-                redirectUri = redirectUri,
+                redirectUri = redirectUri
             ) { authException, fetchedTokenResponse ->
                 authException?.let {
                     completion.onComplete(it)
@@ -198,7 +198,7 @@ open class LogtoClient(
                 clientId = logtoConfig.clientId,
                 refreshToken = byRefreshToken,
                 resource = resource,
-                scopes = null,
+                scopes = null
             ) { fetchRefreshedTokenException, fetchedTokenResponse ->
                 fetchRefreshedTokenException?.let {
                     pendingRefreshTokenCompletion.remove(byRefreshToken)?.map { pendingCompletion ->
@@ -271,7 +271,7 @@ open class LogtoClient(
                 }
                 Core.fetchUserInfo(
                     userInfoEndpoint = requireNotNull(oidcConfig).userinfoEndpoint,
-                    accessToken = requireNotNull(accessToken).token,
+                    accessToken = requireNotNull(accessToken).token
                 ) fetchUserInfoInCore@{ fetchUserInfoException, userInfoResponse ->
                     fetchUserInfoException?.let {
                         completion.onComplete(

@@ -48,7 +48,7 @@ object Core {
     fun generateSignOutUri(
         endSessionEndpoint: String,
         idToken: String,
-        postLogoutRedirectUri: String? = null
+        postLogoutRedirectUri: String? = null,
     ): String {
         val constructedUri = endSessionEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
             UriConstructionException.Message.INVALID_ENDPOINT
@@ -72,7 +72,7 @@ object Core {
         codeVerifier: String,
         code: String,
         resource: String?,
-        completion: HttpCompletion<CodeTokenResponse>
+        completion: HttpCompletion<CodeTokenResponse>,
     ) {
         val formBody = FormBody.Builder().apply {
             add(QueryKey.CLIENT_ID, clientId)
@@ -92,7 +92,7 @@ object Core {
         refreshToken: String,
         resource: String?,
         scopes: List<String>?,
-        completion: HttpCompletion<RefreshTokenTokenResponse>
+        completion: HttpCompletion<RefreshTokenTokenResponse>,
     ) {
         val formBody = FormBody.Builder().apply {
             add(QueryKey.CLIENT_ID, clientId)
@@ -107,7 +107,7 @@ object Core {
     fun fetchUserInfo(
         userInfoEndpoint: String,
         accessToken: String,
-        completion: HttpCompletion<UserInfoResponse>
+        completion: HttpCompletion<UserInfoResponse>,
     ) = httpGet(
         userInfoEndpoint,
         headers = mapOf("Authorization" to "Bearer $accessToken"),
@@ -118,7 +118,7 @@ object Core {
         revocationEndpoint: String,
         clientId: String,
         token: String,
-        completion: HttpEmptyCompletion
+        completion: HttpEmptyCompletion,
     ) {
         val formBody = FormBody.Builder().apply {
             add(QueryKey.CLIENT_ID, clientId)

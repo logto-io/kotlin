@@ -40,12 +40,12 @@ fun httpPost(
     uri: String,
     body: RequestBody,
     headers: Map<String, String>?,
-    completion: HttpRawStringCompletion
+    completion: HttpRawStringCompletion,
 ) = makeRequest(uri, body, headers, completion)
 
 @JvmName("httpRawPost")
 fun httpPost(
     uri: String,
     body: RequestBody,
-    completion: HttpRawStringCompletion
+    completion: HttpRawStringCompletion,
 ) = makeRequest(uri, body, null, completion)

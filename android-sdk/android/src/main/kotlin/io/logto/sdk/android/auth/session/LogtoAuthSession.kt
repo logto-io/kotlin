@@ -68,7 +68,7 @@ class LogtoAuthSession(
             redirectUri = redirectUri,
             codeVerifier = codeVerifier,
             code = authorizationCode,
-            resource = null,
+            resource = null
         ) { fetchTokenException, codeTokenResponse ->
             fetchTokenException?.let {
                 completion.onComplete(
