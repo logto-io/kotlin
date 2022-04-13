@@ -18,7 +18,7 @@ inline fun <reified T : Any> httpGet(
         } catch (jsonSyntaxException: JsonSyntaxException) {
             completion.onComplete(
                 ResponseException(ResponseException.Message.ERROR_RESPONSE, jsonSyntaxException),
-                null
+                null,
             )
         }
     }

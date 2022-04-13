@@ -11,7 +11,7 @@ formatting:
   TrailingComma:
     active: true
     allowTrailingComma: true
-    allowTrailingCommaOnCallSite: false
+    allowTrailingCommaOnCallSite: true
 
 complexity:
   TooManyFunctions:

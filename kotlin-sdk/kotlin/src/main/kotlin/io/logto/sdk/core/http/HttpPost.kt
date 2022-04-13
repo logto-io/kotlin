@@ -20,7 +20,7 @@ inline fun <reified T : Any> httpPost(
         } catch (jsonSyntaxException: JsonSyntaxException) {
             completion.onComplete(
                 ResponseException(ResponseException.Message.ERROR_RESPONSE, jsonSyntaxException),
-                null
+                null,
             )
         }
     }

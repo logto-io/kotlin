@@ -10,5 +10,5 @@ fun JwtClaims.toIdTokenClaims(): IdTokenClaims = IdTokenClaims(
     aud = this.audience[0],
     exp = this.expirationTime.value,
     iat = this.issuedAt.value,
-    atHash = this.getClaimValueAsString(ClaimName.AT_HASH)
+    atHash = this.getClaimValueAsString(ClaimName.AT_HASH),
 )

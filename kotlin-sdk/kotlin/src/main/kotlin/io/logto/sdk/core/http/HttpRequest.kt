@@ -39,7 +39,7 @@ fun makeRequest(
                         responseMessage = response.message
                         responseContent = response.body?.toString()
                     },
-                    null
+                    null,
                 )
                 return
             }
@@ -48,7 +48,7 @@ fun makeRequest(
                 completion.onComplete(null, it)
             } ?: completion.onComplete(ResponseException(ResponseException.Message.EMPTY_RESPONSE), null)
         }
-    }
+    },
 )
 
 fun makeRequest(
@@ -72,10 +72,10 @@ fun makeRequest(
                 ResponseException(ResponseException.Message.REQUEST_FAILED).apply {
                     responseMessage = response.message
                     responseContent = response.body?.toString()
-                }
+                },
             )
         }
-    }
+    },
 )
 
 fun makeRequest(

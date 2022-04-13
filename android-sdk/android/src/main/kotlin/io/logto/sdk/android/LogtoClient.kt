@@ -76,7 +76,7 @@ open class LogtoClient(
                 context = context,
                 logtoConfig = logtoConfig,
                 oidcConfig = requireNotNull(oidcConfig),
-                redirectUri = redirectUri
+                redirectUri = redirectUri,
             ) { authException, fetchedTokenResponse ->
                 authException?.let {
                     completion.onComplete(it)
@@ -89,7 +89,7 @@ open class LogtoClient(
                 val accessToken = AccessToken(
                     codeToken.accessToken,
                     codeToken.scope,
-                    expiresAtFrom(nowRoundToSec(), codeToken.expiresIn)
+                    expiresAtFrom(nowRoundToSec(), codeToken.expiresIn),
                 )
 
                 verifyAndSaveTokenResponse(
@@ -98,7 +98,7 @@ open class LogtoClient(
                     responseRefreshToken = codeToken.refreshToken,
                     accessTokenKey = accessTokenKey,
                     accessToken = accessToken,
-                    completion = completion
+                    completion = completion,
                 )
             }
 
@@ -124,12 +124,12 @@ open class LogtoClient(
                 Core.revoke(
                     revocationEndpoint = requireNotNull(oidcConfig).revocationEndpoint,
                     clientId = logtoConfig.clientId,
-                    token = tokenToRevoke
+                    token = tokenToRevoke,
                 ) { revokeException ->
                     completion?.onComplete(
                         revokeException?.let {
                             LogtoException(LogtoException.Message.UNABLE_TO_REVOKE_TOKEN, it)
-                        }
+                        },
                     )
                 }
             }
@@ -153,7 +153,8 @@ open class LogtoClient(
         resource?.let {
             if (logtoConfig.resources?.contains(it) == false) {
                 completion.onComplete(
-                    LogtoException(LogtoException.Message.UNGRANTED_RESOURCE_FOUND).apply { detail = it }, null
+                    LogtoException(LogtoException.Message.UNGRANTED_RESOURCE_FOUND).apply { detail = it },
+                    null,
                 )
                 return
             }
@@ -198,16 +199,16 @@ open class LogtoClient(
                 clientId = logtoConfig.clientId,
                 refreshToken = byRefreshToken,
                 resource = resource,
-                scopes = null
+                scopes = null,
             ) { fetchRefreshedTokenException, fetchedTokenResponse ->
                 fetchRefreshedTokenException?.let {
                     pendingRefreshTokenCompletion.remove(byRefreshToken)?.map { pendingCompletion ->
                         pendingCompletion.onComplete(
                             LogtoException(
                                 LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_REFRESH_TOKEN,
-                                it
+                                it,
                             ),
-                            null
+                            null,
                         )
                     }
                     return@fetchTokenByRefreshToken
@@ -219,8 +220,8 @@ open class LogtoClient(
                     scope = refreshedToken.scope,
                     expiresAt = expiresAtFrom(
                         nowRoundToSec(),
-                        refreshedToken.expiresIn
-                    )
+                        refreshedToken.expiresIn,
+                    ),
                 )
 
                 verifyAndSaveTokenResponse(
@@ -228,7 +229,7 @@ open class LogtoClient(
                     responseIdToken = refreshedToken.idToken,
                     responseRefreshToken = refreshedToken.refreshToken,
                     accessTokenKey = accessTokenKey,
-                    accessToken = refreshedAccessToken
+                    accessToken = refreshedAccessToken,
                 ) { verifyException ->
                     verifyException?.let {
                         pendingRefreshTokenCompletion.remove(byRefreshToken)?.map { pendingCompletion ->
@@ -253,7 +254,7 @@ open class LogtoClient(
         } catch (exception: InvalidJwtException) {
             completion.onComplete(
                 LogtoException(LogtoException.Message.UNABLE_TO_PARSE_ID_TOKEN_CLAIMS, exception),
-                null
+                null,
             )
         }
     }
@@ -271,12 +272,12 @@ open class LogtoClient(
                 }
                 Core.fetchUserInfo(
                     userInfoEndpoint = requireNotNull(oidcConfig).userinfoEndpoint,
-                    accessToken = requireNotNull(accessToken).token
+                    accessToken = requireNotNull(accessToken).token,
                 ) fetchUserInfoInCore@{ fetchUserInfoException, userInfoResponse ->
                     fetchUserInfoException?.let {
                         completion.onComplete(
                             LogtoException(LogtoException.Message.UNABLE_TO_FETCH_USER_INFO, it),
-                            null
+                            null,
                         )
                         return@fetchUserInfoInCore
                     }
@@ -322,7 +323,7 @@ open class LogtoClient(
             return
         }
         Core.fetchOidcConfig(
-            logtoConfig.oidcConfigEndpoint
+            logtoConfig.oidcConfigEndpoint,
         ) { fetchOidcConfigException, oidcConfigResponse ->
             fetchOidcConfigException?.let {
                 completion.onComplete(LogtoException(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG, it), null)
@@ -356,7 +357,7 @@ open class LogtoClient(
                 } catch (joseException: JoseException) {
                     completion.onComplete(
                         LogtoException(LogtoException.Message.UNABLE_TO_PARSE_JWKS, joseException),
-                        null
+                        null,
                     )
                     return@httpGet
                 }

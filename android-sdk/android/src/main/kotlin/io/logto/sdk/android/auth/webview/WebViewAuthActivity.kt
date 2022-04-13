@@ -30,7 +30,7 @@ class WebViewAuthActivity : AppCompatActivity() {
             webViewClient = WebViewAuthClient(this@WebViewAuthActivity)
             addJavascriptInterface(
                 WebViewSocialHandler(this, this@WebViewAuthActivity),
-                WebViewSocialHandler.SOCIAL_HANDLER_NAME
+                WebViewSocialHandler.SOCIAL_HANDLER_NAME,
             )
         }
         webView.loadUrl(uri)
@@ -50,7 +50,7 @@ class WebViewAuthActivity : AppCompatActivity() {
             context.startActivity(
                 Intent(context, WebViewAuthActivity::class.java).apply {
                     putExtra(EXTRA_URI, uri)
-                }
+                },
             )
         }
     }
