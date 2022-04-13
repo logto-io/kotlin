@@ -8,7 +8,7 @@ import io.logto.sdk.core.util.GenerateUtils
 
 class AlipaySocialSession(
     private val context: Activity,
-    private val completion: Completion<String>
+    private val completion: Completion<String>,
 ) {
     companion object {
         // TODO - Use an app-based scheme
@@ -33,7 +33,7 @@ class AlipaySocialSession(
                 }
                 completion.onComplete(null, data.getString("auth_code"))
             },
-            true
+            true,
         )
     }
 
