@@ -6,6 +6,13 @@ style:
   ThrowsCount:
     active: false
 
+formatting:
+  active: true
+  TrailingComma:
+    active: true
+    allowTrailingComma: true
+    allowTrailingCommaOnCallSite: true
+
 complexity:
   TooManyFunctions:
     active: false

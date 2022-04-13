@@ -17,7 +17,7 @@ class IdTokenClaimsTest {
         aud = aud,
         exp = exp,
         iat = iat,
-        atHash = atHash,
+        atHash = atHash
     )
 
     @Test

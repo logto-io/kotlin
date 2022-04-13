@@ -20,7 +20,7 @@ class OidcConfigResponseTest {
         userinfoEndpoint = "userinfoEndpoint",
         jwksUri = "jwksUri",
         issuer = "issuer",
-        revocationEndpoint = "revocationEndpoint",
+        revocationEndpoint = "revocationEndpoint"
     )
 
     @Test

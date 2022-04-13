@@ -13,7 +13,7 @@ dependencies {
 }
 
 detekt {
-    toolVersion = "1.19.0"
+    toolVersion = libs.versions.detekt.toString()
     config = files(resources.text.fromString(DetektUtil.getDetektConfig("/detekt.yml")))
     buildUponDefaultConfig = true
 }

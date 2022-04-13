@@ -15,7 +15,7 @@ class CodeTokenResponseTest {
         refreshToken = refreshToken,
         idToken = idToken,
         scope = scope,
-        expiresIn = expiresIn,
+        expiresIn = expiresIn
     )
 
     @Test

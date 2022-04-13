@@ -13,7 +13,7 @@ object CallbackUriUtils {
         // Note: Check scheme
         if (!callbackUri.startsWith(redirectUri)) {
             throw CallbackUriVerificationException(
-                CallbackUriVerificationException.Message.URI_MISMATCHED
+                CallbackUriVerificationException.Message.URI_MISMATCHED,
             )
         }
 
@@ -29,12 +29,12 @@ object CallbackUriUtils {
 
         val parsedUri = validFormatUri.toHttpUrlOrNull()
             ?: throw CallbackUriVerificationException(
-                CallbackUriVerificationException.Message.INVALID_URI_FORMAT
+                CallbackUriVerificationException.Message.INVALID_URI_FORMAT,
             )
 
         parsedUri.queryParameter(QueryKey.ERROR)?.let {
             throw CallbackUriVerificationException(
-                CallbackUriVerificationException.Message.ERROR_FOUND_IN_URI
+                CallbackUriVerificationException.Message.ERROR_FOUND_IN_URI,
             ).apply {
                 error = it
                 errorDesc = parsedUri.queryParameter(QueryKey.ERROR_DESCRIPTION)
@@ -44,16 +44,16 @@ object CallbackUriUtils {
         parsedUri.queryParameter(QueryKey.STATE)?.let {
             if (it != state) {
                 throw CallbackUriVerificationException(
-                    CallbackUriVerificationException.Message.STATE_MISMATCHED
+                    CallbackUriVerificationException.Message.STATE_MISMATCHED,
                 )
             }
         } ?: throw CallbackUriVerificationException(
-            CallbackUriVerificationException.Message.MISSING_STATE_URI_PARAMETER
+            CallbackUriVerificationException.Message.MISSING_STATE_URI_PARAMETER,
         )
 
         return parsedUri.queryParameter(QueryKey.CODE)
             ?: throw CallbackUriVerificationException(
-                CallbackUriVerificationException.Message.MISSING_CODE_URI_PARAMETER
+                CallbackUriVerificationException.Message.MISSING_CODE_URI_PARAMETER,
             )
     }
 }

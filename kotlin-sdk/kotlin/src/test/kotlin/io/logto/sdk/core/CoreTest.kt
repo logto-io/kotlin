@@ -27,7 +27,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = testScopes,
-            resources = testResources,
+            resources = testResources
         )
 
         signInUri.toHttpUrl().apply {
@@ -64,7 +64,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = scopes,
-            resources = testResources,
+            resources = testResources
         )
 
         signInUri.toHttpUrl().apply {
@@ -85,7 +85,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = testScopes,
-            resources = null,
+            resources = null
         )
 
         signInUri.toHttpUrl().apply {
@@ -106,7 +106,7 @@ class CoreTest {
                 codeChallenge = testCodeChallenge,
                 state = testState,
                 scopes = testScopes,
-                resources = testResources,
+                resources = testResources
             )
         }
 
@@ -122,7 +122,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = null,
-            resources = testResources,
+            resources = testResources
         )
 
         signInUri.toHttpUrl().apply {
@@ -142,7 +142,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = listOf(ReservedScope.OFFLINE_ACCESS),
-            resources = testResources,
+            resources = testResources
         )
 
         signInUri.toHttpUrl().apply {
@@ -163,7 +163,7 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = listOf(ReservedScope.OPENID),
-            resources = testResources,
+            resources = testResources
         )
 
         signInUri.toHttpUrl().apply {

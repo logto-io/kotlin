@@ -30,7 +30,7 @@ object Core {
         resources: List<String>?,
     ): String {
         val constructedUri = authorizationEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
-            UriConstructionException.Message.INVALID_ENDPOINT
+            UriConstructionException.Message.INVALID_ENDPOINT,
         )
         return constructedUri.newBuilder().apply {
             addQueryParameter(QueryKey.CLIENT_ID, clientId)
@@ -48,10 +48,10 @@ object Core {
     fun generateSignOutUri(
         endSessionEndpoint: String,
         idToken: String,
-        postLogoutRedirectUri: String? = null
+        postLogoutRedirectUri: String? = null,
     ): String {
         val constructedUri = endSessionEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
-            UriConstructionException.Message.INVALID_ENDPOINT
+            UriConstructionException.Message.INVALID_ENDPOINT,
         )
         return constructedUri.newBuilder().apply {
             addQueryParameter(QueryKey.ID_TOKEN_HINT, idToken)
@@ -72,7 +72,7 @@ object Core {
         codeVerifier: String,
         code: String,
         resource: String?,
-        completion: HttpCompletion<CodeTokenResponse>
+        completion: HttpCompletion<CodeTokenResponse>,
     ) {
         val formBody = FormBody.Builder().apply {
             add(QueryKey.CLIENT_ID, clientId)
@@ -92,7 +92,7 @@ object Core {
         refreshToken: String,
         resource: String?,
         scopes: List<String>?,
-        completion: HttpCompletion<RefreshTokenTokenResponse>
+        completion: HttpCompletion<RefreshTokenTokenResponse>,
     ) {
         val formBody = FormBody.Builder().apply {
             add(QueryKey.CLIENT_ID, clientId)
@@ -107,18 +107,18 @@ object Core {
     fun fetchUserInfo(
         userInfoEndpoint: String,
         accessToken: String,
-        completion: HttpCompletion<UserInfoResponse>
+        completion: HttpCompletion<UserInfoResponse>,
     ) = httpGet(
         userInfoEndpoint,
         headers = mapOf("Authorization" to "Bearer $accessToken"),
-        completion
+        completion,
     )
 
     fun revoke(
         revocationEndpoint: String,
         clientId: String,
         token: String,
-        completion: HttpEmptyCompletion
+        completion: HttpEmptyCompletion,
     ) {
         val formBody = FormBody.Builder().apply {
             add(QueryKey.CLIENT_ID, clientId)

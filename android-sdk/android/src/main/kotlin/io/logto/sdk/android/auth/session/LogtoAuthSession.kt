@@ -41,7 +41,7 @@ class LogtoAuthSession(
             codeChallenge = GenerateUtils.generateCodeChallenge(codeVerifier),
             state = state,
             scopes = logtoConfig.scopes,
-            resources = logtoConfig.resources
+            resources = logtoConfig.resources,
         )
 
         WebViewAuthActivity.launch(context, signInUri)
@@ -52,12 +52,12 @@ class LogtoAuthSession(
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri(
                 callbackUri.toString(),
                 redirectUri,
-                state
+                state,
             )
         } catch (exception: CallbackUriVerificationException) {
             completion.onComplete(
                 LogtoException(LogtoException.Message.INVALID_CALLBACK_URI, exception),
-                null
+                null,
             )
             return
         }
@@ -73,9 +73,9 @@ class LogtoAuthSession(
             fetchTokenException?.let {
                 completion.onComplete(
                     LogtoException(
-                        LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE
+                        LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE,
                     ),
-                    null
+                    null,
                 )
                 return@fetchTokenByAuthorizationCode
             }
