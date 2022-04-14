@@ -29,7 +29,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="logto-callback" />
+                <data android:scheme="${applicationId}.logto-web-social-callback" />
             </intent-filter>
         </activity>
 
@@ -39,7 +39,7 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="logto_social_alipay"/>
+                <data android:scheme="${applicationId}.logto-alipay-callback"/>
             </intent-filter>
         </activity>
     </application>

@@ -26,10 +26,17 @@ class LogtoWebViewAuthActivity : AppCompatActivity() {
         webView = WebView(this).apply {
             settings.javaScriptEnabled = true
             settings.cacheMode = WebSettings.LOAD_NO_CACHE
-            webViewClient = LogtoWebViewAuthClient(this@LogtoWebViewAuthActivity)
+            val socialHandler = LogtoWebViewSocialHandler(
+                webView = this,
+                hostActivity = this@LogtoWebViewAuthActivity,
+            )
             addJavascriptInterface(
-                LogtoWebViewSocialHandler(this, this@LogtoWebViewAuthActivity),
+                socialHandler,
                 LogtoWebViewSocialHandler.NAME,
+            )
+            webViewClient = LogtoWebViewAuthClient(
+                hostActivity = this@LogtoWebViewAuthActivity,
+                injectScript = socialHandler.getInjectSocialScript(),
             )
         }
         webView.loadUrl(uri)

@@ -11,11 +11,6 @@ class AlipaySocialSession(
     private val context: Activity,
     private val completion: Completion<String>,
 ) {
-    companion object {
-        // TODO - Use an app-based scheme
-        private const val ALIPAY_CALLBACK_SCHEME = "logto_social_alipay"
-    }
-
     fun start() {
         val appId = context.resources.getString(R.string.alipay_app_id)
         if (appId.isBlank()) {
@@ -26,7 +21,7 @@ class AlipaySocialSession(
         bizParams["url"] = generateAlipayAuthUri(appId)
         val openAuthTask = OpenAuthTask(context)
         openAuthTask.execute(
-            ALIPAY_CALLBACK_SCHEME,
+            "${context.packageName}.logto-alipay-callback",
             OpenAuthTask.BizType.AccountAuth,
             bizParams,
             { resultCode, errorMessage, data ->
