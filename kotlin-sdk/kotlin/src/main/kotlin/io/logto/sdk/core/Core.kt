@@ -38,7 +38,7 @@ object Core {
             addQueryParameter(QueryKey.CODE_CHALLENGE_METHOD, CodeChallengeMethod.S256)
             addQueryParameter(QueryKey.STATE, state)
             addQueryParameter(QueryKey.REDIRECT_URI, redirectUri)
-            addQueryParameter(QueryKey.PROMPT, PromptValue.LOGIN)
+            addQueryParameter(QueryKey.PROMPT, PromptValue.CONSENT)
             addQueryParameter(QueryKey.RESPONSE_TYPE, ResponseType.CODE)
             addQueryParameter(QueryKey.SCOPE, ScopeUtils.withReservedScopes(scopes).joinToString(" "))
             resources?.let { for (value in it) { addQueryParameter(QueryKey.RESOURCE, value) } }

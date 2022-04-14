@@ -2,6 +2,7 @@ package io.logto.sdk.android
 
 import android.app.Activity
 import android.app.Application
+import android.webkit.CookieManager
 import io.logto.sdk.android.auth.logto.LogtoAuthSession
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.completion.EmptyCompletion
@@ -110,6 +111,12 @@ open class LogtoClient(
         if (!isAuthenticated) {
             completion?.onComplete(LogtoException(LogtoException.Message.NOT_AUTHENTICATED))
             return
+        }
+
+        // Mark - Clear Cookies of WebView
+        CookieManager.getInstance().apply {
+            removeAllCookies(null)
+            flush()
         }
 
         accessTokenMap.clear()

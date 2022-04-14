@@ -39,7 +39,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.CODE_CHALLENGE_METHOD)).isEqualTo(CodeChallengeMethod.S256)
             assertThat(queryParameter(QueryKey.STATE)).isEqualTo(testState)
             assertThat(queryParameter(QueryKey.REDIRECT_URI)).isEqualTo(testRedirectUri)
-            assertThat(queryParameter(QueryKey.PROMPT)).isEqualTo(PromptValue.LOGIN)
+            assertThat(queryParameter(QueryKey.PROMPT)).isEqualTo(PromptValue.CONSENT)
             assertThat(queryParameter(QueryKey.RESPONSE_TYPE)).isEqualTo(ResponseType.CODE)
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
