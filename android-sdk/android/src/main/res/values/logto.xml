@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="logto_redirect_scheme">logto_redirect_scheme_placeholder</string>
+    <string name="logto_redirect_scheme" />
+    <string name="wechat_app_id" />
+    <string name="alipay_app_id" />
 </resources>

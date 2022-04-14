@@ -4,17 +4,22 @@ import android.app.Activity
 import com.tencent.mm.opensdk.constants.ConstantsAPI
 import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.modelmsg.SendAuth
+import io.logto.sdk.android.R
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.core.util.GenerateUtils
 
 class WechatSocialSession(
-    context: Activity,
+    private val context: Activity,
     private val completion: Completion<String>,
 ) {
-    private val api = WechatSocialHelper.getApi(context)
-
     fun start() {
+        val appId = context.resources.getString(R.string.wechat_app_id)
+        if (appId.isBlank()) {
+            handleMissingAppIdError()
+            return
+        }
+        val api = WechatSocialHelper.getApi(context, appId)
         WechatSocialResultActivity.registerSession(this)
         val authRequest = SendAuth.Req().apply {
             scope = "snsapi_userinfo"
@@ -33,5 +38,10 @@ class WechatSocialSession(
             }
         }
         completion.onComplete(LogtoException(LogtoException.Message.WECHAT_AUTH_FAILED), null)
+    }
+
+    fun handleMissingAppIdError() {
+        completion.onComplete(LogtoException(LogtoException.Message.WECHAT_APP_ID_NO_FOUND), null)
+        return
     }
 }

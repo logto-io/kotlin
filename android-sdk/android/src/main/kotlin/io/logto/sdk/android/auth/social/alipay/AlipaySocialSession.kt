@@ -2,6 +2,7 @@ package io.logto.sdk.android.auth.social.alipay
 
 import android.app.Activity
 import com.alipay.sdk.app.OpenAuthTask
+import io.logto.sdk.android.R
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.core.util.GenerateUtils
@@ -14,9 +15,15 @@ class AlipaySocialSession(
         // TODO - Use an app-based scheme
         private const val ALIPAY_CALLBACK_SCHEME = "logto_social_alipay"
     }
+
     fun start() {
+        val appId = context.resources.getString(R.string.alipay_app_id)
+        if (appId.isBlank()) {
+            completion.onComplete(LogtoException(LogtoException.Message.ALIPAY_APP_ID_NO_FOUND), null)
+            return
+        }
         val bizParams = HashMap<String, String>()
-        bizParams["url"] = generateAlipayAuthUri()
+        bizParams["url"] = generateAlipayAuthUri(appId)
         val openAuthTask = OpenAuthTask(context)
         openAuthTask.execute(
             ALIPAY_CALLBACK_SCHEME,
@@ -37,9 +44,7 @@ class AlipaySocialSession(
         )
     }
 
-    private fun generateAlipayAuthUri(): String {
-        // TODO - Load the appId from the global config
-        val appId = "__YOUR_APP_ID__"
+    private fun generateAlipayAuthUri(appId: String): String {
         val authType = "PURE_OAUTH_SDK"
         val scope = "auth_user"
         val state = GenerateUtils.generateState()

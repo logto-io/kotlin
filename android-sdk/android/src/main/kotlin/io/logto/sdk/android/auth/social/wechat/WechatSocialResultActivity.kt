@@ -5,6 +5,7 @@ import android.os.Bundle
 import com.tencent.mm.opensdk.modelbase.BaseReq
 import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.openapi.IWXAPIEventHandler
+import io.logto.sdk.android.R
 
 open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
     companion object {
@@ -16,12 +17,16 @@ open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
         }
     }
 
-    private val api by lazy {
-        WechatSocialHelper.getApi(this)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val appId = this.resources.getString(R.string.wechat_app_id)
+        if (appId.isBlank()) {
+            wechatSocialSession
+                .remove(WECHAT_SOCIAL_SESSION_KEY)
+                ?.handleMissingAppIdError()
+            finish()
+        }
+        val api = WechatSocialHelper.getApi(this, appId)
         api.handleIntent(intent, this)
     }
 
