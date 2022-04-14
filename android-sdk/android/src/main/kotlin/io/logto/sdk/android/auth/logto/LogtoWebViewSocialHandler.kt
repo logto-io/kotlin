@@ -26,9 +26,7 @@ class LogtoWebViewSocialHandler(
     fun getInjectSocialScript() = """
         window.logtoNativeSdk = {
             platform: 'android',
-            getPostMessage: () => (data) => {
-                window.$NAME.postMessage(JSON.stringify(data));
-            },
+            getPostMessage: () => (data) => window.$NAME.postMessage(JSON.stringify(data)),
             supportedSocialConnectorIds: ["wechat-native", "alipay"],
             callbackUriScheme: '${hostActivity.packageName}.logto-web-social-callback',
         };

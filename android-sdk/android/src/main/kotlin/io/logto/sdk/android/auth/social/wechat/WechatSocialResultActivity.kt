@@ -5,6 +5,7 @@ import android.os.Bundle
 import com.tencent.mm.opensdk.modelbase.BaseReq
 import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.openapi.IWXAPIEventHandler
+import com.tencent.mm.opensdk.openapi.WXAPIFactory
 import io.logto.sdk.android.R
 
 open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
@@ -26,7 +27,9 @@ open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
                 ?.handleMissingAppIdError()
             finish()
         }
-        val api = WechatSocialHelper.getApi(this, appId)
+        val api = WXAPIFactory.createWXAPI(this, appId).apply {
+            registerApp(appId)
+        }
         api.handleIntent(intent, this)
     }
 
