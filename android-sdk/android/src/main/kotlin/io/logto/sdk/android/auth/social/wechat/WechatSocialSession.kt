@@ -1,3 +1,4 @@
+// Wechat SDK: https://developers.weixin.qq.com/doc/oplatform/Mobile_App/Access_Guide/Android.html
 package io.logto.sdk.android.auth.social.wechat
 
 import android.app.Activity
@@ -43,7 +44,18 @@ class WechatSocialSession(
         result?.let {
             if (it.errCode == BaseResp.ErrCode.ERR_OK) {
                 if (it.type == ConstantsAPI.COMMAND_SENDAUTH) {
-                    completion.onComplete(null, (it as SendAuth.Resp).code)
+                    val authResponse = it as SendAuth.Resp
+                    /**
+                     * Wechat SDK: https://developers.weixin.qq.com/doc/oplatform/Mobile_App/WeChat_Login/Development_Guide.html
+                     * We only need "code" here
+                     */
+                    // TODO - LOG-2186: Handle Errors in Social Sign in Process
+                    val signInUri = Uri
+                        .parse(callbackUri)
+                        .buildUpon()
+                        .appendQueryParameter("code", authResponse.code)
+                        .build()
+                    completion.onComplete(null, signInUri.toString())
                     return
                 }
             }

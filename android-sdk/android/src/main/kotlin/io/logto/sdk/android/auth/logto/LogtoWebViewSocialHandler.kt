@@ -50,10 +50,11 @@ class LogtoWebViewSocialHandler(
                 context = hostActivity,
                 redirectTo = redirectTo,
                 callbackUri = callbackUri,
-            ) { exception, result ->
-                // TODO - LOG-2186: Handle Errors in Social Sign in Process
-                println("Social == Exceptions Of Social Auth: $exception")
-                println("Social == Result Of Social Auth: $result")
+            ) { exception, signInUri ->
+                exception?.let {
+                    // TODO - LOG-2186: Handle Errors in Social Sign in Process
+                    println("Social == Exceptions Of Social Auth: $exception")
+                } ?: webView.loadUrl(requireNotNull(signInUri))
             }
 
             // TODO - LOG-2186: Handle Errors in Social Sign in Process

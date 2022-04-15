@@ -18,6 +18,8 @@ class WebSocialSession(
     }
 
     fun handleResult(data: Uri) {
-        completion.onComplete(null, data.toString())
+        // TODO - LOG-2186: Handle Errors in Social Sign in Process
+        val signInUri = Uri.parse(callbackUri).buildUpon().query(data.query).build()
+        completion.onComplete(null, signInUri.toString())
     }
 }

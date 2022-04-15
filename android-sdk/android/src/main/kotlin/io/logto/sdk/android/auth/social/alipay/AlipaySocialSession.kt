@@ -1,3 +1,4 @@
+// Alipay SDK: https://opendocs.alipay.com/open/218/sxc60m
 package io.logto.sdk.android.auth.social.alipay
 
 import android.app.Activity
@@ -41,7 +42,17 @@ class AlipaySocialSession(
                     completion.onComplete(logtoException, null)
                     return@execute
                 }
-                completion.onComplete(null, data.getString("auth_code"))
+
+                /**
+                 * Alipay SDK
+                 * Auth Result: https://opendocs.alipay.com/open/218/105327#%E8%BF%94%E5%9B%9E%E7%BB%93%E6%9E%9C%E8%AF%B4%E6%98%8E
+                 * Request params: https://opendocs.alipay.com/open/02ailc#%E8%AF%B7%E6%B1%82%E5%8F%82%E6%95%B0
+                 * We only need "auth_code" as "code" parameter.
+                 */
+                // TODO - LOG-2186: Handle Errors in Social Sign in Process
+                val authCode = data.getString("auth_code")
+                val signInUri = Uri.parse(callbackUri).buildUpon().appendQueryParameter("code", authCode).build()
+                completion.onComplete(null, signInUri.toString())
             },
             true,
         )
