@@ -6,7 +6,7 @@ import io.logto.sdk.android.auth.social.web.WebSocialSession
 import io.logto.sdk.android.auth.social.wechat.WechatSocialSession
 import io.logto.sdk.android.completion.Completion
 
-object SocialSessionFactory {
+object SocialSessionHelper {
     fun createSocialSession(
         scheme: String,
         context: Activity,

@@ -4,7 +4,7 @@ import android.app.Activity
 import android.net.Uri
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
-import io.logto.sdk.android.auth.social.SocialSessionFactory
+import io.logto.sdk.android.auth.social.SocialSessionHelper
 import org.json.JSONObject
 
 class LogtoWebViewSocialHandler(
@@ -45,7 +45,7 @@ class LogtoWebViewSocialHandler(
         }
 
         webView.post {
-            val socialSession = SocialSessionFactory.createSocialSession(
+            val socialSession = SocialSessionHelper.createSocialSession(
                 scheme = scheme,
                 context = hostActivity,
                 redirectTo = redirectTo,
