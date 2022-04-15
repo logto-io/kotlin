@@ -20,10 +20,13 @@ open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val appId = Uri
-            .parse(wechatSocialSession[WECHAT_SOCIAL_SESSION_KEY]?.redirectTo)
-            .getQueryParameter(WechatSocialSession.APP_ID)
+        val redirectTo = wechatSocialSession[WECHAT_SOCIAL_SESSION_KEY]?.redirectTo
+        val appId = if (redirectTo == null) {
+            // Note: Uri.parse will throw NullPointerException if redirectTo is null
+            null
+        } else {
+            Uri.parse(redirectTo).getQueryParameter(WechatSocialSession.APP_ID)
+        }
 
         if (appId.isNullOrBlank()) {
             wechatSocialSession
