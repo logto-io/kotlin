@@ -4,9 +4,7 @@ import android.app.Activity
 import android.net.Uri
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
-import io.logto.sdk.android.auth.social.alipay.AlipaySocialSession
-import io.logto.sdk.android.auth.social.web.WebSocialSession
-import io.logto.sdk.android.auth.social.wechat.WechatSocialSession
+import io.logto.sdk.android.auth.social.SocialSessionFactory
 import org.json.JSONObject
 
 class LogtoWebViewSocialHandler(
@@ -18,6 +16,7 @@ class LogtoWebViewSocialHandler(
 
         private object DataKey {
             const val REDIRECT_TO = "redirectTo"
+            const val CALLBACK_URI = "callbackUri"
         }
     }
 
@@ -37,50 +36,28 @@ class LogtoWebViewSocialHandler(
         // TODO - LOG-2186: Handle Errors in Social Sign in Process
         val data = JSONObject(jsonData)
         val redirectTo = data.getString(DataKey.REDIRECT_TO)
-        val redirectToUri = Uri.parse(redirectTo)
-        webView.post {
-            handleSocial(redirectToUri)
-        }
-    }
+        val callbackUri = data.getString(DataKey.CALLBACK_URI)
 
-    private fun handleSocial(redirectTo: Uri) {
-        when (redirectTo.scheme) {
-            "http", "https" -> {
-                val authUri = redirectTo.toString()
-                val webSocialSession = WebSocialSession(
-                    hostActivity,
-                    authUri,
-                ) { exception, callbackUri ->
-                    // TODO - LOG-2186: Handle Errors in Social Sign in Process
-                    println("Social == Exceptions Of Web Auth: $exception")
-                    println("Social == CallbackUri Of Web Auth: $callbackUri")
-                }
-                webSocialSession.start()
-            }
-            "alipay" -> {
-                val alipaySocialSession = AlipaySocialSession(
-                    context = hostActivity,
-                ) { exception, authCode ->
-                    // TODO - LOG-2186: Handle Errors in Social Sign in Process
-                    println("Social == Exceptions Of Alipay Auth: $exception")
-                    println("Social == AuthCode Of Alipay Auth: $authCode")
-                }
-                alipaySocialSession.start()
-            }
-            "wechat" -> {
-                val wechatAuthSession = WechatSocialSession(
-                    context = hostActivity,
-                ) { exception, authCode ->
-                    // TODO - LOG-2186: Handle Errors in Social Sign in Process
-                    println("Social == Exceptions Of Wechat Auth: $exception")
-                    println("Social == AuthCode Of Wechat Auth: $authCode")
-                }
-                wechatAuthSession.start()
-            }
-            else -> {
+        val scheme = Uri.parse(redirectTo).scheme
+        if (scheme.isNullOrBlank()) {
+            // TODO - LOG-2186: Handle Errors in Social Sign in Process
+            return
+        }
+
+        webView.post {
+            val socialSession = SocialSessionFactory.createSocialSession(
+                scheme = scheme,
+                context = hostActivity,
+                redirectTo = redirectTo,
+                callbackUri = callbackUri,
+            ) { exception, result ->
                 // TODO - LOG-2186: Handle Errors in Social Sign in Process
-                println("Social == Unknown Scheme: ${redirectTo.scheme}")
+                println("Social == Exceptions Of Social Auth: $exception")
+                println("Social == Result Of Social Auth: $result")
             }
+
+            // TODO - LOG-2186: Handle Errors in Social Sign in Process
+            socialSession?.start() ?: print("Social == Unknown Social Scheme: $scheme")
         }
     }
 }
