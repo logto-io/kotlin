@@ -1,22 +1,23 @@
 package io.logto.sdk.android.auth.social.web
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.os.Bundle
 
 class WebSocialResultActivity : Activity() {
     companion object {
-        private const val WEB_SOCIAL_SESSION_KEY = "web"
-        private val webSocialSession = mutableMapOf<String, WebSocialSession>()
-
+        @SuppressLint("StaticFieldLeak")
+        private var webSocialSession: WebSocialSession? = null
         fun registerSession(session: WebSocialSession) {
-            webSocialSession[WEB_SOCIAL_SESSION_KEY] = session
+            webSocialSession = session
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         intent.data?.let {
-            webSocialSession.remove(WEB_SOCIAL_SESSION_KEY)?.handleResult(it)
+            webSocialSession?.handleResult(it)
+            webSocialSession = null
         }
         finish()
     }

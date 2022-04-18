@@ -1,5 +1,6 @@
 package io.logto.sdk.android.auth.social.wechat
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.net.Uri
 import android.os.Bundle
@@ -10,17 +11,16 @@ import com.tencent.mm.opensdk.openapi.WXAPIFactory
 
 open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
     companion object {
-        private const val WECHAT_SOCIAL_SESSION_KEY = "wechat"
-        private val wechatSocialSession = mutableMapOf<String, WechatSocialSession>()
-
+        @SuppressLint("StaticFieldLeak")
+        private var wechatSocialSession: WechatSocialSession? = null
         fun registerSession(session: WechatSocialSession) {
-            wechatSocialSession[WECHAT_SOCIAL_SESSION_KEY] = session
+            wechatSocialSession = session
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val redirectTo = wechatSocialSession[WECHAT_SOCIAL_SESSION_KEY]?.redirectTo
+        val redirectTo = wechatSocialSession?.redirectTo
         val appId = if (redirectTo == null) {
             // Note: Uri.parse will throw NullPointerException if redirectTo is null
             null
@@ -29,9 +29,8 @@ open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
         }
 
         if (appId.isNullOrBlank()) {
-            wechatSocialSession
-                .remove(WECHAT_SOCIAL_SESSION_KEY)
-                ?.handleMissingAppIdError()
+            wechatSocialSession?.handleMissingAppIdError()
+            wechatSocialSession = null
             finish()
             return
         }
@@ -47,9 +46,8 @@ open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
     }
 
     override fun onResp(response: BaseResp?) {
-        wechatSocialSession
-            .remove(WECHAT_SOCIAL_SESSION_KEY)
-            ?.handleResult(response)
+        wechatSocialSession?.handleResult(response)
+        wechatSocialSession = null
         finish()
     }
 }
