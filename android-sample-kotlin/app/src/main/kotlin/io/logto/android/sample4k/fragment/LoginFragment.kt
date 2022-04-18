@@ -1,4 +1,4 @@
-package io.logto.demo.fragment
+package io.logto.android.sample4k.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,9 +8,9 @@ import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import io.logto.demo.R
-import io.logto.demo.viewmodel.LogtoViewModel
-import io.logto.demo.viewmodel.LogtoViewModelFactory
+import io.logto.android.sample4k.R
+import io.logto.android.sample4k.viewmodel.LogtoViewModel
+import io.logto.android.sample4k.viewmodel.LogtoViewModelFactory
 
 class LoginFragment : Fragment() {
 
