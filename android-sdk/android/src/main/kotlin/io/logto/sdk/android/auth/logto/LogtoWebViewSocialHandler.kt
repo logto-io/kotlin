@@ -20,16 +20,18 @@ class LogtoWebViewSocialHandler(
         }
     }
 
-    // TODO - LOG-2178: Add `isAvailable` for social plugins
-    // Use ["wechat-native", "alipay"] temporary
     fun getInjectSocialScript() = """
         window.logtoNativeSdk = {
             platform: 'android',
             getPostMessage: () => (data) => window.$NAME.postMessage(JSON.stringify(data)),
-            supportedSocialConnectorIds: ["wechat-native", "alipay"],
+            supportedSocialConnectorIds: [${getSupportedSocialConnectorIds()}],
             callbackUriScheme: '${hostActivity.packageName}.logto-callback-web',
         };
     """.trimIndent()
+
+    private fun getSupportedSocialConnectorIds() = SocialSessionHelper
+        .getSupportedSocialConnectorIds()
+        .joinToString(",") { "\"$it\"" }
 
     @JavascriptInterface
     fun postMessage(jsonData: String) {

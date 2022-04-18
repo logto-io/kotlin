@@ -18,6 +18,10 @@ class WechatSocialSession(
     override val callbackUri: String,
     override val completion: Completion<String>,
 ) : SocialSession {
+    companion object {
+        const val CONNECTOR_ID = "wechat-native"
+        const val SDK_IDENTIFY_CLASS_NAME = "com.tencent.mm.opensdk.openapi.IWXAPI"
+    }
 
     override fun start() {
         val appId = Uri.parse(redirectTo).getQueryParameter("app_id")

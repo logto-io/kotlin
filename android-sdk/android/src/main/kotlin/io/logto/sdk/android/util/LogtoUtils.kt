@@ -10,4 +10,11 @@ object LogtoUtils {
     fun expiresAtFrom(startTime: Long, lifetime: Long): Long {
         return startTime + lifetime
     }
+
+    fun isDependencyInstalled(identifyClassName: String) = try {
+        Class.forName(identifyClassName)
+        true
+    } catch (_: ClassNotFoundException) {
+        false
+    }
 }

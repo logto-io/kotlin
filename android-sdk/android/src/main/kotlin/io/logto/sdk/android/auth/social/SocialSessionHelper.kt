@@ -5,6 +5,7 @@ import io.logto.sdk.android.auth.social.alipay.AlipaySocialSession
 import io.logto.sdk.android.auth.social.web.WebSocialSession
 import io.logto.sdk.android.auth.social.wechat.WechatSocialSession
 import io.logto.sdk.android.completion.Completion
+import io.logto.sdk.android.util.LogtoUtils.isDependencyInstalled
 
 object SocialSessionHelper {
     fun createSocialSession(
@@ -21,4 +22,14 @@ object SocialSessionHelper {
             else -> null
         }
     }
+
+    private val nativeSocialSdkIdentifyMeta = mapOf(
+        AlipaySocialSession.CONNECTOR_ID to AlipaySocialSession.SDK_IDENTIFY_CLASS_NAME,
+        WechatSocialSession.CONNECTOR_ID to WechatSocialSession.SDK_IDENTIFY_CLASS_NAME,
+    )
+
+    fun getSupportedSocialConnectorIds() =
+        nativeSocialSdkIdentifyMeta
+            .filter { (_, sdkIdentifyClassName) -> isDependencyInstalled(sdkIdentifyClassName) }
+            .map { (connectorId) -> connectorId }
 }

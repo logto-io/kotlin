@@ -15,6 +15,10 @@ class AlipaySocialSession(
     override val callbackUri: String,
     override val completion: Completion<String>,
 ) : SocialSession {
+    companion object {
+        const val SDK_IDENTIFY_CLASS_NAME = "com.alipay.sdk.app.OpenAuthTask"
+        const val CONNECTOR_ID = "alipay-native"
+    }
 
     override fun start() {
         val appId = Uri.parse(redirectTo).getQueryParameter("app_id")
