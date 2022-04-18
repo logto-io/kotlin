@@ -11,7 +11,7 @@
     <application>
         <activity android:name=".auth.logto.LogtoWebViewAuthActivity"
             android:exported="true"
-            android:launchMode="singleTop"/>
+            android:launchMode="singleTop" />
 
         <activity android:name=".auth.social.web.WebSocialResultActivity"
             android:exported="true">
@@ -26,10 +26,10 @@
         <activity android:name="com.alipay.sdk.app.AlipayResultActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="${applicationId}.logto-callback-alipay"/>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="${applicationId}.logto-callback-alipay" />
             </intent-filter>
         </activity>
     </application>
