@@ -13,16 +13,6 @@
             android:exported="true"
             android:launchMode="singleTop"/>
 
-        <activity android:name=".auth.logto.LogtoAuthResultActivity"
-                  android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="@string/logto_redirect_scheme" />
-            </intent-filter>
-        </activity>
-
         <activity android:name=".auth.social.web.WebSocialResultActivity"
             android:exported="true">
             <intent-filter>
