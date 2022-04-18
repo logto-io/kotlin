@@ -25,7 +25,7 @@ open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
             // Note: Uri.parse will throw NullPointerException if redirectTo is null
             null
         } else {
-            Uri.parse(redirectTo).getQueryParameter(WechatSocialSession.APP_ID)
+            Uri.parse(redirectTo).getQueryParameter("app_id")
         }
 
         if (appId.isNullOrBlank()) {

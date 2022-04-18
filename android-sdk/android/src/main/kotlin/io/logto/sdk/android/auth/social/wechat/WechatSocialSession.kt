@@ -18,12 +18,9 @@ class WechatSocialSession(
     override val callbackUri: String,
     override val completion: Completion<String>,
 ) : SocialSession {
-    companion object {
-        const val APP_ID = "app_id"
-    }
 
     override fun start() {
-        val appId = Uri.parse(redirectTo).getQueryParameter(APP_ID)
+        val appId = Uri.parse(redirectTo).getQueryParameter("app_id")
         if (appId.isNullOrBlank()) {
             handleMissingAppIdError()
             return

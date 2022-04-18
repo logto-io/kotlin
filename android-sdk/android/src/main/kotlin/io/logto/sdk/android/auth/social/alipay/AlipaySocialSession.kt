@@ -15,12 +15,9 @@ class AlipaySocialSession(
     override val callbackUri: String,
     override val completion: Completion<String>,
 ) : SocialSession {
-    companion object {
-        private const val APP_ID = "app_id"
-    }
 
     override fun start() {
-        val appId = Uri.parse(redirectTo).getQueryParameter(APP_ID)
+        val appId = Uri.parse(redirectTo).getQueryParameter("app_id")
         if (appId.isNullOrBlank()) {
             completion.onComplete(LogtoException(LogtoException.Message.ALIPAY_APP_ID_NO_FOUND), null)
             return
