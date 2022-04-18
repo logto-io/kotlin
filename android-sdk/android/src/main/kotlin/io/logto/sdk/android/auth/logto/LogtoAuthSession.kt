@@ -23,13 +23,12 @@ class LogtoAuthSession(
     private val state = GenerateUtils.generateState()
 
     fun start() {
-        val redirectUriScheme = Uri.parse(redirectUri).scheme
-        if (redirectUriScheme == null) {
+        if (Uri.parse(redirectUri) == Uri.EMPTY) {
             completion.onComplete(LogtoException(LogtoException.Message.INVALID_REDIRECT_URI), null)
             return
         }
 
-        LogtoAuthManager.handleAuthStart(redirectUriScheme, this)
+        LogtoAuthManager.handleAuthStart(this)
 
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = oidcConfig.authorizationEndpoint,

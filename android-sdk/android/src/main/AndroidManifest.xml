@@ -19,7 +19,9 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="${applicationId}.logto-callback-web" />
+                <data android:scheme="logto-callback"
+                    android:host="${applicationId}"
+                    android:pathPrefix="/web" />
             </intent-filter>
         </activity>
 
@@ -29,7 +31,9 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="${applicationId}.logto-callback-alipay" />
+                <data android:scheme="logto-callback"
+                    android:host="${applicationId}"
+                    android:pathPrefix="/alipay" />
             </intent-filter>
         </activity>
     </application>

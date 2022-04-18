@@ -27,7 +27,7 @@ class AlipaySocialSession(
         bizParams["url"] = generateAlipayAuthUri(appId)
         val openAuthTask = OpenAuthTask(context)
         openAuthTask.execute(
-            "${context.packageName}.logto-callback-alipay",
+            "logto-callback://${context.packageName}/alipay",
             OpenAuthTask.BizType.AccountAuth,
             bizParams,
             { resultCode, errorMessage, data ->

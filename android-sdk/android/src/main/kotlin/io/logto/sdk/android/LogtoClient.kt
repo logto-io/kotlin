@@ -2,6 +2,7 @@ package io.logto.sdk.android
 
 import android.app.Activity
 import android.app.Application
+import android.net.Uri
 import android.webkit.CookieManager
 import io.logto.sdk.android.auth.logto.LogtoAuthSession
 import io.logto.sdk.android.completion.Completion
@@ -67,6 +68,12 @@ open class LogtoClient(
         redirectUri: String,
         completion: EmptyCompletion,
     ) {
+        val url = "logto-callback://io.logto.android.sample4k/web"
+        val uri = Uri.parse(url)
+        println("Scheme Test == scheme: ${uri.scheme}")
+        println("Scheme Test == host: ${uri.host}")
+        println("Scheme Test == path: ${uri.path}")
+
         getOidcConfig { getOidcConfigException, oidcConfig ->
             getOidcConfigException?.let {
                 completion.onComplete(it)

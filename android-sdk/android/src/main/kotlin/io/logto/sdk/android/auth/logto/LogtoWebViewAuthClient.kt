@@ -20,10 +20,12 @@ class LogtoWebViewAuthClient(
             return super.shouldOverrideUrlLoading(view, request)
         }
 
-        if (LogtoAuthManager.isLogtoAuthCallbackUriScheme(request.url.scheme)) {
-            LogtoAuthManager.handleCallbackUri(request.url)
-            hostActivity.finish()
-            return true
+        request.apply {
+            if (LogtoAuthManager.isLogtoAuthResult(url)) {
+                LogtoAuthManager.handleCallbackUri(url)
+                hostActivity.finish()
+                return true
+            }
         }
 
         return false
