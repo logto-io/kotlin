@@ -4,7 +4,9 @@ import android.app.Activity
 import android.net.Uri
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
+import io.logto.sdk.android.auth.social.SocialException
 import io.logto.sdk.android.auth.social.SocialSessionHelper
+import org.json.JSONException
 import org.json.JSONObject
 
 class LogtoWebViewSocialHandler(
@@ -35,14 +37,25 @@ class LogtoWebViewSocialHandler(
 
     @JavascriptInterface
     fun postMessage(jsonData: String) {
-        // TODO - LOG-2186: Handle Errors in Social Sign in Process
-        val data = JSONObject(jsonData)
+        val data = try {
+            JSONObject(jsonData)
+        } catch (_: JSONException) {
+            val socialException = SocialException(SocialException.Type.INVALID_JSON)
+            postSocialException(socialException)
+            return
+        }
+
         val redirectTo = data.getString(DataKey.REDIRECT_TO)
         val callbackUri = data.getString(DataKey.CALLBACK_URI)
 
         val scheme = Uri.parse(redirectTo).scheme
         if (scheme.isNullOrBlank()) {
-            // TODO - LOG-2186: Handle Errors in Social Sign in Process
+            postSocialException(SocialException(SocialException.Type.INVALID_REDIRECT_TO))
+            return
+        }
+
+        if (Uri.parse(callbackUri) == Uri.EMPTY) {
+            postSocialException(SocialException(SocialException.Type.INVALID_CALLBACK_URI))
             return
         }
 
@@ -52,15 +65,29 @@ class LogtoWebViewSocialHandler(
                 context = hostActivity,
                 redirectTo = redirectTo,
                 callbackUri = callbackUri,
-            ) { exception, signInUri ->
+            ) { exception, continueSignInUri ->
                 exception?.let {
-                    // TODO - LOG-2186: Handle Errors in Social Sign in Process
-                    println("Social == Exceptions Of Social Auth: $exception")
-                } ?: webView.loadUrl(requireNotNull(signInUri))
+                    postSocialException(it)
+                } ?: webView.loadUrl(requireNotNull(continueSignInUri))
             }
 
-            // TODO - LOG-2186: Handle Errors in Social Sign in Process
-            socialSession?.start() ?: print("Social == Unknown Social Scheme: $scheme")
+            socialSession?.start() ?: postSocialException(
+                SocialException(SocialException.Type.UNKNOWN_SOCIAL_SCHEME),
+            )
         }
+    }
+
+    private fun postSocialException(exception: SocialException) {
+        webView.evaluateJavascript(
+            """
+                window.postMessage({
+                    type: 'error',
+                    code: '${exception.code}',
+                    ${exception.socialCode?.let { "socialCode: '$it'," }}
+                    ${exception.socialMessage?.let { "socialMessage: '$it'," }}
+                });
+            """.trimIndent(),
+            null,
+        )
     }
 }

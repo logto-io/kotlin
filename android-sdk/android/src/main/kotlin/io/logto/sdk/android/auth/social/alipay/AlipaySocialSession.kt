@@ -4,16 +4,16 @@ package io.logto.sdk.android.auth.social.alipay
 import android.app.Activity
 import android.net.Uri
 import com.alipay.sdk.app.OpenAuthTask
+import io.logto.sdk.android.auth.social.SocialException
 import io.logto.sdk.android.auth.social.SocialSession
 import io.logto.sdk.android.completion.Completion
-import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.core.util.GenerateUtils
 
 class AlipaySocialSession(
     override val context: Activity,
     override val redirectTo: String,
     override val callbackUri: String,
-    override val completion: Completion<String>,
+    override val completion: Completion<SocialException, String>,
 ) : SocialSession {
     companion object {
         const val SDK_IDENTIFY_CLASS_NAME = "com.alipay.sdk.app.OpenAuthTask"
@@ -23,7 +23,7 @@ class AlipaySocialSession(
     override fun start() {
         val appId = Uri.parse(redirectTo).getQueryParameter("app_id")
         if (appId.isNullOrBlank()) {
-            completion.onComplete(LogtoException(LogtoException.Message.ALIPAY_APP_ID_NO_FOUND), null)
+            completion.onComplete(SocialException(SocialException.Type.INSUFFICIENT_INFORMATION), null)
             return
         }
 
@@ -36,11 +36,12 @@ class AlipaySocialSession(
             bizParams,
             { resultCode, errorMessage, data ->
                 if (resultCode != OpenAuthTask.OK) {
-                    val logtoException =
-                        LogtoException(LogtoException.Message.ALIPAY_AUTH_FAILED).apply {
-                            detail = errorMessage
+                    val socialException =
+                        SocialException(SocialException.Type.AUTHENTICATION_FAILED).apply {
+                            socialCode = resultCode.toString()
+                            socialMessage = errorMessage
                         }
-                    completion.onComplete(logtoException, null)
+                    completion.onComplete(socialException, null)
                     return@execute
                 }
 
@@ -50,10 +51,17 @@ class AlipaySocialSession(
                  * Request params: https://opendocs.alipay.com/open/02ailc#%E8%AF%B7%E6%B1%82%E5%8F%82%E6%95%B0
                  * We only need "auth_code" as "code" parameter.
                  */
-                // TODO - LOG-2186: Handle Errors in Social Sign in Process
                 val authCode = data.getString("auth_code")
-                val signInUri = Uri.parse(callbackUri).buildUpon().appendQueryParameter("code", authCode).build()
-                completion.onComplete(null, signInUri.toString())
+                val continueSignInUri = try {
+                    Uri.parse(callbackUri).buildUpon().appendQueryParameter("code", authCode).build()
+                } catch (_: UnsupportedOperationException) {
+                    completion.onComplete(
+                        SocialException(SocialException.Type.UNABLE_TO_CONSTRUCT_CALLBACK_URI),
+                        null,
+                    )
+                    return@execute
+                }
+                completion.onComplete(null, continueSignInUri.toString())
             },
             true,
         )
