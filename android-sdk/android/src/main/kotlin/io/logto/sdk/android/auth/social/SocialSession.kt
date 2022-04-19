@@ -7,7 +7,7 @@ interface SocialSession {
     val context: Activity
     val redirectTo: String
     val callbackUri: String
-    val completion: Completion<String>
+    val completion: Completion<SocialException, String>
 
     fun start()
 }

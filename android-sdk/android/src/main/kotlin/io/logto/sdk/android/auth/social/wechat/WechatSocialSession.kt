@@ -7,16 +7,16 @@ import com.tencent.mm.opensdk.constants.ConstantsAPI
 import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.modelmsg.SendAuth
 import com.tencent.mm.opensdk.openapi.WXAPIFactory
+import io.logto.sdk.android.auth.social.SocialException
 import io.logto.sdk.android.auth.social.SocialSession
 import io.logto.sdk.android.completion.Completion
-import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.core.util.GenerateUtils
 
 class WechatSocialSession(
     override val context: Activity,
     override val redirectTo: String,
     override val callbackUri: String,
-    override val completion: Completion<String>,
+    override val completion: Completion<SocialException, String>,
 ) : SocialSession {
     companion object {
         const val CONNECTOR_ID = "wechat-native"
@@ -42,28 +42,36 @@ class WechatSocialSession(
     }
 
     fun handleResult(result: BaseResp?) {
-        result?.let {
-            if (it.errCode == BaseResp.ErrCode.ERR_OK) {
-                if (it.type == ConstantsAPI.COMMAND_SENDAUTH) {
-                    val authResponse = it as SendAuth.Resp
-                    /**
-                     * Wechat SDK: https://developers.weixin.qq.com/doc/oplatform/Mobile_App/WeChat_Login/Development_Guide.html
-                     * We only need "code" here
-                     */
-                    // TODO - LOG-2186: Handle Errors in Social Sign in Process
-                    val signInUri = Uri
-                        .parse(callbackUri)
+        result?.takeIf { it.errCode == BaseResp.ErrCode.ERR_OK && it.type == ConstantsAPI.COMMAND_SENDAUTH }
+            ?.let {
+                /**
+                 * Wechat SDK: https://developers.weixin.qq.com/doc/oplatform/Mobile_App/WeChat_Login/Development_Guide.html
+                 * We only need "code" here
+                 */
+                val authResponse = it as SendAuth.Resp
+                val continueSignInUri = try {
+                    Uri.parse(callbackUri)
                         .buildUpon()
                         .appendQueryParameter("code", authResponse.code)
                         .build()
-                    completion.onComplete(null, signInUri.toString())
+                } catch (_: UnsupportedOperationException) {
+                    completion.onComplete(
+                        SocialException(SocialException.Type.UNABLE_TO_CONSTRUCT_CALLBACK_URI),
+                        null,
+                    )
                     return
                 }
+                completion.onComplete(null, continueSignInUri.toString())
+                return
             }
+
+        val socialException = SocialException(SocialException.Type.AUTHENTICATION_FAILED).apply {
+            socialCode = result?.errCode.toString()
+            socialMessage = result?.errStr
         }
-        completion.onComplete(LogtoException(LogtoException.Message.WECHAT_AUTH_FAILED), null)
+        completion.onComplete(socialException, null)
     }
 
     fun handleMissingAppIdError() =
-        completion.onComplete(LogtoException(LogtoException.Message.WECHAT_APP_ID_NO_FOUND), null)
+        completion.onComplete(SocialException(SocialException.Type.INSUFFICIENT_INFORMATION), null)
 }

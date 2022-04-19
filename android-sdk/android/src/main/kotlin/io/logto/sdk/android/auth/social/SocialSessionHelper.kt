@@ -13,7 +13,7 @@ object SocialSessionHelper {
         context: Activity,
         redirectTo: String,
         callbackUri: String,
-        completion: Completion<String>,
+        completion: Completion<SocialException, String>,
     ): SocialSession? {
         return when (scheme) {
             "http", "https" -> WebSocialSession(context, redirectTo, callbackUri, completion)
