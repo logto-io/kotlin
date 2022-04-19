@@ -27,7 +27,7 @@ class LogtoWebViewSocialHandler(
             platform: 'android',
             getPostMessage: () => (data) => window.$NAME.postMessage(JSON.stringify(data)),
             supportedSocialConnectorIds: [${getSupportedSocialConnectorIds()}],
-            callbackUriScheme: 'logto-callback://${hostActivity.packageName}/web',
+            callbackUriScheme: '${hostActivity.packageName}.logto-callback-web',
         };
     """.trimIndent()
 
