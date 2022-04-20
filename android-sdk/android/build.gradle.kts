@@ -53,6 +53,9 @@ android {
 dependencies {
     api(libs.logtoSdk.kotlin)
 
+    compileOnly(libs.logtoSdk.alipay)
+    compileOnly(libs.wechatSdkAndroid)
+
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.browser)
 

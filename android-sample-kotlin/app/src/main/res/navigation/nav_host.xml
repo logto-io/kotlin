@@ -6,7 +6,7 @@
     app:startDestination="@id/loginFragment">
     <fragment
         android:id="@+id/loginFragment"
-        android:name="io.logto.demo.fragment.LoginFragment"
+        android:name="io.logto.android.sample4k.fragment.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" >
         <action
@@ -15,7 +15,7 @@
     </fragment>
     <fragment
         android:id="@+id/tokenFragment"
-        android:name="io.logto.demo.fragment.TokenFragment"
+        android:name="io.logto.android.sample4k.fragment.TokenFragment"
         android:label="fragment_token"
         tools:layout="@layout/fragment_token" >
         <action

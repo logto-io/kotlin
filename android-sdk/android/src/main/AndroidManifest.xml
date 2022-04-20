@@ -5,26 +5,35 @@
         <intent>
             <action android:name="android.support.customtabs.action.CustomTabsService" />
         </intent>
+        <package android:name="com.tencent.mm" />
     </queries>
 
     <application>
-        <activity android:name=".auth.webview.WebViewAuthActivity"
+        <activity android:name=".auth.logto.LogtoWebViewAuthActivity"
             android:exported="true"
-            android:launchMode="singleTop"/>
+            android:launchMode="singleTop" />
 
-        <activity android:name=".auth.CallbackUriActivity"
-                  android:exported="true">
+        <activity android:name=".auth.social.web.WebSocialResultActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="@string/logto_redirect_scheme" />
+                <data android:scheme="logto-callback"
+                    android:host="${applicationId}"
+                    android:pathPrefix="/web" />
             </intent-filter>
+        </activity>
+
+        <activity android:name="com.alipay.sdk.app.AlipayResultActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="logto-callback" />
+                <data android:scheme="logto-callback"
+                    android:host="${applicationId}"
+                    android:pathPrefix="/alipay" />
             </intent-filter>
         </activity>
     </application>

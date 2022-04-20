@@ -2,7 +2,8 @@ package io.logto.sdk.android
 
 import android.app.Activity
 import android.app.Application
-import io.logto.sdk.android.auth.session.LogtoAuthSession
+import android.webkit.CookieManager
+import io.logto.sdk.android.auth.logto.LogtoAuthSession
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.completion.EmptyCompletion
 import io.logto.sdk.android.constant.StorageKey
@@ -46,7 +47,8 @@ open class LogtoClient(
 
     protected var jwks: JsonWebKeySet? = null
 
-    private val pendingRefreshTokenCompletion = mutableMapOf<String, MutableList<Completion<AccessToken>>>()
+    private val pendingRefreshTokenCompletion =
+        mutableMapOf<String, MutableList<Completion<LogtoException, AccessToken>>>()
 
     val isAuthenticated
         get() = idToken != null
@@ -64,7 +66,7 @@ open class LogtoClient(
     fun signInWithBrowser(
         context: Activity,
         redirectUri: String,
-        completion: EmptyCompletion,
+        completion: EmptyCompletion<LogtoException>,
     ) {
         getOidcConfig { getOidcConfigException, oidcConfig ->
             getOidcConfigException?.let {
@@ -106,10 +108,16 @@ open class LogtoClient(
         }
     }
 
-    fun signOut(completion: EmptyCompletion? = null) {
+    fun signOut(completion: EmptyCompletion<LogtoException>? = null) {
         if (!isAuthenticated) {
             completion?.onComplete(LogtoException(LogtoException.Message.NOT_AUTHENTICATED))
             return
+        }
+
+        // Mark - Clear Cookies of WebView
+        CookieManager.getInstance().apply {
+            removeAllCookies(null)
+            flush()
         }
 
         accessTokenMap.clear()
@@ -138,12 +146,12 @@ open class LogtoClient(
         refreshToken = null
     }
 
-    fun getAccessToken(completion: Completion<AccessToken>) =
+    fun getAccessToken(completion: Completion<LogtoException, AccessToken>) =
         getAccessToken(null, completion)
 
     fun getAccessToken(
         resource: String?,
-        completion: Completion<AccessToken>,
+        completion: Completion<LogtoException, AccessToken>,
     ) {
         if (!isAuthenticated) {
             completion.onComplete(LogtoException(LogtoException.Message.NOT_AUTHENTICATED), null)
@@ -243,7 +251,7 @@ open class LogtoClient(
         }
     }
 
-    fun getIdTokenClaims(completion: Completion<IdTokenClaims>) {
+    fun getIdTokenClaims(completion: Completion<LogtoException, IdTokenClaims>) {
         if (!isAuthenticated) {
             completion.onComplete(LogtoException(LogtoException.Message.NOT_AUTHENTICATED), null)
             return
@@ -259,7 +267,7 @@ open class LogtoClient(
         }
     }
 
-    fun fetchUserInfo(completion: Completion<UserInfoResponse>) {
+    fun fetchUserInfo(completion: Completion<LogtoException, UserInfoResponse>) {
         getOidcConfig { getOidcConfigException, oidcConfig ->
             getOidcConfigException?.let {
                 completion.onComplete(it, null)
@@ -294,7 +302,7 @@ open class LogtoClient(
         responseRefreshToken: String,
         accessTokenKey: String,
         accessToken: AccessToken,
-        completion: EmptyCompletion,
+        completion: EmptyCompletion<LogtoException>,
     ) {
         getJwks { getJwksException, jwks ->
             getJwksException?.let {
@@ -317,7 +325,7 @@ open class LogtoClient(
         }
     }
 
-    internal fun getOidcConfig(completion: Completion<OidcConfigResponse>) {
+    internal fun getOidcConfig(completion: Completion<LogtoException, OidcConfigResponse>) {
         if (oidcConfig != null) {
             completion.onComplete(null, oidcConfig)
             return
@@ -334,7 +342,7 @@ open class LogtoClient(
         }
     }
 
-    internal fun getJwks(completion: Completion<JsonWebKeySet>) {
+    internal fun getJwks(completion: Completion<LogtoException, JsonWebKeySet>) {
         jwks?.let {
             completion.onComplete(null, it)
             return
