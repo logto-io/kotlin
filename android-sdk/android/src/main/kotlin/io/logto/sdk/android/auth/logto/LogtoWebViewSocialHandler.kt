@@ -33,7 +33,7 @@ class LogtoWebViewSocialHandler(
 
     private fun getSupportedSocialConnectorIds() = SocialSessionHelper
         .getSupportedSocialConnectorIds()
-        .joinToString(",") { "\"$it\"" }
+        .joinToString(", ") { "'$it'" }
 
     @JavascriptInterface
     fun postMessage(jsonData: String) {
@@ -76,7 +76,7 @@ class LogtoWebViewSocialHandler(
         }
     }
 
-    private fun postSocialException(exception: SocialException) {
+    internal fun postSocialException(exception: SocialException) {
         webView.evaluateJavascript(
             """
                 window.postMessage({
