@@ -5,7 +5,7 @@ import android.net.Uri
 
 internal object LogtoAuthManager {
     @SuppressLint("StaticFieldLeak")
-    private var logtoAuthSession: LogtoAuthSession? = null
+    internal var logtoAuthSession: LogtoAuthSession? = null
 
     fun handleAuthStart(authSession: LogtoAuthSession) {
         logtoAuthSession = authSession
