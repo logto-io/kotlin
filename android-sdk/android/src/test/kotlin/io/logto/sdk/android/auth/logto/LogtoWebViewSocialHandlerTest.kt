@@ -98,6 +98,32 @@ class LogtoWebViewSocialHandlerTest {
     }
 
     @Test
+    fun `postSocialException without socialCode and socialMessage`() {
+        every { mockWebView.evaluateJavascript(any(), any()) } just Runs
+
+        val logtoWebViewSocialHandler = LogtoWebViewSocialHandler(
+            mockWebView,
+            mockActivity,
+        )
+
+        val socialException = SocialException(SocialException.Type.INVALID_JSON)
+
+        logtoWebViewSocialHandler.postSocialException(socialException)
+
+        verify {
+            mockWebView.evaluateJavascript(
+                """
+                    window.postMessage({
+                        type: 'error',
+                        code: 'invalid_json',
+                    });
+                """.trimIndent(),
+                null,
+            )
+        }
+    }
+
+    @Test
     fun postMessage() {
         val validJsonDataString =
             "{\"redirectTo\":\"https://github.com/login\",\"callbackUri\":\"https://logto.dev/sign-in/callback/github\"}"
