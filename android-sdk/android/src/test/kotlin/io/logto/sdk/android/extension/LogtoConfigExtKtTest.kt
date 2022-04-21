@@ -9,10 +9,10 @@ class LogtoConfigExtKtTest {
     @Test
     fun getOidcConfigEndpoint() {
         val testLogtoConfig = LogtoConfig(
-            endpoint = "logto.dev",
+            endpoint = "https://logto.dev",
             clientId = "client",
         )
         assertThat(testLogtoConfig.oidcConfigEndpoint)
-            .isEqualTo("logto.dev/oidc/.well-known/openid-configuration")
+            .isEqualTo("https://logto.dev/oidc/.well-known/openid-configuration")
     }
 }
