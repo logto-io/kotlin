@@ -61,7 +61,6 @@ class LogtoWebViewSocialHandler(
 
         webView.post {
             val socialSession = SocialSessionHelper.createSocialSession(
-                scheme = scheme,
                 context = hostActivity,
                 redirectTo = redirectTo,
                 callbackUri = callbackUri,
