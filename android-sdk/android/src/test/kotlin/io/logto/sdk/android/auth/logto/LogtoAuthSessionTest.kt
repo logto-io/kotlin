@@ -46,7 +46,7 @@ class LogtoAuthSessionTest {
 
     @Before
     fun setUp() {
-        every { mockActivity.packageName } returns "logot.test"
+        every { mockActivity.packageName } returns "logto.test"
 
         every { mockActivity.startActivity(any()) } just Runs
 
