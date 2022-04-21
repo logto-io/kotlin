@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.browser)
 
     testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.robolectric)
     testImplementation(libs.truth)
     testImplementation(libs.mockk)
 }
