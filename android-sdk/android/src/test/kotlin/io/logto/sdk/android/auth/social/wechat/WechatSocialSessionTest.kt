@@ -105,7 +105,7 @@ class WechatSocialSessionTest {
     fun handleResult() {
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
-        val appId = ""
+        val appId = "wx1234567890"
         val redirectTo = "wechat-native://?app_id=$appId"
         val callbackUri = "https://logto.dev/wechat-native"
         val authorizationCode = "authorizationCode"
@@ -140,7 +140,7 @@ class WechatSocialSessionTest {
     fun `handleResult should complete with exception if auth failed`() {
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
-        val appId = ""
+        val appId = "wx1234567890"
         val redirectTo = "wechat-native://?app_id=$appId"
         val callbackUri = "https://logto.dev/wechat-native"
 
