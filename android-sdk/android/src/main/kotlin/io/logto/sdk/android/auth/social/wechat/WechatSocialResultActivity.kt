@@ -12,7 +12,7 @@ import com.tencent.mm.opensdk.openapi.WXAPIFactory
 open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
     companion object {
         @SuppressLint("StaticFieldLeak")
-        private var wechatSocialSession: WechatSocialSession? = null
+        internal var wechatSocialSession: WechatSocialSession? = null
         fun registerSession(session: WechatSocialSession) {
             wechatSocialSession = session
         }
@@ -20,25 +20,20 @@ open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val redirectTo = wechatSocialSession?.redirectTo
-        val appId = if (redirectTo == null) {
-            // Note: Uri.parse will throw NullPointerException if redirectTo is null
-            null
-        } else {
-            Uri.parse(redirectTo).getQueryParameter("app_id")
-        }
-
-        if (appId.isNullOrBlank()) {
-            wechatSocialSession?.handleMissingAppIdError()
-            wechatSocialSession = null
-            finish()
-            return
-        }
-
-        val api = WXAPIFactory.createWXAPI(this, appId).apply {
-            registerApp(appId)
-        }
-        api.handleIntent(intent, this)
+        wechatSocialSession?.let {
+            val redirectTo = it.redirectTo
+            val appId = Uri.parse(redirectTo).getQueryParameter("app_id")
+            if (appId.isNullOrBlank()) {
+                it.handleMissingAppIdError()
+                wechatSocialSession = null
+                finish()
+                return
+            }
+            val api = WXAPIFactory.createWXAPI(this, appId).apply {
+                registerApp(appId)
+            }
+            api.handleIntent(intent, this)
+        } ?: finish()
     }
 
     override fun onReq(request: BaseReq?) {
