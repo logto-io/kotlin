@@ -38,7 +38,7 @@ class LogtoWebViewAuthClientTest {
 
         mockkObject(logtoWebViewAuthClient)
 
-        every { logtoWebViewAuthClient.callOnPageStartedOnSuper(any(), any(), any()) } just Runs
+        every { logtoWebViewAuthClient.callSuperOnPageStarted(any(), any(), any()) } just Runs
 
         val mockWebView: WebView = mockk()
         every { mockWebView.evaluateJavascript(any(), any()) } just Runs

@@ -11,7 +11,7 @@ class LogtoWebViewAuthClient(
     private val injectScript: String,
 ) : WebViewClient() {
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-        callOnPageStartedOnSuper(view, url, favicon)
+        callSuperOnPageStarted(view, url, favicon)
         view?.evaluateJavascript(injectScript, null)
     }
 
@@ -32,7 +32,7 @@ class LogtoWebViewAuthClient(
     }
 
     // Wrap this for we can not mock the super method
-    internal fun callOnPageStartedOnSuper(view: WebView?, url: String?, favicon: Bitmap?) {
+    internal fun callSuperOnPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         super.onPageStarted(view, url, favicon)
     }
 }
