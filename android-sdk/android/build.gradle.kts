@@ -64,5 +64,6 @@ dependencies {
     testImplementation(libs.truth)
     testImplementation(libs.mockk)
     testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.logtoSdk.alipay)
     testImplementation(libs.wechatSdkAndroid)
 }
