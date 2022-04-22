@@ -77,7 +77,6 @@ class LogtoWebViewSocialHandler(
     }
 
     internal fun postSocialException(exception: SocialException) {
-        // Need to remove all empty lines
         val script = """
             window.postMessage({
                 type: 'error',
@@ -85,7 +84,9 @@ class LogtoWebViewSocialHandler(
                 ${exception.socialCode?.let { "socialCode: '$it'," } ?: ""}
                 ${exception.socialMessage?.let { "socialMessage: '$it'," } ?: ""}
             });
-        """.trimIndent().replace(Regex("(?m)^[ \t]*\r?\n"), "")
+        """.trimIndent()
+            // Remove all empty lines
+            .replace(Regex("(?m)^[ \t]*\r?\n"), "")
 
         webView.evaluateJavascript(script, null)
     }
