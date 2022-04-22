@@ -1,11 +1,11 @@
 package io.logto.sdk.android.completion
 
-import io.logto.sdk.android.exception.LogtoException
+import java.lang.RuntimeException
 
-fun interface Completion<T : Any> {
-    fun onComplete(logtoException: LogtoException?, result: T?)
+fun interface Completion<T : RuntimeException, U : Any> {
+    fun onComplete(exception: T?, result: U?)
 }
 
-fun interface EmptyCompletion {
-    fun onComplete(logtoException: LogtoException?)
+fun interface EmptyCompletion<T : RuntimeException> {
+    fun onComplete(exception: T?)
 }

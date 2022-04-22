@@ -1,4 +1,4 @@
-name: Add Labels
+name: Update Metadata
 
 on:
   issues:
@@ -10,7 +10,14 @@ jobs:
   add_labels:
     runs-on: ubuntu-latest
     steps:
-      - uses: logto-io/actions-add-labels-run-steps@v1.0.1
+      - uses: logto-io/actions-add-labels-run-steps@v1.1.2
         with:
           title: ${{ github.event.pull_request.title || github.event.issue.title }}
           github-token: ${{ github.token }}
+
+      - name: Add assignees
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions-ecosystem/action-add-assignees@v1
+        with:
+          github_token: ${{ github.token }}
+          assignees: ${{ github.actor }}

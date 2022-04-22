@@ -1,6 +1,7 @@
 package io.logto.sdk.android.auth.social
 
 import android.app.Activity
+import android.net.Uri
 import io.logto.sdk.android.auth.social.alipay.AlipaySocialSession
 import io.logto.sdk.android.auth.social.web.WebSocialSession
 import io.logto.sdk.android.auth.social.wechat.WechatSocialSession
@@ -9,13 +10,12 @@ import io.logto.sdk.android.util.LogtoUtils.isDependencyInstalled
 
 object SocialSessionHelper {
     fun createSocialSession(
-        scheme: String,
         context: Activity,
         redirectTo: String,
         callbackUri: String,
-        completion: Completion<String>,
+        completion: Completion<SocialException, String>,
     ): SocialSession? {
-        return when (scheme) {
+        return when (Uri.parse(redirectTo).scheme) {
             "http", "https" -> WebSocialSession(context, redirectTo, callbackUri, completion)
             "alipay" -> AlipaySocialSession(context, redirectTo, callbackUri, completion)
             "wechat" -> WechatSocialSession(context, redirectTo, callbackUri, completion)

@@ -23,7 +23,10 @@ import org.jose4j.jwk.JsonWebKeySet
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class LogtoClientTest {
     private val oidcConfigResponseMock: OidcConfigResponse = mockk()
     private val jwksMock: JsonWebKeySet = mockk()
@@ -274,12 +277,12 @@ class LogtoClientTest {
 
         mockkObject(logtoClient)
         every { logtoClient.getOidcConfig(any()) } answers {
-            firstArg<Completion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
         }
         val accessTokenMock: AccessToken = mockk()
         every { accessTokenMock.token } returns TEST_ACCESS_TOKEN
         every { logtoClient.getAccessToken(any(), any()) } answers {
-            lastArg<Completion<AccessToken>>().onComplete(null, accessTokenMock)
+            lastArg<Completion<LogtoException, AccessToken>>().onComplete(null, accessTokenMock)
         }
 
         val userInfoResponseMock: UserInfoResponse = mockk()
@@ -307,11 +310,11 @@ class LogtoClientTest {
         every { oidcConfigResponseMock.tokenEndpoint } returns TEST_TOKEN_ENDPOINT
         every { oidcConfigResponseMock.issuer } returns TEST_ISSUER
         every { logtoClient.getOidcConfig(any()) } answers {
-            firstArg<Completion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
         }
 
         every { logtoClient.getJwks((any())) } answers {
-            firstArg<Completion<JsonWebKeySet>>().onComplete(null, jwksMock)
+            firstArg<Completion<LogtoException, JsonWebKeySet>>().onComplete(null, jwksMock)
         }
 
         val refreshTokenTokenResponseMock: RefreshTokenTokenResponse = mockk()

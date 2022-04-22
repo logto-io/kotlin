@@ -17,7 +17,7 @@ class LogtoAuthSession(
     val logtoConfig: LogtoConfig,
     val oidcConfig: OidcConfigResponse,
     val redirectUri: String,
-    private val completion: Completion<CodeTokenResponse>,
+    private val completion: Completion<LogtoException, CodeTokenResponse>,
 ) {
     private val codeVerifier = GenerateUtils.generateCodeVerifier()
     private val state = GenerateUtils.generateState()
