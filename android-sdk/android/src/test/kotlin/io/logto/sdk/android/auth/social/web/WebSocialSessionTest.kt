@@ -86,7 +86,7 @@ class WebSocialSessionTest {
     }
 
     @Test
-    fun `should complete with exception if can not construct the continue sign in uri`() {
+    fun `should complete with exception if cannot construct the continue sign in uri`() {
         val socialExceptionCapture = mutableListOf<SocialException?>()
         val continueSignInUriCapture = mutableListOf<String?>()
 
