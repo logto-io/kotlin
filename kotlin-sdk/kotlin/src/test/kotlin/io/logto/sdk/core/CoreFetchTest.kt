@@ -171,7 +171,7 @@ class CoreFetchTest {
             redirectUri = "https://logto.dev/callback",
             codeVerifier = "codeVerifier",
             code = "code",
-            resource = null
+            resource = "resource",
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response
@@ -216,8 +216,8 @@ class CoreFetchTest {
             tokenEndpoint = "${mockWebServer.url("/token:bad")}",
             clientId = "clientId",
             refreshToken = "refreshToken",
-            resource = null,
-            scopes = null
+            resource = "resource",
+            scopes = listOf("scope1", "scope2"),
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response
