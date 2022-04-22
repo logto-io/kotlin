@@ -23,7 +23,10 @@ import org.jose4j.jwk.JsonWebKeySet
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class LogtoClientTest {
     private val oidcConfigResponseMock: OidcConfigResponse = mockk()
     private val jwksMock: JsonWebKeySet = mockk()
