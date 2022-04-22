@@ -7,11 +7,13 @@ import io.logto.sdk.android.auth.logto.LogtoWebViewAuthActivity
 import io.logto.sdk.android.auth.social.SocialException
 import io.logto.sdk.android.completion.Completion
 import io.mockk.Runs
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.verify
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -26,6 +28,11 @@ class AlipaySocialSessionTest {
 
     private val socialExceptionCapture = mutableListOf<SocialException?>()
     private val continueSignInUriCapture = mutableListOf<String?>()
+
+    @After
+    fun tearDown() {
+        clearAllMocks()
+    }
 
     @Test
     fun start() {
