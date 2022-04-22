@@ -77,16 +77,17 @@ class LogtoWebViewSocialHandler(
     }
 
     internal fun postSocialException(exception: SocialException) {
-        webView.evaluateJavascript(
-            """
-                window.postMessage({
-                    type: 'error',
-                    code: '${exception.code}',
-                    ${exception.socialCode?.let { "socialCode: '$it'," }}
-                    ${exception.socialMessage?.let { "socialMessage: '$it'," }}
-                });
-            """.trimIndent(),
-            null,
-        )
+        val script = """
+            window.postMessage({
+                type: 'error',
+                code: '${exception.code}',
+                ${exception.socialCode?.let { "socialCode: '$it'," } ?: ""}
+                ${exception.socialMessage?.let { "socialMessage: '$it'," } ?: ""}
+            });
+        """.trimIndent()
+            // Remove all empty lines
+            .replace(Regex("(?m)^[ \t]*\r?\n"), "")
+
+        webView.evaluateJavascript(script, null)
     }
 }
