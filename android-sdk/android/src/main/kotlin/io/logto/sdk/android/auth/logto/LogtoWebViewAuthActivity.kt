@@ -9,7 +9,7 @@ import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
 
 class LogtoWebViewAuthActivity : AppCompatActivity() {
-    private lateinit var webView: WebView
+    internal lateinit var webView: WebView
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
