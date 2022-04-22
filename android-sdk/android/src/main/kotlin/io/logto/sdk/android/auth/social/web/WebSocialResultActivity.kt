@@ -7,7 +7,7 @@ import android.os.Bundle
 class WebSocialResultActivity : Activity() {
     companion object {
         @SuppressLint("StaticFieldLeak")
-        private var webSocialSession: WebSocialSession? = null
+        internal var webSocialSession: WebSocialSession? = null
         fun registerSession(session: WebSocialSession) {
             webSocialSession = session
         }

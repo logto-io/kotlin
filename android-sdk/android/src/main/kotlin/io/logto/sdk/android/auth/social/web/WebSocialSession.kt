@@ -20,7 +20,7 @@ class WebSocialSession(
 
     fun handleResult(data: Uri) {
         val continueSignInUri = try {
-            Uri.parse(callbackUri).buildUpon().query(data.query).build()
+            Uri.parse(callbackUri).buildUpon().encodedQuery(data.query).build()
         } catch (_: UnsupportedOperationException) {
             completion.onComplete(
                 SocialException(SocialException.Type.UNABLE_TO_CONSTRUCT_CALLBACK_URI),
