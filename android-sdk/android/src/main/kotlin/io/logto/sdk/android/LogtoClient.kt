@@ -386,17 +386,17 @@ open class LogtoClient(
     }
 
     @TestOnly
-    fun setupRefreshToken(token: String?) {
+    internal fun setupRefreshToken(token: String?) {
         refreshToken = token
     }
 
     @TestOnly
-    fun setupIdToken(token: String?) {
+    internal fun setupIdToken(token: String?) {
         idToken = token
     }
 
     @TestOnly
-    fun setupAccessTokenMap(tokenMap: Map<String, AccessToken>) {
+    internal fun setupAccessTokenMap(tokenMap: Map<String, AccessToken>) {
         accessTokenMap.putAll(tokenMap)
     }
 }
