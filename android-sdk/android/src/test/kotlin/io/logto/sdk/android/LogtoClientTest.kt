@@ -33,6 +33,8 @@ class LogtoClientTest {
     private val logtoConfigMock: LogtoConfig = mockk()
     private lateinit var logtoClient: LogtoClient
 
+    private val timeBias = 10L
+
     companion object {
         private const val TEST_SCOPE = "scope"
 
@@ -48,6 +50,19 @@ class LogtoClientTest {
         private const val TEST_ACCESS_TOKEN = "accessToken"
         private const val TEST_ID_TOKEN = "idToken"
         private const val TEST_EXPIRE_IN = 60L
+        private const val TEST_JWKS_JSON = """
+            {
+                "keys": [
+                    {
+                        "kty": "RSA",
+                        "use": "sig",
+                        "kid": "Cskl6H4FGsi-q4BEOOPP9belshDaGf7wEubUNJBYpBk",
+                        "e": "AQAB",
+                        "n": "pB5nO7qovnRQrSQoVmdh0g6TGtMMjc1eS0rexzcuVIgtD-7-84DHt9FaiS8UVr2Tjdp_U4Jr-mJJNbYhxae2FjNkpWf_ETND8hEYTSCZTJCkX0asnzb-xZgt2_xNiOAUzmXEaSHO215Y-WYL2LydLjoMrK70FfoFC4jnsgnnKlf1fQW2llCpG-b19w-aHU5m8fPOWKz5n27jEYNbEqHK-wsGavt7eyhVfEVPNbVl5j_n8o-VfnQT-LyO4Fg6U0XwHz1yXrT7NUMO_qdfwv1QbM0EPyWkxLoSColRZVibPmMpkc9RcOJ2crP5u602W8UOYvbtcBCaXVbzp5iriBAVxRq3tsrnTpHr-1FV5jtwU1aLMucIkOM3iJGSLoLizgwEIAnmLh1u_-lxFeSEWDX3RIE3kZOWdZoRBKcxCYPV4X7Mkca8UNW42FTeUG8f9bq43_FgZvWnnFBYpzTuHTnLlkw1a3GmjRy02_tqhV7xp5rM65Jc8HZEW81L3JKLp87ySqjKWfBkmI0ebzEPZVwV69ggI6eBVzGK1nViHsBWgDAomBGPVUqfZmACIcdy7hOp-40mDa6RscqBFtpd3RPb6lGyf2yDCH-4AY6ZRQUX10TdtW2NQon8-SBNgye4x5ZiUS7EXFxvIaTEZ_MZryS3yo5_xWtYAZLCJrDqEZLY2mE"
+                    }
+                ]
+            }
+        """
     }
 
     @Before
@@ -114,7 +129,7 @@ class LogtoClientTest {
 
         val testTokenKey = logtoClient.buildAccessTokenKey(null, null)
         val testAccessToken: AccessToken = mockk()
-        every { testAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() + 1L
+        every { testAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() + timeBias
 
         logtoClient.setupAccessTokenMap(mapOf(testTokenKey to testAccessToken))
 
@@ -135,7 +150,7 @@ class LogtoClientTest {
 
         val expiredAccessTokenKey = logtoClient.buildAccessTokenKey(null, null)
         val expiredAccessToken: AccessToken = mockk()
-        every { expiredAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() - 1L
+        every { expiredAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() - timeBias
         logtoClient.setupAccessTokenMap(mapOf(expiredAccessTokenKey to expiredAccessToken))
 
         logtoClient.getAccessToken(
@@ -173,7 +188,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun getOidcConfig() {
+    fun `getOidcConfig should complete with oidc config if fetchOidcConfig success`() {
         every { logtoConfigMock.endpoint } returns "https://logto.dev"
 
         mockkObject(Core)
@@ -190,7 +205,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `getOidcConfig success more than one time should only fetch once`() {
+    fun `getOidcConfig success more than once should only fetch once`() {
         every { logtoConfigMock.endpoint } returns "https://logto.dev"
 
         mockkObject(Core)
@@ -198,7 +213,7 @@ class LogtoClientTest {
             secondArg<HttpCompletion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
         }
 
-        val logtoClient = LogtoClient(logtoConfigMock, mockk())
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
 
         logtoClient.getOidcConfig { throwable, result ->
             assertThat(throwable).isNull()
@@ -214,7 +229,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun getIdTokenClaims() {
+    fun `getIdTokenClaims should complete with token claims`() {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
         logtoClient.setupIdToken(TEST_ID_TOKEN)
 
@@ -270,7 +285,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun fetchUserInfo() {
+    fun `fetchUserInfo should complete with user info`() {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 
         every { oidcConfigResponseMock.userinfoEndpoint } returns TEST_USERINFO_ENDPOINT
@@ -295,6 +310,210 @@ class LogtoClientTest {
         logtoClient.fetchUserInfo { logtoException, result ->
             assertThat(logtoException).isNull()
             assertThat(result).isEqualTo(userInfoResponseMock)
+        }
+    }
+
+    @Test
+    fun `fetchUserInfo should complete with exception if cannot get oidc config`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG),
+                null,
+            )
+        }
+
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `fetchUserInfo should complete with exception if cannot get access token`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        every { oidcConfigResponseMock.userinfoEndpoint } returns TEST_USERINFO_ENDPOINT
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        val mockGetAccessTokenException: LogtoException = mockk()
+        every { logtoClient.getAccessToken(any(), any()) } answers {
+            lastArg<Completion<LogtoException, AccessToken>>().onComplete(mockGetAccessTokenException, null)
+        }
+
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException).isEqualTo(mockGetAccessTokenException)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `fetchUserInfo should complete with exception if fetchUserInfo failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        every { oidcConfigResponseMock.userinfoEndpoint } returns TEST_USERINFO_ENDPOINT
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+        val accessTokenMock: AccessToken = mockk()
+        every { accessTokenMock.token } returns TEST_ACCESS_TOKEN
+        every { logtoClient.getAccessToken(any(), any()) } answers {
+            lastArg<Completion<LogtoException, AccessToken>>().onComplete(null, accessTokenMock)
+        }
+
+        mockkObject(Core)
+        every { Core.fetchUserInfo(any(), any(), any()) } answers {
+            lastArg<HttpCompletion<UserInfoResponse>>().onComplete(
+                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_USER_INFO),
+                null,
+            )
+        }
+
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_USER_INFO.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `getJwks should complete with jwks`() {
+        every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        mockkObject(Core)
+        every { Core.fetchJwksJson(any(), any()) } answers {
+            secondArg<HttpCompletion<String>>().onComplete(null, TEST_JWKS_JSON)
+        }
+
+        val expectedJwks = JsonWebKeySet(TEST_JWKS_JSON)
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result?.toJson()).isEqualTo(expectedJwks.toJson())
+        }
+    }
+
+    @Test
+    fun `getJwks success more than once should only fetch once`() {
+        every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        mockkObject(Core)
+        every { Core.fetchJwksJson(any(), any()) } answers {
+            secondArg<HttpCompletion<String>>().onComplete(null, TEST_JWKS_JSON)
+        }
+
+        val expectedJwks = JsonWebKeySet(TEST_JWKS_JSON)
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result?.toJson()).isEqualTo(expectedJwks.toJson())
+        }
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result?.toJson()).isEqualTo(expectedJwks.toJson())
+        }
+
+        verify(exactly = 1) {
+            Core.fetchJwksJson(any(), any())
+        }
+    }
+
+    @Test
+    fun `getJwks should complete with exception if get oidc config failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG),
+                null,
+            )
+        }
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `getJwks should complete with exception if fetchJwksJson failed`() {
+        every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        mockkObject(Core)
+        every { Core.fetchJwksJson(any(), any()) } answers {
+            secondArg<HttpCompletion<String>>().onComplete(
+                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_JWKS_JSON),
+                null,
+            )
+        }
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_JWKS_JSON.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `getJwks should complete with exception if got an invalid jwks JSON from fetchJwksJson`() {
+        every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        val invalidJwksJson = "invalidJwksJson"
+
+        mockkObject(Core)
+        every { Core.fetchJwksJson(any(), any()) } answers {
+            secondArg<HttpCompletion<String>>().onComplete(null, invalidJwksJson)
+        }
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Message.UNABLE_TO_PARSE_JWKS.name)
+            assertThat(result).isNull()
         }
     }
 

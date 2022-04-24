@@ -15,7 +15,6 @@ import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils.expiresAtFrom
 import io.logto.sdk.android.util.LogtoUtils.nowRoundToSec
 import io.logto.sdk.core.Core
-import io.logto.sdk.core.http.httpGet
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.UserInfoResponse
@@ -354,10 +353,10 @@ open class LogtoClient(
                 return@getOidcConfig
             }
 
-            httpGet(requireNotNull(oidcConfig).jwksUri) { fetchJwksJsonException, jwksJson ->
+            Core.fetchJwksJson(requireNotNull(oidcConfig).jwksUri) { fetchJwksJsonException, jwksJson ->
                 fetchJwksJsonException?.let {
                     completion.onComplete(LogtoException(LogtoException.Message.UNABLE_TO_FETCH_JWKS_JSON, it), null)
-                    return@httpGet
+                    return@fetchJwksJson
                 }
 
                 try {
@@ -367,7 +366,7 @@ open class LogtoClient(
                         LogtoException(LogtoException.Message.UNABLE_TO_PARSE_JWKS, joseException),
                         null,
                     )
-                    return@httpGet
+                    return@fetchJwksJson
                 }
 
                 completion.onComplete(null, jwks)

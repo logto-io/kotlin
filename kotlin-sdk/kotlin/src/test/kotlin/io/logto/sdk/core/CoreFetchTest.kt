@@ -23,6 +23,19 @@ class CoreFetchTest {
         private const val TEST_REVOCATION_ENDPOINT = "https://logto.dev/oidc/token/revocation"
         private const val TEST_JWKS_URI = "https://logto.dev/oidc/jwks"
         private const val TEST_ISSUER = "http://localhost:443/oidc"
+        private const val TEST_JWKS_JSON = """
+            {
+                "keys": [
+                    {
+                        "kty": "RSA",
+                        "use": "sig",
+                        "kid": "Cskl6H4FGsi-q4BEOOPP9belshDaGf7wEubUNJBYpBk",
+                        "e": "AQAB",
+                        "n": "pB5nO7qovnRQrSQoVmdh0g6TGtMMjc1eS0rexzcuVIgtD-7-84DHt9FaiS8UVr2Tjdp_U4Jr-mJJNbYhxae2FjNkpWf_ETND8hEYTSCZTJCkX0asnzb-xZgt2_xNiOAUzmXEaSHO215Y-WYL2LydLjoMrK70FfoFC4jnsgnnKlf1fQW2llCpG-b19w-aHU5m8fPOWKz5n27jEYNbEqHK-wsGavt7eyhVfEVPNbVl5j_n8o-VfnQT-LyO4Fg6U0XwHz1yXrT7NUMO_qdfwv1QbM0EPyWkxLoSColRZVibPmMpkc9RcOJ2crP5u602W8UOYvbtcBCaXVbzp5iriBAVxRq3tsrnTpHr-1FV5jtwU1aLMucIkOM3iJGSLoLizgwEIAnmLh1u_-lxFeSEWDX3RIE3kZOWdZoRBKcxCYPV4X7Mkca8UNW42FTeUG8f9bq43_FgZvWnnFBYpzTuHTnLlkw1a3GmjRy02_tqhV7xp5rM65Jc8HZEW81L3JKLp87ySqjKWfBkmI0ebzEPZVwV69ggI6eBVzGK1nViHsBWgDAomBGPVUqfZmACIcdy7hOp-40mDa6RscqBFtpd3RPb6lGyf2yDCH-4AY6ZRQUX10TdtW2NQon8-SBNgye4x5ZiUS7EXFxvIaTEZ_MZryS3yo5_xWtYAZLCJrDqEZLY2mE"
+                    }
+                ]
+            }
+        """
     }
     private lateinit var mockWebServer: MockWebServer
     private val dispatcher = object : Dispatcher() {
@@ -43,6 +56,10 @@ class CoreFetchTest {
                         }
                         """.trimIndent()
                     )
+                }
+                "/jwks:good" -> MockResponse().apply {
+                    setResponseCode(200)
+                    setBody(TEST_JWKS_JSON)
                 }
                 "/token:good" -> MockResponse().apply {
                     setResponseCode(200)
@@ -124,6 +141,46 @@ class CoreFetchTest {
         val countDownLatch = CountDownLatch(1)
         Core.fetchOidcConfig(
             "${mockWebServer.url("/oidc_config:bad")}"
+        ) { throwable, response ->
+            throwableReceiver = throwable
+            responseReceiver = response
+            countDownLatch.countDown()
+        }
+        countDownLatch.await()
+
+        assertThat(throwableReceiver).isNotNull()
+        assertThat(responseReceiver).isNull()
+    }
+
+    @Test
+    fun `fetchJwksJson should get jwks data`() {
+        var throwableReceiver: Throwable? = null
+        var responseReceiver: String? = null
+
+        val countDownLatch = CountDownLatch(1)
+        Core.fetchJwksJson(
+            "${mockWebServer.url("/jwks:good")}"
+        ) { throwable, response ->
+            throwableReceiver = throwable
+            responseReceiver = response
+            countDownLatch.countDown()
+        }
+        countDownLatch.await()
+
+        val expectedResponse = TEST_JWKS_JSON
+
+        assertThat(throwableReceiver).isNull()
+        assertThat(responseReceiver).isEqualTo(expectedResponse)
+    }
+
+    @Test
+    fun `fetchJwksJson should fail without response`() {
+        var throwableReceiver: Throwable? = null
+        var responseReceiver: OidcConfigResponse? = null
+
+        val countDownLatch = CountDownLatch(1)
+        Core.fetchOidcConfig(
+            "${mockWebServer.url("/jwks:bad")}"
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response

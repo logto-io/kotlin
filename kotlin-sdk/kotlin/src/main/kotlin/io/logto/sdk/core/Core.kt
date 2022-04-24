@@ -64,6 +64,9 @@ object Core {
     fun fetchOidcConfig(endpoint: String, completion: HttpCompletion<OidcConfigResponse>) =
         httpGet(endpoint, completion)
 
+    fun fetchJwksJson(jwksUri: String, completion: HttpCompletion<String>) =
+        httpGet(jwksUri, completion)
+
     @Suppress("LongParameterList")
     fun fetchTokenByAuthorizationCode(
         tokenEndpoint: String,
