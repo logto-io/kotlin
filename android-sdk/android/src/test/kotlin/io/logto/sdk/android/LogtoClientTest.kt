@@ -387,6 +387,7 @@ class LogtoClientTest {
         }
     }
 
+    @Test
     fun `getJwks should complete with jwks`() {
         every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
 
@@ -406,10 +407,11 @@ class LogtoClientTest {
 
         logtoClient.getJwks { throwable, result ->
             assertThat(throwable).isNull()
-            assertThat(result).isEqualTo(expectedJwks)
+            assertThat(result?.toJson()).isEqualTo(expectedJwks.toJson())
         }
     }
 
+    @Test
     fun `getJwks success more than once should only fetch once`() {
         every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
 
@@ -429,12 +431,12 @@ class LogtoClientTest {
 
         logtoClient.getJwks { throwable, result ->
             assertThat(throwable).isNull()
-            assertThat(result).isEqualTo(expectedJwks)
+            assertThat(result?.toJson()).isEqualTo(expectedJwks.toJson())
         }
 
         logtoClient.getJwks { throwable, result ->
             assertThat(throwable).isNull()
-            assertThat(result).isEqualTo(expectedJwks)
+            assertThat(result?.toJson()).isEqualTo(expectedJwks.toJson())
         }
 
         verify(exactly = 1) {
@@ -442,6 +444,7 @@ class LogtoClientTest {
         }
     }
 
+    @Test
     fun `getJwks should complete with exception if get oidc config failed`() {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 
@@ -461,6 +464,7 @@ class LogtoClientTest {
         }
     }
 
+    @Test
     fun `getJwks should complete with exception if fetchJwksJson failed`() {
         every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
 
@@ -487,6 +491,7 @@ class LogtoClientTest {
         }
     }
 
+    @Test
     fun `getJwks should complete with exception if got an invalid jwks JSON from fetchJwksJson`() {
         every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
 
