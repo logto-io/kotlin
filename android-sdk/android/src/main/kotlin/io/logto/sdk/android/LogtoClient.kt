@@ -294,7 +294,6 @@ open class LogtoClient(
         }
     }
 
-    @Suppress("LongParameterList")
     private fun verifyAndSaveTokenResponse(
         issuer: String,
         responseIdToken: String?,

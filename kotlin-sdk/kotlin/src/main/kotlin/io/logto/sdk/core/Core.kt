@@ -19,7 +19,6 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 object Core {
-    @Suppress("LongParameterList")
     fun generateSignInUri(
         authorizationEndpoint: String,
         clientId: String,
@@ -67,7 +66,6 @@ object Core {
     fun fetchJwksJson(jwksUri: String, completion: HttpCompletion<String>) =
         httpGet(jwksUri, completion)
 
-    @Suppress("LongParameterList")
     fun fetchTokenByAuthorizationCode(
         tokenEndpoint: String,
         clientId: String,
@@ -88,7 +86,6 @@ object Core {
         httpPost(tokenEndpoint, formBody, completion)
     }
 
-    @Suppress("LongParameterList")
     fun fetchTokenByRefreshToken(
         tokenEndpoint: String,
         clientId: String,
