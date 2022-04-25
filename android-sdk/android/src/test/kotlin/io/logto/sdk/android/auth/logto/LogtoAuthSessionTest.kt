@@ -39,7 +39,7 @@ class LogtoAuthSessionTest {
 
     private val dummyLogtoConfig = LogtoConfig(
         "endpoint",
-        "clientId",
+        "appId",
     )
 
     private val dummyRedirectUri = "localhost:3001/callback"
