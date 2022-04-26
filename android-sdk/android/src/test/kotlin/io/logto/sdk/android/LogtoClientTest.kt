@@ -126,6 +126,7 @@ class LogtoClientTest {
     @Test
     fun `signOut should clear all relative data`() {
         every { logtoConfigMock.appId } returns TEST_APP_ID
+
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 
         mockkObject(logtoClient)
