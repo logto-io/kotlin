@@ -48,7 +48,7 @@ class LogtoClientTest {
         private const val TEST_RESOURCE_2 = "resource_2"
         private const val TEST_RESOURCE_3 = "resource_3"
 
-        private const val TEST_CLIENT_ID = "client_id"
+        private const val TEST_APP_ID = "app_id"
         private const val TEST_REFRESH_TOKEN = "refreshToken"
         private const val TEST_TOKEN_ENDPOINT = "tokenEndpoint"
         private const val TEST_USERINFO_ENDPOINT = "userinfoEndpoint"
@@ -125,7 +125,8 @@ class LogtoClientTest {
 
     @Test
     fun `signOut should clear all relative data`() {
-        every { logtoConfigMock.clientId } returns TEST_CLIENT_ID
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 
         mockkObject(logtoClient)
@@ -197,7 +198,7 @@ class LogtoClientTest {
 
     @Test
     fun `signOutWithBrowser should complete with exception if revoke failed`() {
-        every { logtoConfigMock.clientId } returns TEST_CLIENT_ID
+        every { logtoConfigMock.appId } returns TEST_APP_ID
 
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 
@@ -674,7 +675,7 @@ class LogtoClientTest {
     }
 
     private fun setupRefreshTokenTestEnv() {
-        every { logtoConfigMock.clientId } returns TEST_CLIENT_ID
+        every { logtoConfigMock.appId } returns TEST_APP_ID
 
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 

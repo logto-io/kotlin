@@ -13,7 +13,7 @@ class LogtoConfigExtKtTest {
     fun `should get correct oidc config endpoint by endpoint without slash`() {
         val testLogtoConfig = LogtoConfig(
             endpoint = "https://logto.dev",
-            clientId = "client",
+            appId = "dummyAppId",
         )
         assertThat(testLogtoConfig.oidcConfigEndpoint)
             .isEqualTo("https://logto.dev/oidc/.well-known/openid-configuration")
@@ -23,7 +23,7 @@ class LogtoConfigExtKtTest {
     fun `should get correct oidc config endpoint by endpoint with slash`() {
         val testLogtoConfig = LogtoConfig(
             endpoint = "https://logto.dev/",
-            clientId = "client",
+            appId = "dummyAppId",
         )
         assertThat(testLogtoConfig.oidcConfigEndpoint)
             .isEqualTo("https://logto.dev/oidc/.well-known/openid-configuration")

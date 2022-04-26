@@ -53,7 +53,7 @@ open class LogtoClient(
         get() = idToken != null
 
     private val storage = if (logtoConfig.usingPersistStorage) {
-        PersistStorage(application, "${StorageKey.STORAGE_NAME_PREFIX}:${logtoConfig.clientId}")
+        PersistStorage(application, "${StorageKey.STORAGE_NAME_PREFIX}:${logtoConfig.appId}")
     } else {
         null
     }
@@ -130,7 +130,7 @@ open class LogtoClient(
                 }
                 Core.revoke(
                     revocationEndpoint = requireNotNull(oidcConfig).revocationEndpoint,
-                    clientId = logtoConfig.clientId,
+                    clientId = logtoConfig.appId,
                     token = tokenToRevoke,
                 ) { revokeException ->
                     completion?.onComplete(
@@ -203,7 +203,7 @@ open class LogtoClient(
 
             Core.fetchTokenByRefreshToken(
                 tokenEndpoint = requireNotNull(oidcConfig).tokenEndpoint,
-                clientId = logtoConfig.clientId,
+                clientId = logtoConfig.appId,
                 refreshToken = byRefreshToken,
                 resource = resource,
                 scopes = null,
@@ -310,7 +310,7 @@ open class LogtoClient(
             }
             responseIdToken?.let {
                 try {
-                    TokenUtils.verifyIdToken(it, logtoConfig.clientId, issuer, requireNotNull(jwks))
+                    TokenUtils.verifyIdToken(it, logtoConfig.appId, issuer, requireNotNull(jwks))
                 } catch (exception: InvalidJwtException) {
                     completion.onComplete(LogtoException(LogtoException.Message.INVALID_ID_TOKEN, exception))
                     return@getJwks

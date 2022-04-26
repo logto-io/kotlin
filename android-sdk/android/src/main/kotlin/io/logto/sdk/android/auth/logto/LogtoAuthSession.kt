@@ -32,7 +32,7 @@ class LogtoAuthSession(
 
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = oidcConfig.authorizationEndpoint,
-            clientId = logtoConfig.clientId,
+            clientId = logtoConfig.appId,
             redirectUri = redirectUri,
             codeChallenge = GenerateUtils.generateCodeChallenge(codeVerifier),
             state = state,
@@ -60,7 +60,7 @@ class LogtoAuthSession(
 
         Core.fetchTokenByAuthorizationCode(
             tokenEndpoint = oidcConfig.tokenEndpoint,
-            clientId = logtoConfig.clientId,
+            clientId = logtoConfig.appId,
             redirectUri = redirectUri,
             codeVerifier = codeVerifier,
             code = authorizationCode,

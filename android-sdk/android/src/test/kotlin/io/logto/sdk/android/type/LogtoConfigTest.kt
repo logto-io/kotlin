@@ -9,7 +9,7 @@ class LogtoConfigTest {
     fun `LogtoConfig's scope should always contain 'openid' and 'offline_access'`() {
         val logtoConfigWithoutScope = LogtoConfig(
             endpoint = "endpoint",
-            clientId = "client",
+            appId = "appId",
         )
 
         assertThat(logtoConfigWithoutScope.scopes).apply {
@@ -19,7 +19,7 @@ class LogtoConfigTest {
 
         val logtoConfigWithOtherScope = LogtoConfig(
             endpoint = "endpoint",
-            clientId = "client",
+            appId = "appId",
             scopes = listOf("other_scope")
         )
 
