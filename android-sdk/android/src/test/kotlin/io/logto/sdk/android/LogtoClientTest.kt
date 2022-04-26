@@ -1,6 +1,8 @@
 package io.logto.sdk.android
 
+import android.webkit.CookieManager
 import com.google.common.truth.Truth.assertThat
+import io.logto.sdk.android.auth.logto.LogtoAuthSession
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.AccessToken
@@ -8,19 +10,23 @@ import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.http.HttpCompletion
+import io.logto.sdk.core.http.HttpEmptyCompletion
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
 import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.TokenUtils
 import io.mockk.Runs
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkConstructor
 import io.mockk.mockkObject
 import io.mockk.verify
 import org.jose4j.jwk.JsonWebKeySet
 import org.jose4j.jwt.consumer.InvalidJwtException
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,6 +52,7 @@ class LogtoClientTest {
         private const val TEST_REFRESH_TOKEN = "refreshToken"
         private const val TEST_TOKEN_ENDPOINT = "tokenEndpoint"
         private const val TEST_USERINFO_ENDPOINT = "userinfoEndpoint"
+        private const val TEST_REVOCATION_ENDPOINT = "endSessionEndpoint"
         private const val TEST_ISSUER = "issuer"
         private const val TEST_ACCESS_TOKEN = "accessToken"
         private const val TEST_ID_TOKEN = "idToken"
@@ -67,9 +74,158 @@ class LogtoClientTest {
 
     @Before
     fun setup() {
-        // Note: Disable persist storage temporarily
-        // TODO - Android Test Env Setup : LOG-1086
         every { logtoConfigMock.usingPersistStorage } returns false
+    }
+
+    @After
+    fun tearDown() {
+        clearAllMocks()
+    }
+
+    @Test
+    fun `signInWithBrowser should complete with exception if get oidc config failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG),
+                null,
+            )
+        }
+
+        logtoClient.signInWithBrowser(mockk(), "dummyRedirectUri") { logtoException ->
+            assertThat(logtoException)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+        }
+    }
+
+    @Test
+    fun `signInWithBrowser should start a logto auth session`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkConstructor(LogtoAuthSession::class)
+        every {
+            anyConstructed<LogtoAuthSession>().start()
+        } just Runs
+
+        logtoClient.signInWithBrowser(mockk(), "dummyRedirectUri", mockk())
+
+        verify {
+            anyConstructed<LogtoAuthSession>().start()
+        }
+    }
+
+    @Test
+    fun `signOut should clear all relative data`() {
+        every { logtoConfigMock.clientId } returns TEST_CLIENT_ID
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupIdToken("dummyIdToken")
+        logtoClient.setupRefreshToken("dummyRefreshToken")
+
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        val cookieManagerInstance = CookieManager.getInstance()
+        mockkObject(cookieManagerInstance)
+        every { cookieManagerInstance.removeAllCookies(any()) } just Runs
+        every { cookieManagerInstance.flush() } just Runs
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } just Runs
+
+        logtoClient.signOut(mockk())
+
+        verify {
+            Core.revoke(any(), any(), any(), any())
+        }
+
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut should complete with exception if not authenticated`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        every { logtoClient.isAuthenticated } returns false
+
+        logtoClient.signOut {
+            assertThat(it)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Message.NOT_AUTHENTICATED.name)
+        }
+    }
+
+    @Test
+    fun `signOut should complete with exception if get oidc config failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken("dummyRefreshToken")
+        logtoClient.setupIdToken("dummyIdToken")
+
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG),
+                null,
+            )
+        }
+
+        logtoClient.signOut {
+            assertThat(it)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+        }
+
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOutWithBrowser should complete with exception if revoke failed`() {
+        every { logtoConfigMock.clientId } returns TEST_CLIENT_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken("dummyRefreshToken")
+        logtoClient.setupIdToken("dummyIdToken")
+
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(LogtoException(LogtoException.Message.UNABLE_TO_REVOKE_TOKEN))
+        }
+
+        logtoClient.signOut {
+            assertThat(it)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Message.UNABLE_TO_REVOKE_TOKEN.name)
+        }
+
+        assertThat(logtoClient.isAuthenticated).isFalse()
     }
 
     @Test
