@@ -11,17 +11,17 @@ class AccessTokenTest {
     val accessToken = AccessToken(token, scope, expiresAt)
 
     @Test
-    fun getToken() {
+    fun `AccessToken should get excepted token`() {
         assertThat(accessToken.token).isEqualTo(token)
     }
 
     @Test
-    fun getScope() {
+    fun `AccessToken should get excepted scope`() {
         assertThat(accessToken.scope).isEqualTo(scope)
     }
 
     @Test
-    fun getExpiresAt() {
+    fun `AccessToken should get excepted expiresAt`() {
         assertThat(accessToken.expiresAt).isEqualTo(expiresAt)
     }
 }

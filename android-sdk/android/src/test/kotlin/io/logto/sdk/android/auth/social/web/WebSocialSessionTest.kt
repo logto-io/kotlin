@@ -31,7 +31,7 @@ class WebSocialSessionTest {
     }
 
     @Test
-    fun start() {
+    fun `start should register to web social result activity and invoke an activity to perform signing in`() {
         every { mockActivity.startActivity(any()) } just Runs
 
         val dummyRedirectTo = "dummyRedirectTo"
@@ -57,7 +57,7 @@ class WebSocialSessionTest {
     }
 
     @Test
-    fun handleResult() {
+    fun `handleResult should complete with expected continue signing in URI if auth success`() {
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
         val dummyRedirectTo = "dummyRedirectTo"
@@ -86,7 +86,7 @@ class WebSocialSessionTest {
     }
 
     @Test
-    fun `should complete with exception if cannot construct the continue sign in uri`() {
+    fun `handleResult should complete with exception if cannot construct the continue sign in uri`() {
         val socialExceptionCapture = mutableListOf<SocialException?>()
         val continueSignInUriCapture = mutableListOf<String?>()
 

@@ -8,7 +8,7 @@ class UserInfoResponseTest {
     private val userInfoResponse = UserInfoResponse(sub = sub)
 
     @Test
-    fun getSub() {
+    fun `RefreshTokenTokenResponse should get expected sub`() {
         assertThat(userInfoResponse.sub).isEqualTo(sub)
     }
 }

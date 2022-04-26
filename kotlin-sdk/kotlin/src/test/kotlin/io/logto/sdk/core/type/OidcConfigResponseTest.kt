@@ -24,37 +24,37 @@ class OidcConfigResponseTest {
     )
 
     @Test
-    fun getAuthorizationEndpoint() {
+    fun `OidcConfigResponse should get expected authorization endpoint`() {
         assertThat(oidcConfigResponse.authorizationEndpoint).isEqualTo(authorizationEndpoint)
     }
 
     @Test
-    fun getTokenEndpoint() {
+    fun `OidcConfigResponse should get expected token endpoint`() {
         assertThat(oidcConfigResponse.tokenEndpoint).isEqualTo(tokenEndpoint)
     }
 
     @Test
-    fun getEndSessionEndpoint() {
+    fun `OidcConfigResponse should get expected end session endpoint`() {
         assertThat(oidcConfigResponse.endSessionEndpoint).isEqualTo(endSessionEndpoint)
     }
 
     @Test
-    fun getUserinfoEndpoint() {
+    fun `OidcConfigResponse should get expected user info endpoint`() {
         assertThat(oidcConfigResponse.userinfoEndpoint).isEqualTo(userinfoEndpoint)
     }
 
     @Test
-    fun getJwksUri() {
+    fun `OidcConfigResponse should get expected jwks URI`() {
         assertThat(oidcConfigResponse.jwksUri).isEqualTo(jwksUri)
     }
 
     @Test
-    fun getIssuer() {
+    fun `OidcConfigResponse should get expected issuer`() {
         assertThat(oidcConfigResponse.issuer).isEqualTo(issuer)
     }
 
     @Test
-    fun getRevocationEndpoint() {
+    fun `OidcConfigResponse should get expected revocation endpoint`() {
         assertThat(oidcConfigResponse.revocationEndpoint).isEqualTo(revocationEndpoint)
     }
 }

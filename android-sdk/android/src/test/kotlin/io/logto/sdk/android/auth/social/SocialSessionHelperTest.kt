@@ -19,7 +19,7 @@ import org.robolectric.RobolectricTestRunner
 class SocialSessionHelperTest {
 
     @Test
-    fun createSocialSession() {
+    fun `createSocialSession should create specific social session according to the redirect scheme`() {
         val mockContext: Activity = mockk()
         val callbackUri = "https://logto.dev/callback"
         val mockCompletion: Completion<SocialException, String> = mockk()
@@ -62,7 +62,7 @@ class SocialSessionHelperTest {
     }
 
     @Test
-    fun getSupportedSocialConnectorIds() {
+    fun `getSupportedSocialConnectorIds should get excepted result according to the sdk installation status`() {
         mockkObject(LogtoUtils)
         every {
             LogtoUtils.isDependencyInstalled(AlipaySocialSession.SDK_IDENTIFY_CLASS_NAME)

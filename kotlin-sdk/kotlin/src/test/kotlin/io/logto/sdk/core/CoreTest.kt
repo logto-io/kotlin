@@ -19,7 +19,7 @@ class CoreTest {
     private val testResources = listOf(testResourceVal1, testResourceVal2)
 
     @Test
-    fun generateSignInUri() {
+    fun `generateSignInUri should contain expected queries in result`() {
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = testAuthorizationEndpoint,
             clientId = testClientId,
@@ -53,7 +53,7 @@ class CoreTest {
     }
 
     @Test
-    fun generateSignInUriShouldContainsExtraScope() {
+    fun `generateSignInUri should contain not only reserved scopes but also the extra scope`() {
         val extraScope = "extraScope"
         val scopes = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, extraScope)
 
@@ -77,7 +77,7 @@ class CoreTest {
     }
 
     @Test
-    fun generateSignInUriWithoutResource() {
+    fun `generateSignInUri should not contain resources if no resources is provided`() {
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = testAuthorizationEndpoint,
             clientId = testClientId,
@@ -95,7 +95,7 @@ class CoreTest {
     }
 
     @Test
-    fun generateSignInUriWithInvalidAuthEndpointShouldThrow() {
+    fun `generateSignInUri should throw exception if the authorization endpoint is invalid`() {
         val authorizationEndpoint = "invalid_endpoint"
 
         val expectedException = Assert.assertThrows(UriConstructionException::class.java) {
@@ -114,7 +114,7 @@ class CoreTest {
     }
 
     @Test
-    fun generateSignInUriWithoutScopeShouldContainsDefaultScopes() {
+    fun `generateSignInUri should always contain reserved scopes even if no scope is provided`() {
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = testAuthorizationEndpoint,
             clientId = testClientId,
@@ -134,7 +134,7 @@ class CoreTest {
     }
 
     @Test
-    fun generateSignInUriWithMissingOpenIdScopeShouldContainsDefaultScopes() {
+    fun `generateSignInUri should always contain reserved scopes if only the reserved OFFLINE_ACCESS is provided`() {
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = testAuthorizationEndpoint,
             clientId = testClientId,
@@ -154,7 +154,7 @@ class CoreTest {
     }
 
     @Test
-    fun generateSignInUriWithMissingOfflineAccessScopeShouldContainsDefaultScopes() {
+    fun `generateSignInUri should always contain reserved scopes if only the reserved OPENID is provided`() {
 
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = testAuthorizationEndpoint,
@@ -175,7 +175,7 @@ class CoreTest {
     }
 
     @Test
-    fun generateSignOutUriWithBothIdTokenAndPostLogoutRedirectUri() {
+    fun `generateSignOutUri should contain expected queries`() {
         val endSessionEndpoint = "https://logto.dev/oidc/endSession"
         val idToken = "idToken"
         val postLogoutRedirectUri = "https://myapp.com/logout_callback"
@@ -191,7 +191,7 @@ class CoreTest {
     }
 
     @Test
-    fun generateSignOutUriWithoutPostLogoutRedirectUri() {
+    fun `generateSignOutUri should not contain postLogoutRedirectUri if that is not provided`() {
         val endSessionEndpoint = "https://logto.dev/oidc/endSession"
         val idToken = "idToken"
 
@@ -206,7 +206,7 @@ class CoreTest {
     }
 
     @Test
-    fun generateSignOutUriShouldThrowWithInvalidEndpoint() {
+    fun `generateSignOutUri should throw exception if the endSessionEndpoint is invalid`() {
         val endSessionEndpoint = "invalid_endpoint"
         val idToken = "idToken"
 

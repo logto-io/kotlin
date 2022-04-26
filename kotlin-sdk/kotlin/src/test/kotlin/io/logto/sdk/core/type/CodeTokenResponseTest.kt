@@ -19,27 +19,27 @@ class CodeTokenResponseTest {
     )
 
     @Test
-    fun getAccessToken() {
+    fun `CodeTokenResponse should get expected access token`() {
         assertThat(codeTokenResponse.accessToken).isEqualTo(accessToken)
     }
 
     @Test
-    fun getRefreshToken() {
+    fun `CodeTokenResponse should get expected refresh token`() {
         assertThat(codeTokenResponse.refreshToken).isEqualTo(refreshToken)
     }
 
     @Test
-    fun getIdToken() {
+    fun `CodeTokenResponse should get expected id token`() {
         assertThat(codeTokenResponse.idToken).isEqualTo(idToken)
     }
 
     @Test
-    fun getScope() {
+    fun `CodeTokenResponse should get expected scope`() {
         assertThat(codeTokenResponse.scope).isEqualTo(scope)
     }
 
     @Test
-    fun getExpiresIn() {
+    fun `CodeTokenResponse should get expected expiresIn`() {
         assertThat(codeTokenResponse.expiresIn).isEqualTo(expiresIn)
     }
 }
