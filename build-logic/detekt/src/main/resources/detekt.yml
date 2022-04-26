@@ -20,3 +20,5 @@ complexity:
     active: false
   ComplexMethod:
     active: false
+  LongParameterList:
+    active: false
