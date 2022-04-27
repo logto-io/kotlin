@@ -2,7 +2,6 @@ package io.logto.sdk.android.auth.logto
 
 import android.content.Context
 import android.content.Intent
-import android.webkit.WebView
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.android.R
@@ -10,9 +9,7 @@ import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
-import io.mockk.mockkConstructor
 import io.mockk.mockkObject
-import io.mockk.spyk
 import io.mockk.verify
 import org.junit.After
 import org.junit.Before
