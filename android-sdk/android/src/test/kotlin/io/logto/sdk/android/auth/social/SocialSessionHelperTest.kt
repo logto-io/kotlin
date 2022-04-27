@@ -1,7 +1,6 @@
 package io.logto.sdk.android.auth.social
 
 import android.app.Activity
-import android.net.Uri
 import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.android.auth.social.alipay.AlipaySocialSession
 import io.logto.sdk.android.auth.social.web.WebSocialSession
