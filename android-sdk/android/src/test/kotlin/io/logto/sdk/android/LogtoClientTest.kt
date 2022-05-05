@@ -83,7 +83,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `signInWithBrowser should complete with exception if get oidc config failed`() {
+    fun `signIn should complete with exception if get oidc config failed`() {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
         mockkObject(logtoClient)
         every { logtoClient.getOidcConfig(any()) } answers {
@@ -93,7 +93,7 @@ class LogtoClientTest {
             )
         }
 
-        logtoClient.signInWithBrowser(mockk(), "dummyRedirectUri") { logtoException ->
+        logtoClient.signIn(mockk(), "dummyRedirectUri") { logtoException ->
             assertThat(logtoException)
                 .hasMessageThat()
                 .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG.name)
@@ -101,7 +101,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `signInWithBrowser should start a logto auth session`() {
+    fun `signIn should start a logto auth session`() {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
         mockkObject(logtoClient)
         every { logtoClient.getOidcConfig(any()) } answers {
@@ -116,7 +116,7 @@ class LogtoClientTest {
             anyConstructed<LogtoAuthSession>().start()
         } just Runs
 
-        logtoClient.signInWithBrowser(mockk(), "dummyRedirectUri", mockk())
+        logtoClient.signIn(mockk(), "dummyRedirectUri", mockk())
 
         verify {
             anyConstructed<LogtoAuthSession>().start()

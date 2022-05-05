@@ -31,7 +31,7 @@ class LoginFragment : Fragment() {
 
     private fun initView(view: View) {
         view.findViewById<Button>(R.id.sign_in_button).setOnClickListener {
-            logtoViewModel.signInWithBrowser(requireActivity())
+            logtoViewModel.signIn(requireActivity())
         }
     }
 

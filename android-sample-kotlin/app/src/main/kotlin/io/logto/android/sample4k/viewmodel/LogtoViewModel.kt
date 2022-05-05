@@ -39,8 +39,8 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
     val logtoException: LiveData<LogtoException>
         get() = _logtoException
 
-    fun signInWithBrowser(context: Activity) {
-        logtoClient.signInWithBrowser(context, "io.logto.android://io.logto.sample/callback",) {
+    fun signIn(context: Activity) {
+        logtoClient.signIn(context, "io.logto.android://io.logto.sample/callback",) {
             it?.let { _logtoException.postValue(it) } ?: _authenticated.postValue(logtoClient.isAuthenticated)
         }
     }
