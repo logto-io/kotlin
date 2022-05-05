@@ -62,7 +62,7 @@ open class LogtoClient(
         loadFromStorage()
     }
 
-    fun signInWithBrowser(
+    fun signIn(
         context: Activity,
         redirectUri: String,
         completion: EmptyCompletion<LogtoException>,

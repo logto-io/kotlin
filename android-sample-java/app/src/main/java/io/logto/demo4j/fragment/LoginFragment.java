@@ -25,7 +25,7 @@ public class LoginFragment extends Fragment {
 
     private void initView(View view) {
         view.findViewById(R.id.sign_in_button).setOnClickListener( v -> {
-            logtoViewModel.signInWithBrowser(requireActivity());
+            logtoViewModel.signIn(requireActivity());
         });
     }
 

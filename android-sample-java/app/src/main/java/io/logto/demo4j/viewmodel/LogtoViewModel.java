@@ -49,8 +49,8 @@ public class LogtoViewModel extends AndroidViewModel {
     }
 
 
-    public void signInWithBrowser(Activity context) {
-        logtoClient.signInWithBrowser(
+    public void signIn(Activity context) {
+        logtoClient.signIn(
                 context,
                 "io.logto.android://io.logto.sample/callback",
                 logtoException -> {
