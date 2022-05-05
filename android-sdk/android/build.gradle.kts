@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kover)
+    alias(libs.plugins.dokka)
     id("io.logto.detekt")
     signing
     `maven-publish`
@@ -56,6 +57,12 @@ android {
             withJavadocJar()
             withSourcesJar()
         }
+    }
+}
+
+tasks {
+    dokkaGfm {
+        suppressInheritedMembers.set(true)
     }
 }
 

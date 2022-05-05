@@ -4,6 +4,7 @@ plugins {
     `java-library`
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kover)
+    alias(libs.plugins.dokka)
     id("io.logto.detekt")
     signing
     `maven-publish`
@@ -29,6 +30,10 @@ tasks {
             events("failed", "skipped", "passed", "standardOut", "standardError")
             outputs.upToDateWhen { false }
         }
+    }
+
+    dokkaGfm {
+        suppressInheritedMembers.set(true)
     }
 }
 
