@@ -19,27 +19,27 @@ class RefreshTokenTokenResponseTest {
     )
 
     @Test
-    fun getAccessToken() {
+    fun `RefreshTokenTokenResponse should get expected access token`() {
         assertThat(refreshTokenTokenResponse.accessToken).isEqualTo(accessToken)
     }
 
     @Test
-    fun getRefreshToken() {
+    fun `RefreshTokenTokenResponse should get expected refresh token`() {
         assertThat(refreshTokenTokenResponse.refreshToken).isEqualTo(refreshToken)
     }
 
     @Test
-    fun getIdToken() {
+    fun `RefreshTokenTokenResponse should get expected id token`() {
         assertThat(refreshTokenTokenResponse.idToken).isEqualTo(idToken)
     }
 
     @Test
-    fun getScope() {
+    fun `RefreshTokenTokenResponse should get expected scope`() {
         assertThat(refreshTokenTokenResponse.scope).isEqualTo(scope)
     }
 
     @Test
-    fun getExpiresIn() {
+    fun `RefreshTokenTokenResponse should get expected expiresIn`() {
         assertThat(refreshTokenTokenResponse.expiresIn).isEqualTo(expiresIn)
     }
 }

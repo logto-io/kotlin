@@ -105,7 +105,7 @@ class CoreFetchTest {
     }
 
     @Test
-    fun fetchOidcConfig() {
+    fun `fetchOidcConfig should get expected oidc config`() {
         var throwableReceiver: Throwable? = null
         var responseReceiver: OidcConfigResponse? = null
 
@@ -134,7 +134,7 @@ class CoreFetchTest {
     }
 
     @Test
-    fun fetchOidcConfigShouldFailWithoutResponse() {
+    fun `fetchOidcConfig should fail without response`() {
         var throwableReceiver: Throwable? = null
         var responseReceiver: OidcConfigResponse? = null
 
@@ -153,7 +153,7 @@ class CoreFetchTest {
     }
 
     @Test
-    fun `fetchJwksJson should get jwks data`() {
+    fun `fetchJwksJson should get expected jwks data`() {
         var throwableReceiver: Throwable? = null
         var responseReceiver: String? = null
 
@@ -193,7 +193,7 @@ class CoreFetchTest {
     }
 
     @Test
-    fun fetchTokenByAuthorizationCode() {
+    fun `fetchTokenByAuthorizationCode should get expected authorization code`() {
         var throwableReceiver: Throwable? = null
         var responseReceiver: CodeTokenResponse? = null
 
@@ -217,7 +217,7 @@ class CoreFetchTest {
     }
 
     @Test
-    fun fetchTokenByAuthorizationCodeShouldFailWithoutResponse() {
+    fun `fetchTokenByAuthorizationCode should fail without response`() {
         var throwableReceiver: Throwable? = null
         var responseReceiver: CodeTokenResponse? = null
 
@@ -241,7 +241,7 @@ class CoreFetchTest {
     }
 
     @Test
-    fun fetchTokenByRefreshToken() {
+    fun `fetchTokenByRefreshToken should get expected token`() {
         var throwableReceiver: Throwable? = null
         var responseReceiver: RefreshTokenTokenResponse? = null
 
@@ -264,7 +264,7 @@ class CoreFetchTest {
     }
 
     @Test
-    fun fetchTokenByRefreshTokenShouldFailWithoutResponse() {
+    fun `fetchTokenByRefreshToken should fail without response`() {
         var throwableReceiver: Throwable? = null
         var responseReceiver: RefreshTokenTokenResponse? = null
 
@@ -287,7 +287,7 @@ class CoreFetchTest {
     }
 
     @Test
-    fun fetchUserInfo() {
+    fun `fetchUserInfo should get expected user info`() {
         var throwableReceiver: Throwable? = null
         var responseReceiver: UserInfoResponse? = null
 
@@ -307,7 +307,7 @@ class CoreFetchTest {
     }
 
     @Test
-    fun fetchUserInfoShouldFailWithoutResponse() {
+    fun `fetchUserInfo should fail without response`() {
         var throwableReceiver: Throwable? = null
         var responseReceiver: UserInfoResponse? = null
 
@@ -327,7 +327,7 @@ class CoreFetchTest {
     }
 
     @Test
-    fun revoke() {
+    fun `revoke should receive no exception with successful response`() {
         var throwableReceiver: Throwable? = null
 
         val countDownLatch = CountDownLatch(1)
@@ -345,7 +345,7 @@ class CoreFetchTest {
     }
 
     @Test
-    fun revokeShouldFailWithUnsuccessfulResponse() {
+    fun `revoke should receive an exception with unsuccessful response`() {
         var throwableReceiver: Throwable? = null
 
         val countDownLatch = CountDownLatch(1)

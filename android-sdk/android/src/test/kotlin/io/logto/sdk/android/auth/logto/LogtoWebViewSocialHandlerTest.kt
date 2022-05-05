@@ -37,7 +37,7 @@ class LogtoWebViewSocialHandlerTest {
     }
 
     @Test
-    fun getInjectSocialScript() {
+    fun `getInjectSocialScript should get expected script`() {
         val logtoWebViewSocialHandler = LogtoWebViewSocialHandler(
             mockWebView,
             mockActivity,
@@ -67,7 +67,7 @@ class LogtoWebViewSocialHandlerTest {
     }
 
     @Test
-    fun postSocialException() {
+    fun `postSocialException should execute the excepted script in the webView`() {
         every { mockWebView.evaluateJavascript(any(), any()) } just Runs
 
         val logtoWebViewSocialHandler = LogtoWebViewSocialHandler(
@@ -124,7 +124,7 @@ class LogtoWebViewSocialHandlerTest {
     }
 
     @Test
-    fun postMessage() {
+    fun `postMessage should start a social session if receive correspond command from the webView`() {
         val validJsonDataString =
             "{\"redirectTo\":\"https://github.com/login\",\"callbackUri\":\"https://logto.dev/sign-in/callback/github\"}"
 

@@ -35,7 +35,7 @@ class AlipaySocialSessionTest {
     }
 
     @Test
-    fun start() {
+    fun `start should execute openAuthTask and complete with expected result`() {
         val redirectTo = "alipay-native://?app_id=1234567890"
         val callbackUri = "https://logto.dev/alipay-native"
         val authorizationCode = "authorizationCode"
@@ -63,6 +63,7 @@ class AlipaySocialSessionTest {
         alipaySocialSession.start()
 
         verify {
+            anyConstructed<OpenAuthTask>().execute(any(), any(), any(), any(), any())
             mockCompletion.onComplete(
                 captureNullable(socialExceptionCapture),
                 captureNullable(continueSignInUriCapture)

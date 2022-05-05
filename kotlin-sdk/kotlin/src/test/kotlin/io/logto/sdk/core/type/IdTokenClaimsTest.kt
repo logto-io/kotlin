@@ -21,32 +21,32 @@ class IdTokenClaimsTest {
     )
 
     @Test
-    fun getIss() {
+    fun `IdTokenClaims should get expected iss`() {
         assertThat(idTokenClaims.iss).isEqualTo(iss)
     }
 
     @Test
-    fun getSub() {
+    fun `IdTokenClaims should get expected sub`() {
         assertThat(idTokenClaims.sub).isEqualTo(sub)
     }
 
     @Test
-    fun getAud() {
+    fun `IdTokenClaims should get expected aud`() {
         assertThat(idTokenClaims.aud).isEqualTo(aud)
     }
 
     @Test
-    fun getExp() {
+    fun `IdTokenClaims should get expected exp`() {
         assertThat(idTokenClaims.exp).isEqualTo(exp)
     }
 
     @Test
-    fun getIat() {
+    fun `IdTokenClaims should get expected iat`() {
         assertThat(idTokenClaims.iat).isEqualTo(iat)
     }
 
     @Test
-    fun getAtHash() {
+    fun `IdTokenClaims should get expected atHash`() {
         assertThat(idTokenClaims.atHash).isEqualTo(atHash)
     }
 }

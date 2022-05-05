@@ -7,7 +7,7 @@ import org.junit.Test
 
 class CallbackUriUtilsTest {
     @Test
-    fun verifyAndParseCodeFromCallbackUri() {
+    fun `verifyAndParseCodeFromCallbackUri should get expected code without exception`() {
         val state = GenerateUtils.generateState()
         val code = "testCode"
         val redirectUri = "https://myapp.com/callback"
@@ -19,7 +19,7 @@ class CallbackUriUtilsTest {
     }
 
     @Test
-    fun verifyAndParseCodeFromCallbackUriShouldSupportedCustomScheme() {
+    fun `verifyAndParseCodeFromCallbackUri should get excepted code from the URI which has a custom scheme`() {
         val state = GenerateUtils.generateState()
         val code = "testCode"
         val redirectUri = "io.logto.android://io.logto.sample/callback"
@@ -29,7 +29,7 @@ class CallbackUriUtilsTest {
     }
 
     @Test
-    fun verifyAndParseCodeFromCallbackUriShouldThrowWithMismatchedUri() {
+    fun `verifyAndParseCodeFromCallbackUri should throw with mismatched URI`() {
         val state = GenerateUtils.generateState()
         val code = "testCode"
         val redirectUri = "https://myapp.com/callback"
@@ -45,7 +45,7 @@ class CallbackUriUtilsTest {
     }
 
     @Test
-    fun verifyAndParseCodeFromCallbackUriShouldThrowWithEmptyUri() {
+    fun `verifyAndParseCodeFromCallbackUriShould throw with empty URI`() {
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri("", "", "dummyState")
         }
@@ -56,7 +56,7 @@ class CallbackUriUtilsTest {
     }
 
     @Test
-    fun verifyAndParseCodeFromCallbackUriShouldThrowWithInvalidUriFormat() {
+    fun `verifyAndParseCodeFromCallbackUri should throw with invalid URI format`() {
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri("invalidUri", "invalidUri", "dummyState")
         }
@@ -67,7 +67,7 @@ class CallbackUriUtilsTest {
     }
 
     @Test
-    fun verifyAndParseCodeFromCallbackUriShouldThrowWithErrorParameter() {
+    fun `verifyAndParseCodeFromCallbackUri should throw with error parameter`() {
         val state = GenerateUtils.generateState()
         val code = "dummyCode"
         val error = "error"
@@ -83,7 +83,7 @@ class CallbackUriUtilsTest {
     }
 
     @Test
-    fun verifyAndParseCodeFromCallbackUriShouldThrowWithErrorDescWithBothErrorAndErrorDescParameter() {
+    fun `verifyAndParseCodeFromCallbackUri should throw with error desc with both error and errorDesc parameter`() {
         val state = GenerateUtils.generateState()
         val code = "dummyCode"
         val errorDesc = "you hava an error description"
@@ -100,7 +100,7 @@ class CallbackUriUtilsTest {
     }
 
     @Test
-    fun verifyAndParseCodeFromCallbackUriShouldThrowWithMismatchedState() {
+    fun `verifyAndParseCodeFromCallbackUri should throw with mismatched state`() {
         val state1 = GenerateUtils.generateState()
         val state2 = GenerateUtils.generateState()
         val testCode = "testCode"
@@ -117,7 +117,7 @@ class CallbackUriUtilsTest {
     }
 
     @Test
-    fun verifyAndParseCodeFromCallbackUriShouldThrowWithMissingStateParameter() {
+    fun `verifyAndParseCodeFromCallbackUri should throw with missing state parameter`() {
         val state = GenerateUtils.generateState()
         val code = "testCode"
         val redirectUri = "https://myapp.com/callback"
@@ -133,7 +133,7 @@ class CallbackUriUtilsTest {
     }
 
     @Test
-    fun verifyAndParseCodeFromCallbackUriShouldThrowWithMissingCodeParameter() {
+    fun `verifyAndParseCodeFromCallbackUri should throw with missing code parameter`() {
         val state = GenerateUtils.generateState()
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback?state=$state"

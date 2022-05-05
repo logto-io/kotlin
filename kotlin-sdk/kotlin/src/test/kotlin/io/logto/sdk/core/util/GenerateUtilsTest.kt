@@ -5,20 +5,20 @@ import org.junit.Test
 
 class GenerateUtilsTest {
     @Test
-    fun generateCodeVerifierShouldBeRandomString() {
+    fun `generateCodeVerifier should be random string`() {
         val code1 = GenerateUtils.generateCodeVerifier()
         val code2 = GenerateUtils.generateCodeVerifier()
         assertThat(code1).isNotEqualTo(code2)
     }
 
     @Test
-    fun generateCodeVerifierShouldLessThen128Characters() {
+    fun `generateCodeVerifier should less than 128 characters`() {
         val codeVerifier = GenerateUtils.generateCodeVerifier()
         assertThat(codeVerifier.length).isLessThan(128)
     }
 
     @Test
-    fun generateCodeChallengeShouldGenerateCorrectString() {
+    fun `generateCodeChallenge should generate correct string`() {
         assertThat(
             GenerateUtils.generateCodeChallenge(
                 "tO6MabnMFRAatnlMa1DdSstypzzkgalL1-k8Hr_GdfTj-VXGiEACqAkSkDhFuAuD8FOU8lMishaXjt29Xt2Oww"
@@ -39,7 +39,7 @@ class GenerateUtilsTest {
     }
 
     @Test
-    fun generateCodeChallengeShouldBeDifferentWithDifferentCodeVerifiers() {
+    fun `generateCodeChallenge should be different with different code verifiers`() {
         val code1 = GenerateUtils.generateCodeVerifier()
         val codeChallenge1 = GenerateUtils.generateCodeChallenge(code1)
 
@@ -50,26 +50,26 @@ class GenerateUtilsTest {
     }
 
     @Test
-    fun generateCodeChallengeWithSpecificCodeShouldBeTheSame() {
+    fun `generateCodeChallenge with specific code should be the same`() {
         val code = GenerateUtils.generateCodeVerifier()
         assertThat(GenerateUtils.generateCodeChallenge(code)).isEqualTo(GenerateUtils.generateCodeChallenge(code))
     }
 
     @Test
-    fun generateStateShouldNotBeEmpty() {
+    fun `generateState should not be empty`() {
         val state = GenerateUtils.generateState()
         assertThat(state).isNotEmpty()
     }
 
     @Test
-    fun generateStateShouldBeRandomString() {
+    fun `generateState should be random string`() {
         val state1 = GenerateUtils.generateState()
         val state2 = GenerateUtils.generateState()
         assertThat(state1).isNotEqualTo(state2)
     }
 
     @Test
-    fun generateStateShouldLessThen128Characters() {
+    fun `generateState should less than 128 characters`() {
         val state = GenerateUtils.generateState()
         assertThat(state.length).isLessThan(128)
     }

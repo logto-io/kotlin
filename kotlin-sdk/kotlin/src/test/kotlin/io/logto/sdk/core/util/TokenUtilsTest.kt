@@ -28,7 +28,7 @@ class TokenUtilsTest {
     private val testTimeDelta = 10L
 
     @Test
-    fun verifyIdTokenWithValidIdToken() {
+    fun `verifyIdToken should complete without exceptions with valid id token`() {
         val claims = createTestIdTokenClaims()
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -36,7 +36,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenWithValidIdTokenWithES512JsonWebKey() {
+    fun `verifyIdToken should complete without exceptions with valid id token with ES512 format jwks`() {
         val claims = createTestIdTokenClaims()
 
         // Note: Es512 is "ECDSA using P-521 and SHA-512".
@@ -60,7 +60,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenWithOverdueIssueAtShouldThrow() {
+    fun `verifyIdToken should throw with overdue issueAt`() {
         val claims = createTestIdTokenClaims()
         claims.issuedAt = NumericDate.fromSeconds(
             NumericDate.now().value - ISSUED_AT_RESTRICTIONS_IN_SECONDS.toLong() - testTimeDelta
@@ -78,7 +78,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenWithFutureIssueAtShouldThrow() {
+    fun `verifyIdToken should throw with issueAt time in the future`() {
         val claims = createTestIdTokenClaims()
         claims.issuedAt = NumericDate.fromSeconds(
             NumericDate.now().value + ISSUED_AT_RESTRICTIONS_IN_SECONDS.toLong() + testTimeDelta
@@ -96,7 +96,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenWithExpiredTokenShouldThrow() {
+    fun `verifyIdToken should throw with expired token`() {
         val claims = createTestIdTokenClaims()
         claims.expirationTime = NumericDate.fromSeconds(
             NumericDate.now().value - testTimeDelta
@@ -112,7 +112,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenWithInvalidIdTokenShouldThrow() {
+    fun `verifyIdToken should throw with invalid id token`() {
         val idToken = "randomInvalidIdToken"
         val jwks = createTestJwks()
 
@@ -122,7 +122,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenWithInvalidJwksShouldThrow() {
+    fun `verifyIdToken should throw with invalid jwks`() {
         val claims = createTestIdTokenClaims()
         val idToken = createTestIdTokenWithClaims(claims)
         val anotherRsaJwk = RsaJwkGenerator.generateJwk(2048).apply {
@@ -140,7 +140,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenMismatchedIssuerShouldThrow() {
+    fun `verifyIdToken should throw with mismatched issuer`() {
         val claims = createTestIdTokenClaims()
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -157,7 +157,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenMismatchedAudienceShouldThrow() {
+    fun `verifyIdToken should throw with mismatched audience`() {
         val claims = createTestIdTokenClaims()
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -175,7 +175,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenMissingSubjectShouldThrow() {
+    fun `verifyIdToken should throw if missing subject`() {
         val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.SUBJECT)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -188,7 +188,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenMissingExpirationTimeShouldThrow() {
+    fun `verifyIdToken should throw if missing expiration time`() {
         val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.EXPIRATION_TIME)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -201,7 +201,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenMissingIssuerShouldThrow() {
+    fun `verifyIdToken should throw if missing issuer`() {
         val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.ISSUER)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -214,7 +214,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenMissingIssuedAtShouldThrow() {
+    fun `verifyIdToken should throw if missing issuedAt`() {
         val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.ISSUED_AT)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -227,7 +227,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun verifyIdTokenMissingAudienceShouldThrow() {
+    fun `verifyIdToken should throw if missing audience`() {
         val claims = createTestIdTokenClaimsWithoutDistinctClaim(ReservedClaimNames.AUDIENCE)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -240,7 +240,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun decodeIdToken() {
+    fun `decodeIdToken should get expected claims with valid id token`() {
         val testIssueAt = NumericDate.now()
         val testExpirationTime = NumericDate.fromSeconds(testIssueAt.value + 60L)
         val testClaims = JwtClaims().apply {
@@ -259,7 +259,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun decodeIdTokenShouldThrowWithInvalidTokenFormat() {
+    fun `decodeIdToken should throw with invalid token format`() {
         val invalidTokenWithOnePart = "invalidToken"
         val expectedExceptionOnePart = Assert.assertThrows(InvalidJwtException::class.java) {
             TokenUtils.decodeIdToken(invalidTokenWithOnePart)
@@ -274,7 +274,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun decodeIdTokenShouldThrowWithInvalidTokenPayloadSection() {
+    fun `decodeIdToken should throw with invalid token payload section`() {
         val tokenWithInvalidPayload = "part1.invalidPayload.part3"
         val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
             TokenUtils.decodeIdToken(tokenWithInvalidPayload)
