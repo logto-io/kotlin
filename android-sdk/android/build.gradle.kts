@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kover)
     id("io.logto.detekt")
+    signing
+    `maven-publish`
 }
 
 group = "io.logto.sdk"
@@ -48,6 +50,13 @@ android {
         htmlReport = false
         xmlReport = false
     }
+
+    publishing {
+        singleVariant("release") {
+            withJavadocJar()
+            withSourcesJar()
+        }
+    }
 }
 
 dependencies {
@@ -66,4 +75,54 @@ dependencies {
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.logtoSdk.alipay)
     testImplementation(libs.wechatSdkAndroid)
+}
+
+// The content below follows the requirements before we publish this artifact to Maven Central
+// Reference: https://central.sonatype.org/publish/requirements
+publishing {
+    publications {
+        create<MavenPublication>("android") {
+            afterEvaluate {
+                from(components["release"])
+            }
+
+            pom {
+            name.set("$groupId:$artifactId")
+
+                description.set("the Logto Android SDK")
+                url.set("https://github.com/logto-io/kotlin")
+
+                licenses {
+                    license {
+                        name.set("Mozilla Public License 2.0")
+                        url.set("https://opensource.org/licenses/MPL-2.0")
+                    }
+                }
+
+                developers {
+                    developer {
+                        name.set("Xiao Yijun")
+                        email.set("xiaoyijun@silverhand.io")
+                        organization.set("Silverhand Inc.")
+                        organizationUrl.set("https://github.com/silverhand-io")
+                    }
+                }
+
+                scm {
+                    connection.set("scm:git:git://github.com/logto-io/kotlin.git")
+                    developerConnection.set("scm:git:ssh://github.com:logto-io/kotlin.git")
+                    url.set("https://github.com/logto-io/kotlin/tree/master")
+                }
+            }
+        }
+    }
+
+    repositories {
+        // Note: this is temporary in local env
+        maven(url = layout.buildDirectory.dir("maven-repo"))
+    }
+}
+
+signing {
+    sign(publishing.publications["android"])
 }
