@@ -9,7 +9,7 @@ import org.junit.Test
 
 class JwtClaimsExtKtTest {
     @Test
-    fun toIdTokenClaims() {
+    fun `toIdTokenClaims should return excepted id token claims`() {
         val testIssuer = "testIssuer"
         val testSubject = "testSubject"
         val testAudience = listOf("testAudience")

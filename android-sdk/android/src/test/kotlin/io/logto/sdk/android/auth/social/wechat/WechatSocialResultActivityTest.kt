@@ -86,7 +86,7 @@ class WechatSocialResultActivityTest {
     }
 
     @Test
-    fun onResp() {
+    fun `onResp should invoke the handleResult method of wechat social session and clear the session cache`() {
         val intent = Intent()
         val activityController = Robolectric.buildActivity(WechatSocialResultActivity::class.java, intent)
         val activity = activityController.get()

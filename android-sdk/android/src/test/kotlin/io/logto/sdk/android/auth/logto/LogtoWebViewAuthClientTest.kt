@@ -26,7 +26,7 @@ class LogtoWebViewAuthClientTest {
     }
 
     @Test
-    fun onPageStarted() {
+    fun `onPageStarted should call method to inject the script to the page`() {
         val mockActivity:Activity = mockk()
         every { mockActivity.packageName } returns "io.logto.test"
 
@@ -52,7 +52,7 @@ class LogtoWebViewAuthClientTest {
     }
 
     @Test
-    fun shouldOverrideUrlLoading() {
+    fun `shouldOverrideUrlLoading should handle the auth result and finish the activity if receive the auth result`() {
         val mockActivity:Activity = mockk()
         every { mockActivity.packageName } returns "io.logto.test"
         every { mockActivity.finish() } just Runs

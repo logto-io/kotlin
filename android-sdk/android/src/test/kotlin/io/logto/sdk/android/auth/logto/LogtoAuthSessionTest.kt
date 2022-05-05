@@ -55,7 +55,7 @@ class LogtoAuthSessionTest {
     }
 
     @Test
-    fun start() {
+    fun `start should register to the logto auth manager and start an activity`() {
         val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
 
         every {
@@ -122,7 +122,7 @@ class LogtoAuthSessionTest {
     }
 
     @Test
-    fun handleCallbackUri() {
+    fun `handleCallbackUri should complete with expected results`() {
         val mockCompletion : Completion<LogtoException, CodeTokenResponse> = mockk()
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
@@ -243,7 +243,7 @@ class LogtoAuthSessionTest {
     }
 
     @Test
-    fun handleUserCancel() {
+    fun `handleUserCancel should complete with user canceled exception`() {
         val logtoExceptionCapture = mutableListOf<LogtoException?>()
         val codeTokenResponseCapture = mutableListOf<CodeTokenResponse?>()
 

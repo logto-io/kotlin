@@ -21,14 +21,14 @@ class LogtoAuthManagerTest {
     }
 
     @Test
-    fun handleAuthStart() {
+    fun `handleAuthStart should cache current logto auth session`() {
         val mockLogtoAuthSession: LogtoAuthSession = mockk()
         LogtoAuthManager.handleAuthStart(mockLogtoAuthSession)
         assertThat(LogtoAuthManager.logtoAuthSession).isEqualTo(mockLogtoAuthSession)
     }
 
     @Test
-    fun handleCallbackUri() {
+    fun `handleCallbackUri should invoke the handleCallbackUri method in the session and clear the session cache`() {
         val mockLogtoAuthSession: LogtoAuthSession = mockk()
         every { mockLogtoAuthSession.handleCallbackUri(any()) } just Runs
         val mockCallbackUri: Uri = mockk()
@@ -43,7 +43,7 @@ class LogtoAuthManagerTest {
     }
 
     @Test
-    fun handleUserCancel() {
+    fun `handleUserCancel should invoke the handleUserCancel method in the session and clear session cache`() {
         val mockLogtoAuthSession: LogtoAuthSession = mockk()
         every { mockLogtoAuthSession.handleUserCancel() } just Runs
 
@@ -57,7 +57,7 @@ class LogtoAuthManagerTest {
     }
 
     @Test
-    fun isLogtoAuthResult() {
+    fun `isLogtoAuthResult should return expected result with valid or invalid callback URI`() {
         val redirectUri = "localhost:3001/callback"
         val matchedCallbackUri = Uri.parse(redirectUri)
         val mismatchedCallbackUri = Uri.parse("logto.dev/callback")

@@ -36,7 +36,7 @@ class WechatSocialSessionTest {
     }
 
     @Test
-    fun start() {
+    fun `start should register to wechat social result activity and send auth request by wechat api`() {
         val appId = "wx1234567890"
         val redirectTo = "wechat-native://?app_id=$appId"
         val callbackUri = "https://logto.dev/wechat-native"
@@ -100,7 +100,7 @@ class WechatSocialSessionTest {
     }
 
     @Test
-    fun handleResult() {
+    fun `handleResult should complete with expected continue signing in URI if auth success`() {
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
         val appId = "wx1234567890"
@@ -175,7 +175,7 @@ class WechatSocialSessionTest {
     }
 
     @Test
-    fun handleMissingAppIdError() {
+    fun `handleMissingAppIdError should complete with insufficient information exception`() {
         every { mockCompletion.onComplete(any(), any()) } just Runs
         val appId = ""
         val redirectTo = "wechat-native://?app_id=$appId"
