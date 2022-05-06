@@ -119,13 +119,10 @@ publishing {
 
     repositories {
         maven(url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-            val ossrhUsername: String by project
-            val ossrhPassword: String by project
-
             name = "sonatype"
             credentials {
-                username = ossrhUsername
-                password = ossrhPassword
+                username = (project.properties["ossrhUsername"] as String?)?: ""
+                password = (project.properties["ossrhPassword"] as String?)?: ""
             }
         }
     }
