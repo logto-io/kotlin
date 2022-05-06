@@ -118,8 +118,16 @@ publishing {
     }
 
     repositories {
-        // Note: this is temporary in local env
-        maven(url = layout.buildDirectory.dir("maven-repo"))
+        maven(url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+            val ossrhUsername: String by project
+            val ossrhPassword: String by project
+
+            name = "sonatype"
+            credentials {
+                username = ossrhUsername
+                password = ossrhPassword
+            }
+        }
     }
 }
 
