@@ -24,7 +24,7 @@ class LogtoAuthSession(
 
     fun start() {
         if (Uri.parse(redirectUri) == Uri.EMPTY) {
-            completion.onComplete(LogtoException(LogtoException.Message.INVALID_REDIRECT_URI), null)
+            completion.onComplete(LogtoException(LogtoException.Type.INVALID_REDIRECT_URI), null)
             return
         }
 
@@ -52,7 +52,7 @@ class LogtoAuthSession(
             )
         } catch (exception: CallbackUriVerificationException) {
             completion.onComplete(
-                LogtoException(LogtoException.Message.INVALID_CALLBACK_URI, exception),
+                LogtoException(LogtoException.Type.INVALID_CALLBACK_URI, exception),
                 null,
             )
             return
@@ -69,7 +69,7 @@ class LogtoAuthSession(
             fetchTokenException?.let {
                 completion.onComplete(
                     LogtoException(
-                        LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE,
+                        LogtoException.Type.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE,
                     ),
                     null,
                 )
@@ -80,6 +80,6 @@ class LogtoAuthSession(
     }
 
     fun handleUserCancel() {
-        completion.onComplete(LogtoException(LogtoException.Message.USER_CANCELED), null)
+        completion.onComplete(LogtoException(LogtoException.Type.USER_CANCELED), null)
     }
 }

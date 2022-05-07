@@ -1,13 +1,13 @@
 package io.logto.sdk.core.exception
 
 class CallbackUriVerificationException(
-    message: Enum<Message>,
+    type: Type,
     cause: Throwable? = null,
-) : RuntimeException(message.name, cause) {
+) : RuntimeException(type.name, cause) {
     var error: String? = null
     var errorDesc: String? = null
 
-    enum class Message {
+    enum class Type {
         INVALID_URI_FORMAT,
         URI_MISMATCHED,
         ERROR_FOUND_IN_URI,

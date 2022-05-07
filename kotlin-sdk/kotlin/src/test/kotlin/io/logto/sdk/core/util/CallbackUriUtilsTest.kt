@@ -41,7 +41,7 @@ class CallbackUriUtilsTest {
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(CallbackUriVerificationException.Message.URI_MISMATCHED.name)
+            .contains(CallbackUriVerificationException.Type.URI_MISMATCHED.name)
     }
 
     @Test
@@ -52,7 +52,7 @@ class CallbackUriUtilsTest {
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(CallbackUriVerificationException.Message.INVALID_URI_FORMAT.name)
+            .contains(CallbackUriVerificationException.Type.INVALID_URI_FORMAT.name)
     }
 
     @Test
@@ -63,7 +63,7 @@ class CallbackUriUtilsTest {
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(CallbackUriVerificationException.Message.INVALID_URI_FORMAT.name)
+            .contains(CallbackUriVerificationException.Type.INVALID_URI_FORMAT.name)
     }
 
     @Test
@@ -113,7 +113,7 @@ class CallbackUriUtilsTest {
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(CallbackUriVerificationException.Message.STATE_MISMATCHED.name)
+            .contains(CallbackUriVerificationException.Type.STATE_MISMATCHED.name)
     }
 
     @Test
@@ -129,7 +129,7 @@ class CallbackUriUtilsTest {
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(CallbackUriVerificationException.Message.MISSING_STATE_URI_PARAMETER.name)
+            .contains(CallbackUriVerificationException.Type.MISSING_STATE_URI_PARAMETER.name)
     }
 
     @Test
@@ -144,6 +144,6 @@ class CallbackUriUtilsTest {
 
         assertThat(expectedException)
             .hasMessageThat()
-            .contains(CallbackUriVerificationException.Message.MISSING_CODE_URI_PARAMETER.name)
+            .contains(CallbackUriVerificationException.Type.MISSING_CODE_URI_PARAMETER.name)
     }
 }

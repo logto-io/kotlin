@@ -19,7 +19,7 @@ inline fun <reified T : Any> httpPost(
             completion.onComplete(null, gson.fromJson(response, T::class.java))
         } catch (jsonSyntaxException: JsonSyntaxException) {
             completion.onComplete(
-                ResponseException(ResponseException.Message.ERROR_RESPONSE, jsonSyntaxException),
+                ResponseException(ResponseException.Type.ERROR_RESPONSE, jsonSyntaxException),
                 null,
             )
         }

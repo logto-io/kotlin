@@ -1,11 +1,11 @@
 package io.logto.sdk.android.exception
 
 class LogtoException(
-    message: Enum<Message>,
+    type: Type,
     cause: Throwable? = null,
-) : RuntimeException(message.name, cause) {
+) : RuntimeException(type.name, cause) {
     var detail: String? = null
-    enum class Message {
+    enum class Type {
         NOT_AUTHENTICATED,
         NO_REFRESH_TOKEN_FOUND,
         UNGRANTED_RESOURCE_FOUND,

@@ -88,7 +88,7 @@ class LogtoClientTest {
         mockkObject(logtoClient)
         every { logtoClient.getOidcConfig(any()) } answers {
             lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
-                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG),
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG),
                 null,
             )
         }
@@ -96,7 +96,7 @@ class LogtoClientTest {
         logtoClient.signIn(mockk(), "dummyRedirectUri") { logtoException ->
             assertThat(logtoException)
                 .hasMessageThat()
-                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
         }
     }
 
@@ -167,7 +167,7 @@ class LogtoClientTest {
         logtoClient.signOut {
             assertThat(it)
                 .hasMessageThat()
-                .isEqualTo(LogtoException.Message.NOT_AUTHENTICATED.name)
+                .isEqualTo(LogtoException.Type.NOT_AUTHENTICATED.name)
         }
     }
 
@@ -182,7 +182,7 @@ class LogtoClientTest {
 
         every { logtoClient.getOidcConfig(any()) } answers {
             lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
-                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG),
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG),
                 null,
             )
         }
@@ -190,7 +190,7 @@ class LogtoClientTest {
         logtoClient.signOut {
             assertThat(it)
                 .hasMessageThat()
-                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
         }
 
         assertThat(logtoClient.isAuthenticated).isFalse()
@@ -217,13 +217,13 @@ class LogtoClientTest {
 
         mockkObject(Core)
         every { Core.revoke(any(), any(), any(), any()) } answers {
-            lastArg<HttpEmptyCompletion>().onComplete(LogtoException(LogtoException.Message.UNABLE_TO_REVOKE_TOKEN))
+            lastArg<HttpEmptyCompletion>().onComplete(LogtoException(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN))
         }
 
         logtoClient.signOut {
             assertThat(it)
                 .hasMessageThat()
-                .isEqualTo(LogtoException.Message.UNABLE_TO_REVOKE_TOKEN.name)
+                .isEqualTo(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN.name)
         }
 
         assertThat(logtoClient.isAuthenticated).isFalse()
@@ -237,7 +237,7 @@ class LogtoClientTest {
         every { logtoClient.isAuthenticated } returns false
 
         logtoClient.getAccessToken { logtoException, result ->
-            assertThat(logtoException).hasMessageThat().contains(LogtoException.Message.NOT_AUTHENTICATED.name)
+            assertThat(logtoException).hasMessageThat().contains(LogtoException.Type.NOT_AUTHENTICATED.name)
             assertThat(result).isNull()
         }
     }
@@ -252,7 +252,7 @@ class LogtoClientTest {
         every { logtoClient.isAuthenticated } returns true
 
         logtoClient.getAccessToken { logtoException, result ->
-            assertThat(logtoException).hasMessageThat().contains(LogtoException.Message.NO_REFRESH_TOKEN_FOUND.name)
+            assertThat(logtoException).hasMessageThat().contains(LogtoException.Type.NO_REFRESH_TOKEN_FOUND.name)
             assertThat(result).isNull()
         }
     }
@@ -273,7 +273,7 @@ class LogtoClientTest {
         ) { logtoException, result ->
             assertThat(logtoException)
                 .hasMessageThat()
-                .contains(LogtoException.Message.UNGRANTED_RESOURCE_FOUND.name)
+                .contains(LogtoException.Type.UNGRANTED_RESOURCE_FOUND.name)
             assertThat(result).isNull()
         }
     }
@@ -415,7 +415,7 @@ class LogtoClientTest {
         logtoClient.getIdTokenClaims { throwable, result ->
             assertThat(throwable)
                 .hasMessageThat()
-                .contains(LogtoException.Message.NOT_AUTHENTICATED.name)
+                .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
             assertThat(result).isNull()
         }
     }
@@ -436,7 +436,7 @@ class LogtoClientTest {
         logtoClient.getIdTokenClaims { logtoException, result ->
             assertThat(logtoException)
                 .hasMessageThat()
-                .contains(LogtoException.Message.UNABLE_TO_PARSE_ID_TOKEN_CLAIMS.name)
+                .contains(LogtoException.Type.UNABLE_TO_PARSE_ID_TOKEN_CLAIMS.name)
             assertThat(result).isNull()
         }
     }
@@ -477,7 +477,7 @@ class LogtoClientTest {
         mockkObject(logtoClient)
         every { logtoClient.getOidcConfig(any()) } answers {
             firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
-                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG),
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG),
                 null,
             )
         }
@@ -485,7 +485,7 @@ class LogtoClientTest {
         logtoClient.fetchUserInfo { logtoException, result ->
             assertThat(logtoException)
                 .hasMessageThat()
-                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
             assertThat(result).isNull()
         }
     }
@@ -531,7 +531,7 @@ class LogtoClientTest {
         mockkObject(Core)
         every { Core.fetchUserInfo(any(), any(), any()) } answers {
             lastArg<HttpCompletion<UserInfoResponse>>().onComplete(
-                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_USER_INFO),
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_USER_INFO),
                 null,
             )
         }
@@ -539,7 +539,7 @@ class LogtoClientTest {
         logtoClient.fetchUserInfo { logtoException, result ->
             assertThat(logtoException)
                 .hasMessageThat()
-                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_USER_INFO.name)
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_USER_INFO.name)
             assertThat(result).isNull()
         }
     }
@@ -608,7 +608,7 @@ class LogtoClientTest {
         mockkObject(logtoClient)
         every { logtoClient.getOidcConfig(any()) } answers {
             firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
-                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG),
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG),
                 null,
             )
         }
@@ -616,7 +616,7 @@ class LogtoClientTest {
         logtoClient.getJwks { throwable, result ->
             assertThat(throwable)
                 .hasMessageThat()
-                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
             assertThat(result).isNull()
         }
     }
@@ -635,7 +635,7 @@ class LogtoClientTest {
         mockkObject(Core)
         every { Core.fetchJwksJson(any(), any()) } answers {
             secondArg<HttpCompletion<String>>().onComplete(
-                LogtoException(LogtoException.Message.UNABLE_TO_FETCH_JWKS_JSON),
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_JWKS_JSON),
                 null,
             )
         }
@@ -643,7 +643,7 @@ class LogtoClientTest {
         logtoClient.getJwks { throwable, result ->
             assertThat(throwable)
                 .hasMessageThat()
-                .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_JWKS_JSON.name)
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_JWKS_JSON.name)
             assertThat(result).isNull()
         }
     }
@@ -669,7 +669,7 @@ class LogtoClientTest {
         logtoClient.getJwks { throwable, result ->
             assertThat(throwable)
                 .hasMessageThat()
-                .isEqualTo(LogtoException.Message.UNABLE_TO_PARSE_JWKS.name)
+                .isEqualTo(LogtoException.Type.UNABLE_TO_PARSE_JWKS.name)
             assertThat(result).isNull()
         }
     }

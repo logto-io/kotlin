@@ -110,7 +110,7 @@ class CoreTest {
             )
         }
 
-        assertThat(expectedException).hasMessageThat().contains(UriConstructionException.Message.INVALID_ENDPOINT.name)
+        assertThat(expectedException).hasMessageThat().contains(UriConstructionException.Type.INVALID_ENDPOINT.name)
     }
 
     @Test
@@ -214,6 +214,6 @@ class CoreTest {
             Core.generateSignOutUri(endSessionEndpoint, idToken)
         }
 
-        assertThat(expectedException).hasMessageThat().contains(UriConstructionException.Message.INVALID_ENDPOINT.name)
+        assertThat(expectedException).hasMessageThat().contains(UriConstructionException.Type.INVALID_ENDPOINT.name)
     }
 }

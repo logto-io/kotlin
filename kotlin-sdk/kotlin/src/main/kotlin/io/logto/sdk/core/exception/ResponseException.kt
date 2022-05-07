@@ -1,13 +1,13 @@
 package io.logto.sdk.core.exception
 
 class ResponseException(
-    message: Enum<Message>,
+    type: Type,
     cause: Throwable? = null,
-) : RuntimeException(message.name, cause) {
+) : RuntimeException(type.name, cause) {
     var responseMessage: String? = null
     var responseContent: String? = null
 
-    enum class Message {
+    enum class Type {
         REQUEST_FAILED,
         ERROR_RESPONSE,
         EMPTY_RESPONSE,

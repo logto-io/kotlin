@@ -1,10 +1,10 @@
 package io.logto.sdk.core.exception
 
 class UriConstructionException(
-    message: Enum<Message>,
+    type: Type,
     cause: Throwable? = null,
-) : RuntimeException(message.name, cause) {
-    enum class Message {
+) : RuntimeException(type.name, cause) {
+    enum class Type {
         INVALID_ENDPOINT,
     }
 }

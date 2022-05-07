@@ -29,7 +29,7 @@ object Core {
         resources: List<String>?,
     ): String {
         val constructedUri = authorizationEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
-            UriConstructionException.Message.INVALID_ENDPOINT,
+            UriConstructionException.Type.INVALID_ENDPOINT,
         )
         return constructedUri.newBuilder().apply {
             addQueryParameter(QueryKey.CLIENT_ID, clientId)
@@ -50,7 +50,7 @@ object Core {
         postLogoutRedirectUri: String? = null,
     ): String {
         val constructedUri = endSessionEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
-            UriConstructionException.Message.INVALID_ENDPOINT,
+            UriConstructionException.Type.INVALID_ENDPOINT,
         )
         return constructedUri.newBuilder().apply {
             addQueryParameter(QueryKey.ID_TOKEN_HINT, idToken)
