@@ -44,7 +44,7 @@ open class LogtoClient(
 
     /**
      * The cached ID Token in raw string format.
-     * Use [getIdTokenClaims] to retrieve the claims of the ID Token.
+     * Use [getIdTokenClaims] to retrieve the claims of the ID Token
      */
     protected var idToken: String? = null
         set(value) {
@@ -83,9 +83,9 @@ open class LogtoClient(
 
     /**
      * Sign in
-     * @param[context] the activity to perform a sign-in action.
-     * @param[redirectUri] one of the redirect URIs of this application.
-     * @param[completion] the completion which handles the result of signing in.
+     * @param[context] the activity to perform a sign-in action
+     * @param[redirectUri] one of the redirect URIs of this application
+     * @param[completion] the completion which handles the result of signing in
      */
     fun signIn(
         context: Activity,
@@ -137,7 +137,7 @@ open class LogtoClient(
      *
      * Local credentials will be cleared even though there are errors occurred when signing out.
      *
-     * @param[completion] the completion which handles the error occurred when signing out.
+     * @param[completion] the completion which handles the error occurred when signing out
      */
     fun signOut(completion: EmptyCompletion<LogtoException>? = null) {
         if (!isAuthenticated) {
@@ -179,15 +179,15 @@ open class LogtoClient(
 
     /**
      * Get access token
-     * @param[completion] the completion which handles the result.
+     * @param[completion] the completion which handles the result
      */
     fun getAccessToken(completion: Completion<LogtoException, AccessToken>) =
         getAccessToken(null, completion)
 
     /**
      * Get access token
-     * @param[resource] the related resource of the retrieving access token.
-     * @param[completion] the completion which handles the retrieved result.
+     * @param[resource] the related resource of the retrieving access token
+     * @param[completion] the completion which handles the retrieved result
      */
     fun getAccessToken(
         resource: String?,
@@ -293,7 +293,7 @@ open class LogtoClient(
 
     /**
      * Get ID token claims
-     * @param[completion] the completion which handles the retrieved result.
+     * @param[completion] the completion which handles the retrieved result
      */
     fun getIdTokenClaims(completion: Completion<LogtoException, IdTokenClaims>) {
         if (!isAuthenticated) {
@@ -313,7 +313,7 @@ open class LogtoClient(
 
     /**
      * Fetch user info
-     * @param[completion] the completion which handles the retrieved result.
+     * @param[completion] the completion which handles the retrieved result
      */
     fun fetchUserInfo(completion: Completion<LogtoException, UserInfoResponse>) {
         getOidcConfig { getOidcConfigException, oidcConfig ->
