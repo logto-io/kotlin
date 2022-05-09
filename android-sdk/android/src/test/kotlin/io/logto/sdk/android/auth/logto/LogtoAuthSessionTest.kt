@@ -111,7 +111,7 @@ class LogtoAuthSessionTest {
 
         assertThat(logtoExceptionCapture.last())
             .hasMessageThat()
-            .isEqualTo(LogtoException.Message.INVALID_REDIRECT_URI.name)
+            .isEqualTo(LogtoException.Type.INVALID_REDIRECT_URI.name)
         assertThat(codeTokenResponseCapture.last()).isNull()
 
         verify(exactly = 0){
@@ -174,7 +174,7 @@ class LogtoAuthSessionTest {
         mockkObject(CallbackUriUtils)
         every {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri(any(), any(), any())
-        } throws CallbackUriVerificationException(CallbackUriVerificationException.Message.ERROR_FOUND_IN_URI)
+        } throws CallbackUriVerificationException(CallbackUriVerificationException.Type.ERROR_FOUND_IN_URI)
 
         val dummyInvalidCallbackUri: Uri = mockk()
         every { dummyInvalidCallbackUri.toString() } returns "dummyCallbackUri"
@@ -190,7 +190,7 @@ class LogtoAuthSessionTest {
 
         assertThat(logtoExceptionCapture.last())
             .hasMessageThat()
-            .isEqualTo(LogtoException.Message.INVALID_CALLBACK_URI.name)
+            .isEqualTo(LogtoException.Type.INVALID_CALLBACK_URI.name)
         assertThat(codeTokenResponseCapture.last()).isNull()
     }
 
@@ -238,7 +238,7 @@ class LogtoAuthSessionTest {
 
         assertThat(logtoExceptionCapture.last())
             .hasMessageThat()
-            .isEqualTo(LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE.name)
+            .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_TOKEN_BY_AUTHORIZATION_CODE.name)
         assertThat(codeTokenResponseCapture.last()).isNull()
     }
 
@@ -269,7 +269,7 @@ class LogtoAuthSessionTest {
 
         assertThat(logtoExceptionCapture.last())
             .hasMessageThat()
-            .isEqualTo(LogtoException.Message.USER_CANCELED.name)
+            .isEqualTo(LogtoException.Type.USER_CANCELED.name)
         assertThat(codeTokenResponseCapture.last()).isNull()
     }
 }

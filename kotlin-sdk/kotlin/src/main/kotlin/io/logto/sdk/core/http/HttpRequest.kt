@@ -35,7 +35,7 @@ fun makeRequest(
         override fun onResponse(call: Call, response: Response) {
             if (!response.isSuccessful) {
                 completion.onComplete(
-                    ResponseException(ResponseException.Message.REQUEST_FAILED).apply {
+                    ResponseException(ResponseException.Type.REQUEST_FAILED).apply {
                         responseMessage = response.message
                         responseContent = response.body?.toString()
                     },
@@ -46,7 +46,7 @@ fun makeRequest(
 
             response.let { it.body?.string() }?.let {
                 completion.onComplete(null, it)
-            } ?: completion.onComplete(ResponseException(ResponseException.Message.EMPTY_RESPONSE), null)
+            } ?: completion.onComplete(ResponseException(ResponseException.Type.EMPTY_RESPONSE), null)
         }
     },
 )
@@ -69,7 +69,7 @@ fun makeRequest(
             response.takeIf { it.isSuccessful }?.let {
                 completion.onComplete(null)
             } ?: completion.onComplete(
-                ResponseException(ResponseException.Message.REQUEST_FAILED).apply {
+                ResponseException(ResponseException.Type.REQUEST_FAILED).apply {
                     responseMessage = response.message
                     responseContent = response.body?.toString()
                 },

@@ -109,7 +109,7 @@ open class LogtoClient(
 
     fun signOut(completion: EmptyCompletion<LogtoException>? = null) {
         if (!isAuthenticated) {
-            completion?.onComplete(LogtoException(LogtoException.Message.NOT_AUTHENTICATED))
+            completion?.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
             return
         }
 
@@ -135,7 +135,7 @@ open class LogtoClient(
                 ) { revokeException ->
                     completion?.onComplete(
                         revokeException?.let {
-                            LogtoException(LogtoException.Message.UNABLE_TO_REVOKE_TOKEN, it)
+                            LogtoException(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN, it)
                         },
                     )
                 }
@@ -153,14 +153,14 @@ open class LogtoClient(
         completion: Completion<LogtoException, AccessToken>,
     ) {
         if (!isAuthenticated) {
-            completion.onComplete(LogtoException(LogtoException.Message.NOT_AUTHENTICATED), null)
+            completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED), null)
             return
         }
 
         resource?.let {
             if (logtoConfig.resources?.contains(it) == false) {
                 completion.onComplete(
-                    LogtoException(LogtoException.Message.UNGRANTED_RESOURCE_FOUND).apply { detail = it },
+                    LogtoException(LogtoException.Type.UNGRANTED_RESOURCE_FOUND).apply { detail = it },
                     null,
                 )
                 return
@@ -179,7 +179,7 @@ open class LogtoClient(
 
         // MARK: If no access token is valid, fetch a new token by refresh token
         if (refreshToken == null) {
-            completion.onComplete(LogtoException(LogtoException.Message.NO_REFRESH_TOKEN_FOUND), null)
+            completion.onComplete(LogtoException(LogtoException.Type.NO_REFRESH_TOKEN_FOUND), null)
             return
         }
 
@@ -212,7 +212,7 @@ open class LogtoClient(
                     pendingRefreshTokenCompletion.remove(byRefreshToken)?.map { pendingCompletion ->
                         pendingCompletion.onComplete(
                             LogtoException(
-                                LogtoException.Message.UNABLE_TO_FETCH_TOKEN_BY_REFRESH_TOKEN,
+                                LogtoException.Type.UNABLE_TO_FETCH_TOKEN_BY_REFRESH_TOKEN,
                                 it,
                             ),
                             null,
@@ -252,7 +252,7 @@ open class LogtoClient(
 
     fun getIdTokenClaims(completion: Completion<LogtoException, IdTokenClaims>) {
         if (!isAuthenticated) {
-            completion.onComplete(LogtoException(LogtoException.Message.NOT_AUTHENTICATED), null)
+            completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED), null)
             return
         }
         try {
@@ -260,7 +260,7 @@ open class LogtoClient(
             completion.onComplete(null, idTokenClaims)
         } catch (exception: InvalidJwtException) {
             completion.onComplete(
-                LogtoException(LogtoException.Message.UNABLE_TO_PARSE_ID_TOKEN_CLAIMS, exception),
+                LogtoException(LogtoException.Type.UNABLE_TO_PARSE_ID_TOKEN_CLAIMS, exception),
                 null,
             )
         }
@@ -283,7 +283,7 @@ open class LogtoClient(
                 ) fetchUserInfoInCore@{ fetchUserInfoException, userInfoResponse ->
                     fetchUserInfoException?.let {
                         completion.onComplete(
-                            LogtoException(LogtoException.Message.UNABLE_TO_FETCH_USER_INFO, it),
+                            LogtoException(LogtoException.Type.UNABLE_TO_FETCH_USER_INFO, it),
                             null,
                         )
                         return@fetchUserInfoInCore
@@ -311,7 +311,7 @@ open class LogtoClient(
                 try {
                     TokenUtils.verifyIdToken(it, logtoConfig.appId, issuer, requireNotNull(jwks))
                 } catch (exception: InvalidJwtException) {
-                    completion.onComplete(LogtoException(LogtoException.Message.INVALID_ID_TOKEN, exception))
+                    completion.onComplete(LogtoException(LogtoException.Type.INVALID_ID_TOKEN, exception))
                     return@getJwks
                 }
                 idToken = it
@@ -332,7 +332,7 @@ open class LogtoClient(
             logtoConfig.oidcConfigEndpoint,
         ) { fetchOidcConfigException, oidcConfigResponse ->
             fetchOidcConfigException?.let {
-                completion.onComplete(LogtoException(LogtoException.Message.UNABLE_TO_FETCH_OIDC_CONFIG, it), null)
+                completion.onComplete(LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG, it), null)
                 return@fetchOidcConfig
             }
             oidcConfig = oidcConfigResponse
@@ -354,7 +354,7 @@ open class LogtoClient(
 
             Core.fetchJwksJson(requireNotNull(oidcConfig).jwksUri) { fetchJwksJsonException, jwksJson ->
                 fetchJwksJsonException?.let {
-                    completion.onComplete(LogtoException(LogtoException.Message.UNABLE_TO_FETCH_JWKS_JSON, it), null)
+                    completion.onComplete(LogtoException(LogtoException.Type.UNABLE_TO_FETCH_JWKS_JSON, it), null)
                     return@fetchJwksJson
                 }
 
@@ -362,7 +362,7 @@ open class LogtoClient(
                     jwks = JsonWebKeySet(jwksJson)
                 } catch (joseException: JoseException) {
                     completion.onComplete(
-                        LogtoException(LogtoException.Message.UNABLE_TO_PARSE_JWKS, joseException),
+                        LogtoException(LogtoException.Type.UNABLE_TO_PARSE_JWKS, joseException),
                         null,
                     )
                     return@fetchJwksJson
