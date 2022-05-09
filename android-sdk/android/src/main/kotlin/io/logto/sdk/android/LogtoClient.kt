@@ -44,7 +44,7 @@ open class LogtoClient(
 
     /**
      * The cached ID Token in raw string format.
-     * Use [getIdTokenClaims] to retrieve the claims of the ID Token.
+     * Use [getIdTokenClaims] to retrieve the claims of the ID Token
      */
     protected var idToken: String? = null
         set(value) {
