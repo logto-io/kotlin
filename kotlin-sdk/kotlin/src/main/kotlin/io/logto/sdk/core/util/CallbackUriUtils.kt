@@ -5,6 +5,14 @@ import io.logto.sdk.core.exception.CallbackUriVerificationException
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 object CallbackUriUtils {
+    /**
+     * Verify and parse code from callback URI
+     * @param[callbackUri] The callback URI to be verified
+     * @param[redirectUri] The redirect URI on sign in
+     * @param[state] The state on sign in
+     * @return Authorization code
+     * @throws[CallbackUriVerificationException]
+     */
     fun verifyAndParseCodeFromCallbackUri(
         callbackUri: String,
         redirectUri: String,
