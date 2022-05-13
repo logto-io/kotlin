@@ -53,7 +53,7 @@ implementation("io.logto.sdk:android:<version>")
 ## Products
 | Name | Description |
 |---|---|
-| Kotlin SDK | Kotlin SDK is used to integrate your JVM client with Logto service. |
+| Kotlin SDK | Kotlin SDK is used to integrate your JVM client with Logto service |
 | Android SDK | Android SDK |
 
 ## Resources
