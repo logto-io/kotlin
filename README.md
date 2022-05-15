@@ -7,7 +7,6 @@
 </p>
 
 # Logto Kotlin SDKs
-[![Maven Central](https://img.shields.io/maven-central/v/io.logto.sdk/kotlin?logo=kotlin)](https://search.maven.org/artifact/io.logto.sdk/kotlin)
 [![Maven Central](https://img.shields.io/maven-central/v/io.logto.sdk/kotlin?logo=android)](https://search.maven.org/artifact/io.logto.sdk/android)
 [![Build Status](https://github.com/logto-io/kotlin/actions/workflows/main.yml/badge.svg)](https://github.com/logto-io/kotlin/actions/workflows/main.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/logto-io/kotlin)](https://app.codecov.io/gh/logto-io/kotlin?branch=master)
@@ -20,21 +19,7 @@ Check out our [integration guide](https://docs.logto.io/integrate-sdk/kotlin) or
 We also provide [集成指南](https://docs.logto.io/zh-cn/integrate-sdk/kotlin) and [文档](https://docs.logto.io/zh-cn/sdk/kotlin) in Simplified Chinese.
 
 ## Installation
-Logto Kotlin SDK and Logto Android SDK are now available on [MavenCentral](https://search.maven.org/search?q=io.logto.sdk).
-
-### Install Kotlin SDK
-Logto Kotlin SDK is used to integrate your JVM client with Logto service.
-
-You can refer to the [Kotlin SDK API Reference](https://docs.logto.io/sdk/Kotlin/kotlin/) for more information.
-
-#### Groovy
-```groovy
-implementation 'io.logto.sdk:kotlin:<version>'
-```
-#### Kotlin
-```kotlin
-implementation("io.logto.sdk:kotlin:<version>")
-```
+Logto Android SDK is now available on [MavenCentral](https://search.maven.org/search?q=io.logto.sdk).
 
 ### Install Android SDK
 Logto Android SDK provides a standard way to integrate your Android application with Logto service in an easy way.
