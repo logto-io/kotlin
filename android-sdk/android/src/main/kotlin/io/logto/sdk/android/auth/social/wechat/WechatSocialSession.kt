@@ -19,7 +19,7 @@ class WechatSocialSession(
     override val completion: Completion<SocialException, String>,
 ) : SocialSession {
     companion object {
-        const val CONNECTOR_ID = "wechat-native"
+        const val CONNECTOR_TARGET = "wechat"
         const val SDK_IDENTIFY_CLASS_NAME = "com.tencent.mm.opensdk.openapi.IWXAPI"
     }
 

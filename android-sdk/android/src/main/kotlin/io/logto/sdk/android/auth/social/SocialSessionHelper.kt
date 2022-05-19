@@ -24,12 +24,12 @@ object SocialSessionHelper {
     }
 
     private val nativeSocialSdkIdentifyMeta = mapOf(
-        AlipaySocialSession.CONNECTOR_ID to AlipaySocialSession.SDK_IDENTIFY_CLASS_NAME,
-        WechatSocialSession.CONNECTOR_ID to WechatSocialSession.SDK_IDENTIFY_CLASS_NAME,
+        AlipaySocialSession.CONNECTOR_TARGET to AlipaySocialSession.SDK_IDENTIFY_CLASS_NAME,
+        WechatSocialSession.CONNECTOR_TARGET to WechatSocialSession.SDK_IDENTIFY_CLASS_NAME,
     )
 
-    fun getSupportedSocialConnectorIds() =
+    fun getSupportedSocialConnectorTargets() =
         nativeSocialSdkIdentifyMeta
             .filter { (_, sdkIdentifyClassName) -> isDependencyInstalled(sdkIdentifyClassName) }
-            .map { (connectorId) -> connectorId }
+            .map { (connectorTarget) -> connectorTarget }
 }

@@ -16,8 +16,8 @@ class AlipaySocialSession(
     override val completion: Completion<SocialException, String>,
 ) : SocialSession {
     companion object {
+        const val CONNECTOR_TARGET = "alipay"
         const val SDK_IDENTIFY_CLASS_NAME = "com.alipay.sdk.app.OpenAuthTask"
-        const val CONNECTOR_ID = "alipay-native"
     }
 
     override fun start() {
