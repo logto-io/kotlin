@@ -6,6 +6,7 @@
             <action android:name="android.support.customtabs.action.CustomTabsService" />
         </intent>
         <package android:name="com.tencent.mm" />
+        <package android:name="com.eg.android.AlipayGphone" />
     </queries>
 
     <application>
