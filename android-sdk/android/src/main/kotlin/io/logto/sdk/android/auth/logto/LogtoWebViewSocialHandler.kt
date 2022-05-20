@@ -26,13 +26,16 @@ class LogtoWebViewSocialHandler(
         window.logtoNativeSdk = {
             platform: 'android',
             getPostMessage: () => (data) => window.$NAME.postMessage(JSON.stringify(data)),
-            supportedSocialConnectorTargets: [${getSupportedSocialConnectorTargets()}],
+            supportedConnector: {
+                universal: true,
+                nativeTargets: [${getSupportedNativeConnectorTargets()}],
+            },
             callbackLink: 'logto-callback://${hostActivity.packageName}/web',
         };
     """.trimIndent()
 
-    private fun getSupportedSocialConnectorTargets() = SocialSessionHelper
-        .getSupportedSocialConnectorTargets()
+    private fun getSupportedNativeConnectorTargets() = SocialSessionHelper
+        .getSupportedNativeConnectorTargets()
         .joinToString(", ") { "'$it'" }
 
     @JavascriptInterface

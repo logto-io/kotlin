@@ -28,7 +28,7 @@ object SocialSessionHelper {
         WechatSocialSession.CONNECTOR_TARGET to WechatSocialSession.SDK_IDENTIFY_CLASS_NAME,
     )
 
-    fun getSupportedSocialConnectorTargets() =
+    fun getSupportedNativeConnectorTargets() =
         nativeSocialSdkIdentifyMeta
             .filter { (_, sdkIdentifyClassName) -> isDependencyInstalled(sdkIdentifyClassName) }
             .map { (connectorTarget) -> connectorTarget }

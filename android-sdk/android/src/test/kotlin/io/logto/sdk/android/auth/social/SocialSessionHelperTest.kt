@@ -71,7 +71,7 @@ class SocialSessionHelperTest {
             LogtoUtils.isDependencyInstalled(WechatSocialSession.SDK_IDENTIFY_CLASS_NAME)
         } returns true
 
-        val supportedSocialConnectorTargets = SocialSessionHelper.getSupportedSocialConnectorTargets()
+        val supportedSocialConnectorTargets = SocialSessionHelper.getSupportedNativeConnectorTargets()
         assertThat(supportedSocialConnectorTargets).apply {
             doesNotContain(AlipaySocialSession.CONNECTOR_TARGET)
             contains(WechatSocialSession.CONNECTOR_TARGET)
