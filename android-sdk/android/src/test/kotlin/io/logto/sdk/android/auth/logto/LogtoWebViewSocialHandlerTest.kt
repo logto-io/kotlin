@@ -45,12 +45,12 @@ class LogtoWebViewSocialHandlerTest {
 
         mockkObject(SocialSessionHelper)
         every {
-            SocialSessionHelper.getSupportedSocialConnectorTargets()
-        } returns mutableListOf("wechat-native", "alipay-native")
+            SocialSessionHelper.getSupportedNativeConnectorTargets()
+        } returns mutableListOf("wechat", "alipay")
 
         val injectSocialScript = logtoWebViewSocialHandler.getInjectSocialScript()
         verify {
-            SocialSessionHelper.getSupportedSocialConnectorTargets()
+            SocialSessionHelper.getSupportedNativeConnectorTargets()
         }
 
         assertThat(injectSocialScript)
@@ -59,7 +59,10 @@ class LogtoWebViewSocialHandlerTest {
                 window.logtoNativeSdk = {
                     platform: 'android',
                     getPostMessage: () => (data) => window.SocialHandler.postMessage(JSON.stringify(data)),
-                    supportedSocialConnectorTargets: ['wechat-native', 'alipay-native'],
+                    supportedConnector: {
+                        universal: true,
+                        nativeTargets: ['wechat', 'alipay'],
+                    },
                     callbackLink: 'logto-callback://io.logto.test/web',
                 };
             """.trimIndent()

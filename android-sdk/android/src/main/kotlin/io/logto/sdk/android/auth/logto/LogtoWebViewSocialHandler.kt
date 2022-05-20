@@ -22,17 +22,21 @@ class LogtoWebViewSocialHandler(
         }
     }
 
+    // Note: the `universal` will always be true for it is supported by the Android OS.
     fun getInjectSocialScript() = """
         window.logtoNativeSdk = {
             platform: 'android',
             getPostMessage: () => (data) => window.$NAME.postMessage(JSON.stringify(data)),
-            supportedSocialConnectorTargets: [${getSupportedSocialConnectorTargets()}],
+            supportedConnector: {
+                universal: true,
+                nativeTargets: [${getSupportedNativeConnectorTargets()}],
+            },
             callbackLink: 'logto-callback://${hostActivity.packageName}/web',
         };
     """.trimIndent()
 
-    private fun getSupportedSocialConnectorTargets() = SocialSessionHelper
-        .getSupportedSocialConnectorTargets()
+    private fun getSupportedNativeConnectorTargets() = SocialSessionHelper
+        .getSupportedNativeConnectorTargets()
         .joinToString(", ") { "'$it'" }
 
     @JavascriptInterface
