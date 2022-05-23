@@ -7,7 +7,6 @@ import com.alipay.sdk.app.OpenAuthTask
 import io.logto.sdk.android.auth.social.SocialException
 import io.logto.sdk.android.auth.social.SocialSession
 import io.logto.sdk.android.completion.Completion
-import io.logto.sdk.core.util.GenerateUtils
 
 class AlipaySocialSession(
     override val context: Activity,
@@ -21,14 +20,20 @@ class AlipaySocialSession(
     }
 
     override fun start() {
-        val appId = Uri.parse(redirectTo).getQueryParameter("app_id")
-        if (appId.isNullOrBlank()) {
-            completion.onComplete(SocialException(SocialException.Type.INSUFFICIENT_INFORMATION), null)
+        val parsedUri = Uri.parse(redirectTo)
+        val appId = parsedUri.getQueryParameter("app_id")
+        val state = parsedUri.getQueryParameter("state")
+
+        if (appId.isNullOrBlank() or state.isNullOrBlank()) {
+            completion.onComplete(
+                SocialException(SocialException.Type.INSUFFICIENT_INFORMATION),
+                null,
+            )
             return
         }
 
         val bizParams = HashMap<String, String>()
-        bizParams["url"] = generateAlipayAuthUri(appId)
+        bizParams["url"] = generateAlipayAuthUri(requireNotNull(appId), requireNotNull(state))
         val openAuthTask = OpenAuthTask(context)
         openAuthTask.execute(
             "logto-callback://${context.packageName}/alipay",
@@ -53,7 +58,11 @@ class AlipaySocialSession(
                  */
                 val authCode = data.getString("auth_code")
                 val continueSignInUri = try {
-                    Uri.parse(callbackUri).buildUpon().appendQueryParameter("code", authCode).build()
+                    Uri.parse(callbackUri)
+                        .buildUpon()
+                        .appendQueryParameter("code", authCode)
+                        .appendQueryParameter("state", state)
+                        .build()
                 } catch (_: UnsupportedOperationException) {
                     completion.onComplete(
                         SocialException(SocialException.Type.UNABLE_TO_CONSTRUCT_CALLBACK_URI),
@@ -67,10 +76,9 @@ class AlipaySocialSession(
         )
     }
 
-    private fun generateAlipayAuthUri(appId: String): String {
+    private fun generateAlipayAuthUri(appId: String, state: String): String {
         val authType = "PURE_OAUTH_SDK"
         val scope = "auth_user"
-        val state = GenerateUtils.generateState()
         return "https://authweb.alipay.com/auth?auth_type=$authType&app_id=$appId&scope=$scope&state=$state"
     }
 }

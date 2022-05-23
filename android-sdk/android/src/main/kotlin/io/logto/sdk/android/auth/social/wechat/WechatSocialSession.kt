@@ -10,7 +10,6 @@ import com.tencent.mm.opensdk.openapi.WXAPIFactory
 import io.logto.sdk.android.auth.social.SocialException
 import io.logto.sdk.android.auth.social.SocialSession
 import io.logto.sdk.android.completion.Completion
-import io.logto.sdk.core.util.GenerateUtils
 
 class WechatSocialSession(
     override val context: Activity,
@@ -24,9 +23,12 @@ class WechatSocialSession(
     }
 
     override fun start() {
-        val appId = Uri.parse(redirectTo).getQueryParameter("app_id")
-        if (appId.isNullOrBlank()) {
-            handleMissingAppIdError()
+        val parsedUri = Uri.parse(redirectTo)
+        val appId = parsedUri.getQueryParameter("app_id")
+        val receivedState = parsedUri.getQueryParameter("state")
+
+        if (appId.isNullOrBlank() or receivedState.isNullOrBlank()) {
+            handleMissingInformationError()
             return
         }
 
@@ -36,7 +38,7 @@ class WechatSocialSession(
         WechatSocialResultActivity.registerSession(this)
         val authRequest = SendAuth.Req().apply {
             scope = "snsapi_userinfo"
-            state = GenerateUtils.generateState()
+            state = receivedState
         }
         api.sendReq(authRequest)
     }
@@ -53,6 +55,7 @@ class WechatSocialSession(
                     Uri.parse(callbackUri)
                         .buildUpon()
                         .appendQueryParameter("code", authResponse.code)
+                        .appendQueryParameter("state", authResponse.state)
                         .build()
                 } catch (_: UnsupportedOperationException) {
                     completion.onComplete(
@@ -72,6 +75,6 @@ class WechatSocialSession(
         completion.onComplete(socialException, null)
     }
 
-    fun handleMissingAppIdError() =
+    fun handleMissingInformationError() =
         completion.onComplete(SocialException(SocialException.Type.INSUFFICIENT_INFORMATION), null)
 }
