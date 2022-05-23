@@ -73,13 +73,13 @@ class WechatSocialResultActivityTest {
 
         val mockWechatSocialSession: WechatSocialSession = mockk()
         every { mockWechatSocialSession.redirectTo } returns "wechat-native://?state=testState"
-        every { mockWechatSocialSession.handleMissingAppIdError() } just Runs
+        every { mockWechatSocialSession.handleMissingInformationError() } just Runs
         WechatSocialResultActivity.registerSession(mockWechatSocialSession)
 
         activityController.create()
 
         verify {
-            mockWechatSocialSession.handleMissingAppIdError()
+            mockWechatSocialSession.handleMissingInformationError()
         }
 
         assertThat(WechatSocialResultActivity.wechatSocialSession).isNull()

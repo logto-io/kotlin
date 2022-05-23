@@ -36,11 +36,18 @@ class AlipaySocialSessionTest {
 
     @Test
     fun `start should execute openAuthTask and complete with expected result`() {
-        val redirectTo = "alipay-native://?app_id=1234567890"
-        val callbackUri = "https://logto.dev/alipay-native"
         val authorizationCode = "authorizationCode"
+        val appId = "1234567890"
+        val scope = "scope"
+        val state = "state"
+        val redirectTo = "alipay-native://?app_id=1234567890&state=$state"
+        val callbackUri = "https://logto.dev/alipay-native"
+
         val alipayAuthResult = Bundle().apply {
             putString("auth_code", authorizationCode)
+            putString("app_id", appId)
+            putString("scope", scope)
+            putString("state", state)
         }
 
         every { mockCompletion.onComplete(any(), any()) } just Runs
@@ -72,7 +79,7 @@ class AlipaySocialSessionTest {
 
         assertThat(socialExceptionCapture.last()).isNull()
         assertThat(continueSignInUriCapture.last())
-            .isEqualTo("$callbackUri?code=$authorizationCode")
+            .isEqualTo("$callbackUri?code=$authorizationCode&app_id=$appId&scope=$scope&state=$state")
     }
 
     @Test
@@ -106,7 +113,7 @@ class AlipaySocialSessionTest {
 
     @Test
     fun `should complete with exception if auth failed`() {
-        val redirectTo = "alipay-native://?app_id=1234567890"
+        val redirectTo = "alipay-native://?app_id=1234567890&state=state"
         val callbackUri = "https://logto.dev/alipay-native"
 
         every { mockCompletion.onComplete(any(), any()) } just Runs

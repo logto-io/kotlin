@@ -24,7 +24,7 @@ open class WechatSocialResultActivity : Activity(), IWXAPIEventHandler {
             val redirectTo = it.redirectTo
             val appId = Uri.parse(redirectTo).getQueryParameter("app_id")
             if (appId.isNullOrBlank()) {
-                it.handleMissingAppIdError()
+                it.handleMissingInformationError()
                 wechatSocialSession = null
                 finish()
                 return

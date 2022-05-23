@@ -38,7 +38,8 @@ class WechatSocialSessionTest {
     @Test
     fun `start should register to wechat social result activity and send auth request by wechat api`() {
         val appId = "wx1234567890"
-        val redirectTo = "wechat-native://?app_id=$appId"
+        val state = "state"
+        val redirectTo = "wechat-native://?app_id=$appId&state=$state"
         val callbackUri = "https://logto.dev/wechat-native"
         val wechatSocialSession = WechatSocialSession(
             mockActivity,
@@ -75,7 +76,38 @@ class WechatSocialSessionTest {
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
         val appId = ""
-        val redirectTo = "wechat-native://?app_id=$appId"
+        val state = "state"
+        val redirectTo = "wechat-native://?app_id=$appId&state=$state"
+        val callbackUri = "https://logto.dev/wechat-native"
+        val wechatSocialSession = WechatSocialSession(
+            mockActivity,
+            redirectTo,
+            callbackUri,
+            mockCompletion
+        )
+
+        wechatSocialSession.start()
+
+        verify {
+            mockCompletion.onComplete(
+                captureNullable(socialExceptionCapture),
+                captureNullable(continueSignInUriCapture),
+            )
+        }
+
+        assertThat(socialExceptionCapture.last())
+            .hasMessageThat()
+            .isEqualTo(SocialException.Type.INSUFFICIENT_INFORMATION.code)
+        assertThat(continueSignInUriCapture.last()).isNull()
+    }
+
+    @Test
+    fun `should complete with exception if no state is provided`() {
+        every { mockCompletion.onComplete(any(), any()) } just Runs
+
+        val appId = "wx1234567890"
+        val state = ""
+        val redirectTo = "wechat-native://?app_id=$appId&state=$state"
         val callbackUri = "https://logto.dev/wechat-native"
         val wechatSocialSession = WechatSocialSession(
             mockActivity,
@@ -104,7 +136,8 @@ class WechatSocialSessionTest {
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
         val appId = "wx1234567890"
-        val redirectTo = "wechat-native://?app_id=$appId"
+        val testState = "state"
+        val redirectTo = "wechat-native://?app_id=$appId&state=$testState"
         val callbackUri = "https://logto.dev/wechat-native"
         val authorizationCode = "authorizationCode"
         val wechatSocialSession = WechatSocialSession(
@@ -117,6 +150,7 @@ class WechatSocialSessionTest {
         val responseResult = SendAuth.Resp().apply {
             errCode = BaseResp.ErrCode.ERR_OK
             code = authorizationCode
+            state = testState
         }
 
         wechatSocialSession.handleResult(responseResult)
@@ -128,7 +162,7 @@ class WechatSocialSessionTest {
             )
         }
 
-        val expectedContinueSignInUri = "$callbackUri?code=$authorizationCode"
+        val expectedContinueSignInUri = "$callbackUri?code=$authorizationCode&state=$testState"
         assertThat(socialExceptionCapture.last()).isNull()
         assertThat(continueSignInUriCapture.last())
             .isEqualTo(expectedContinueSignInUri)
@@ -139,7 +173,8 @@ class WechatSocialSessionTest {
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
         val appId = "wx1234567890"
-        val redirectTo = "wechat-native://?app_id=$appId"
+        val state = "test"
+        val redirectTo = "wechat-native://?app_id=$appId&state=$state"
         val callbackUri = "https://logto.dev/wechat-native"
 
         val wechatSocialSession = WechatSocialSession(
@@ -175,10 +210,11 @@ class WechatSocialSessionTest {
     }
 
     @Test
-    fun `handleMissingAppIdError should complete with insufficient information exception`() {
+    fun `handleMissingInformationError should complete with insufficient information exception if no appId is provided`() {
         every { mockCompletion.onComplete(any(), any()) } just Runs
         val appId = ""
-        val redirectTo = "wechat-native://?app_id=$appId"
+        val state = "state"
+        val redirectTo = "wechat-native://?app_id=$appId&state=$state"
         val callbackUri = "https://logto.dev/wechat-native"
         val wechatSocialSession = WechatSocialSession(
             mockActivity,
@@ -187,7 +223,36 @@ class WechatSocialSessionTest {
             mockCompletion
         )
 
-        wechatSocialSession.handleMissingAppIdError()
+        wechatSocialSession.handleMissingInformationError()
+
+        verify {
+            mockCompletion.onComplete(
+                captureNullable(socialExceptionCapture),
+                captureNullable(continueSignInUriCapture),
+            )
+        }
+
+        assertThat(socialExceptionCapture.last())
+            .hasMessageThat()
+            .isEqualTo(SocialException.Type.INSUFFICIENT_INFORMATION.code)
+        assertThat(continueSignInUriCapture.last()).isNull()
+    }
+
+    @Test
+    fun `handleMissingInformationError should complete with insufficient information exception if no state is provided`() {
+        every { mockCompletion.onComplete(any(), any()) } just Runs
+        val appId = "wx1234567890"
+        val state = ""
+        val redirectTo = "wechat-native://?app_id=$appId&state=$state"
+        val callbackUri = "https://logto.dev/wechat-native"
+        val wechatSocialSession = WechatSocialSession(
+            mockActivity,
+            redirectTo,
+            callbackUri,
+            mockCompletion
+        )
+
+        wechatSocialSession.handleMissingInformationError()
 
         verify {
             mockCompletion.onComplete(
