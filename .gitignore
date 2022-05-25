@@ -11,3 +11,5 @@ local.properties
 */gradlew.bat
 */gradle
 *.aar
+*.jks
+keystore.properties

@@ -1,7 +1,15 @@
 import org.gradle.accessors.dm.LibrariesForLibs
+import java.util.Properties
+import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
+}
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -18,6 +26,26 @@ android {
         htmlReport = false
         xmlReport = false
         textReport = false
+    }
+
+    if (keystorePropertiesFile.exists()) {
+        signingConfigs {
+            create("default") {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
+        }
+        buildTypes {
+            getByName("debug") {
+                signingConfig = signingConfigs.getByName("default")
+            }
+
+            getByName("release"){
+                signingConfig = signingConfigs.getByName("default")
+            }
+        }
     }
 }
 
