@@ -50,18 +50,13 @@ class AlipaySocialSession(
                     return@execute
                 }
 
-                /**
-                 * Alipay SDK
-                 * Auth Result: https://opendocs.alipay.com/open/218/wy75xo#Android%20%E7%A4%BA%E4%BE%8B
-                 */
                 val continueSignInUri = try {
                     Uri.parse(callbackUri)
-                        .buildUpon()
-                        // Note: We treat "auth_code" as "code" parameter in our main flow.
-                        .appendQueryParameter("code", data.getString("auth_code"))
-                        .appendQueryParameter("app_id", data.getString("app_id"))
-                        .appendQueryParameter("scope", data.getString("scope"))
-                        .appendQueryParameter("state", data.getString("state"))
+                        .buildUpon().apply {
+                            for (key in data.keySet()) {
+                                appendQueryParameter(key, data.getString(key))
+                            }
+                        }
                         .build()
                 } catch (_: UnsupportedOperationException) {
                     completion.onComplete(
