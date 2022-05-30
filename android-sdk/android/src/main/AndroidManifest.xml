@@ -12,6 +12,7 @@
     <application>
         <activity android:name=".auth.logto.LogtoWebViewAuthActivity"
             android:exported="true"
+            android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
             android:launchMode="singleTop" />
 
         <activity android:name=".auth.social.web.WebSocialResultActivity"
