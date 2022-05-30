@@ -44,10 +44,10 @@ class AlipaySocialSessionTest {
         val callbackUri = "https://logto.dev/alipay-native"
 
         val alipayAuthResult = Bundle().apply {
-            putString("auth_code", authorizationCode)
             putString("app_id", appId)
             putString("scope", scope)
             putString("state", state)
+            putString("auth_code", authorizationCode)
         }
 
         every { mockCompletion.onComplete(any(), any()) } just Runs
@@ -79,7 +79,7 @@ class AlipaySocialSessionTest {
 
         assertThat(socialExceptionCapture.last()).isNull()
         assertThat(continueSignInUriCapture.last())
-            .isEqualTo("$callbackUri?code=$authorizationCode&app_id=$appId&scope=$scope&state=$state")
+            .isEqualTo("$callbackUri?app_id=$appId&scope=$scope&state=$state&auth_code=$authorizationCode")
     }
 
     @Test
