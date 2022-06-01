@@ -15,6 +15,7 @@ class LogtoConfigTest {
         assertThat(logtoConfigWithoutScope.scopes).apply {
             contains(ReservedScope.OPENID)
             contains(ReservedScope.OFFLINE_ACCESS)
+            contains(ReservedScope.PROFILE)
         }
 
         val logtoConfigWithOtherScope = LogtoConfig(
@@ -26,6 +27,7 @@ class LogtoConfigTest {
         assertThat(logtoConfigWithOtherScope.scopes).apply {
             contains(ReservedScope.OPENID)
             contains(ReservedScope.OFFLINE_ACCESS)
+            contains(ReservedScope.PROFILE)
             contains("other_scope")
         }
     }

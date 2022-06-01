@@ -8,6 +8,11 @@ object ScopeUtils {
      * @param[scopes] The origin scope list
      * @return The scope list which contains `open_id` and `offline_access`
      */
-    fun withReservedScopes(scopes: List<String>?): List<String> =
-        ((scopes ?: listOf()) + listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS)).distinct()
+    fun withReservedScopes(scopes: List<String>?): List<String> = (
+        (scopes ?: listOf()) + listOf(
+            ReservedScope.OPENID,
+            ReservedScope.OFFLINE_ACCESS,
+            ReservedScope.PROFILE,
+        )
+        ).distinct()
 }

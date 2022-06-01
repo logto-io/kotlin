@@ -24,6 +24,7 @@ class ScopeUtilsTest {
         assertThat(ensuredOpenidScope).apply {
             contains(ReservedScope.OPENID)
             contains(ReservedScope.OFFLINE_ACCESS)
+            contains(ReservedScope.PROFILE)
         }
     }
 
