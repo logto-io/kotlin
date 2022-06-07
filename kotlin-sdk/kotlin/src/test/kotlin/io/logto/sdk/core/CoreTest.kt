@@ -13,7 +13,11 @@ class CoreTest {
     private val testRedirectUri = "https://myapp.com/callback"
     private val testCodeChallenge = "codeChallenge"
     private val testState = "state"
-    private val testScopes = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS)
+    private val testScopes = listOf(
+        ReservedScope.OPENID,
+        ReservedScope.OFFLINE_ACCESS,
+        ReservedScope.PROFILE,
+    )
     private val testResourceVal1 = "api1.logto.dev"
     private val testResourceVal2 = "api2.logto.dev"
     private val testResources = listOf(testResourceVal1, testResourceVal2)
@@ -44,6 +48,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.PROFILE)
             }
             assertThat(queryParameterValues(QueryKey.RESOURCE)).apply {
                 contains(testResourceVal1)
@@ -55,7 +60,7 @@ class CoreTest {
     @Test
     fun `generateSignInUri should contain not only reserved scopes but also the extra scope`() {
         val extraScope = "extraScope"
-        val scopes = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, extraScope)
+        val scopes = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, ReservedScope.PROFILE, extraScope)
 
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = testAuthorizationEndpoint,
@@ -71,6 +76,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.PROFILE)
                 contains(extraScope)
             }
         }
@@ -129,6 +135,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.PROFILE)
             }
         }
     }
@@ -149,6 +156,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.PROFILE)
             }
         }
     }
@@ -170,6 +178,29 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.PROFILE)
+            }
+        }
+    }
+
+    @Test
+    fun `generateSignInUri should always contain reserved scopes if only the reserved PROFILE is provided`() {
+
+        val signInUri = Core.generateSignInUri(
+            authorizationEndpoint = testAuthorizationEndpoint,
+            clientId = testClientId,
+            redirectUri = testRedirectUri,
+            codeChallenge = testCodeChallenge,
+            state = testState,
+            scopes = listOf(ReservedScope.PROFILE),
+            resources = testResources
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(queryParameter(QueryKey.SCOPE)).apply {
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.PROFILE)
             }
         }
     }
