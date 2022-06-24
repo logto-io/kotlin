@@ -110,8 +110,11 @@ open class LogtoClient(
                 }
 
                 val codeToken = requireNotNull(fetchedTokenResponse)
-                // Note - Treat `resource` as `null`: https://github.com/logto-io/swift/pull/35#discussion_r795145645
-                val accessTokenKey = buildAccessTokenKey(logtoConfig.scopes, null)
+                // Note
+                // - Treat `scopes` as `null` to construct the default access token key
+                // for we do not support custom scopes in V1
+                // - Treat `resource` as `null`: https://github.com/logto-io/swift/pull/35#discussion_r795145645
+                val accessTokenKey = buildAccessTokenKey(null, null)
                 val accessToken = AccessToken(
                     codeToken.accessToken,
                     codeToken.scope,
@@ -155,6 +158,7 @@ open class LogtoClient(
         idToken = null
 
         refreshToken?.let { tokenToRevoke ->
+            refreshToken = null
             getOidcConfig { getOidcConfigException, oidcConfig ->
                 getOidcConfigException?.let {
                     completion?.onComplete(it)
@@ -172,9 +176,7 @@ open class LogtoClient(
                     )
                 }
             }
-        }
-
-        refreshToken = null
+        } ?: completion?.onComplete(null)
     }
 
     /**
@@ -218,12 +220,13 @@ open class LogtoClient(
             }
         }
 
-        // MARK: If no access token is valid, fetch a new token by refresh token
+        // MARK: If cannot refresh the access token, then return a NOT_AUTHENTICATED error
         if (refreshToken == null) {
-            completion.onComplete(LogtoException(LogtoException.Type.NO_REFRESH_TOKEN_FOUND), null)
+            completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED), null)
             return
         }
 
+        // MARK: If no access token is valid, fetch a new token by refresh token
         val byRefreshToken = requireNotNull(refreshToken)
 
         if (pendingRefreshTokenCompletion.containsKey(byRefreshToken)) {
@@ -346,7 +349,7 @@ open class LogtoClient(
     private fun verifyAndSaveTokenResponse(
         issuer: String,
         responseIdToken: String?,
-        responseRefreshToken: String,
+        responseRefreshToken: String?,
         accessTokenKey: String,
         accessToken: AccessToken,
         completion: EmptyCompletion<LogtoException>,

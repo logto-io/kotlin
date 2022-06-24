@@ -21,6 +21,7 @@ class CoreTest {
     private val testResourceVal1 = "api1.logto.dev"
     private val testResourceVal2 = "api2.logto.dev"
     private val testResources = listOf(testResourceVal1, testResourceVal2)
+    private val testPromptValue = PromptValue.CONSENT
 
     @Test
     fun `generateSignInUri should contain expected queries in result`() {
@@ -31,7 +32,8 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = testScopes,
-            resources = testResources
+            resources = testResources,
+            prompt = testPromptValue,
         )
 
         signInUri.toHttpUrl().apply {
@@ -69,7 +71,8 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = scopes,
-            resources = testResources
+            resources = testResources,
+            prompt = testPromptValue,
         )
 
         signInUri.toHttpUrl().apply {
@@ -91,7 +94,8 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = testScopes,
-            resources = null
+            resources = null,
+            prompt = testPromptValue,
         )
 
         signInUri.toHttpUrl().apply {
@@ -112,7 +116,8 @@ class CoreTest {
                 codeChallenge = testCodeChallenge,
                 state = testState,
                 scopes = testScopes,
-                resources = testResources
+                resources = testResources,
+                prompt = testPromptValue,
             )
         }
 
@@ -128,7 +133,8 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = null,
-            resources = testResources
+            resources = testResources,
+            prompt = testPromptValue,
         )
 
         signInUri.toHttpUrl().apply {
@@ -149,7 +155,8 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = listOf(ReservedScope.OFFLINE_ACCESS),
-            resources = testResources
+            resources = testResources,
+            prompt = testPromptValue,
         )
 
         signInUri.toHttpUrl().apply {
@@ -171,7 +178,8 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = listOf(ReservedScope.OPENID),
-            resources = testResources
+            resources = testResources,
+            prompt = testPromptValue,
         )
 
         signInUri.toHttpUrl().apply {
@@ -193,7 +201,8 @@ class CoreTest {
             codeChallenge = testCodeChallenge,
             state = testState,
             scopes = listOf(ReservedScope.PROFILE),
-            resources = testResources
+            resources = testResources,
+            prompt = testPromptValue,
         )
 
         signInUri.toHttpUrl().apply {

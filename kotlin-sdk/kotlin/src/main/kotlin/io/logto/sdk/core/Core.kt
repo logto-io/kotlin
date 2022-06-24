@@ -27,6 +27,7 @@ object Core {
         state: String,
         scopes: List<String>?,
         resources: List<String>?,
+        prompt: String?,
     ): String {
         val constructedUri = authorizationEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
             UriConstructionException.Type.INVALID_ENDPOINT,
@@ -37,10 +38,10 @@ object Core {
             addQueryParameter(QueryKey.CODE_CHALLENGE_METHOD, CodeChallengeMethod.S256)
             addQueryParameter(QueryKey.STATE, state)
             addQueryParameter(QueryKey.REDIRECT_URI, redirectUri)
-            addQueryParameter(QueryKey.PROMPT, PromptValue.CONSENT)
             addQueryParameter(QueryKey.RESPONSE_TYPE, ResponseType.CODE)
             addQueryParameter(QueryKey.SCOPE, ScopeUtils.withReservedScopes(scopes).joinToString(" "))
             resources?.let { for (value in it) { addQueryParameter(QueryKey.RESOURCE, value) } }
+            addQueryParameter(QueryKey.PROMPT, prompt ?: PromptValue.CONSENT)
         }.build().toString()
     }
 

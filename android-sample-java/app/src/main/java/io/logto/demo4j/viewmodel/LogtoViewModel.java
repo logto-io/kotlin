@@ -10,6 +10,7 @@ import io.logto.sdk.android.LogtoClient;
 import io.logto.sdk.android.exception.LogtoException;
 import io.logto.sdk.android.type.AccessToken;
 import io.logto.sdk.android.type.LogtoConfig;
+import io.logto.sdk.core.constant.PromptValue;
 import io.logto.sdk.core.type.IdTokenClaims;
 
 public class LogtoViewModel extends AndroidViewModel {
@@ -23,7 +24,8 @@ public class LogtoViewModel extends AndroidViewModel {
             "94fKrpteyMI6BAy9K3pdX",
             null,
             null,
-            true
+            true,
+            PromptValue.CONSENT
     );
 
     private final LogtoClient logtoClient = new LogtoClient(logtoConfig, getApplication());
