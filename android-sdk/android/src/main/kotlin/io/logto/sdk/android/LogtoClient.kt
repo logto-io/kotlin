@@ -246,8 +246,8 @@ open class LogtoClient(
                 tokenEndpoint = requireNotNull(oidcConfig).tokenEndpoint,
                 clientId = logtoConfig.appId,
                 refreshToken = byRefreshToken,
-                resource = resource,
-                scopes = null,
+                resource = resource,å
+                scopes = listOf("offline_access"), // Force remove openid scope from the refresh token response
             ) { fetchRefreshedTokenException, fetchedTokenResponse ->
                 fetchRefreshedTokenException?.let {
                     pendingRefreshTokenCompletion.remove(byRefreshToken)?.map { pendingCompletion ->
