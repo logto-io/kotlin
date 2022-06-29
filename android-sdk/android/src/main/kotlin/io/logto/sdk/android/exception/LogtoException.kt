@@ -7,7 +7,6 @@ class LogtoException(
     var detail: String? = null
     enum class Type {
         NOT_AUTHENTICATED,
-        NO_REFRESH_TOKEN_FOUND,
         UNGRANTED_RESOURCE_FOUND,
         USER_CANCELED,
         INVALID_REDIRECT_URI,

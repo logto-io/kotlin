@@ -59,7 +59,7 @@ class LogtoAuthSessionTest {
         val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
 
         every {
-            Core.generateSignInUri(any(), any(), any(), any(), any(), any(), any())
+            Core.generateSignInUri(any(), any(), any(), any(), any(), any(), any(), any())
         } returns "testSignInUri"
 
         val logtoAuthSession = LogtoAuthSession(
@@ -116,7 +116,7 @@ class LogtoAuthSessionTest {
 
         verify(exactly = 0){
             LogtoAuthManager.handleAuthStart(logtoAuthSession)
-            Core.generateSignInUri(any(), any(), any(), any(), any(), any(), any())
+            Core.generateSignInUri(any(), any(), any(), any(), any(), any(), any(), any())
             mockActivity.startActivity(any())
         }
     }

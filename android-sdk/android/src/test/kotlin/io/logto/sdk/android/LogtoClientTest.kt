@@ -252,7 +252,7 @@ class LogtoClientTest {
         every { logtoClient.isAuthenticated } returns true
 
         logtoClient.getAccessToken { logtoException, result ->
-            assertThat(logtoException).hasMessageThat().contains(LogtoException.Type.NO_REFRESH_TOKEN_FOUND.name)
+            assertThat(logtoException).hasMessageThat().contains(LogtoException.Type.NOT_AUTHENTICATED.name)
             assertThat(result).isNull()
         }
     }

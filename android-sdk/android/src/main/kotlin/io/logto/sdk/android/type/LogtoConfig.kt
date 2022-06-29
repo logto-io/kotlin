@@ -1,5 +1,6 @@
 package io.logto.sdk.android.type
 
+import io.logto.sdk.core.constant.PromptValue
 import io.logto.sdk.core.util.ScopeUtils
 
 class LogtoConfig(
@@ -8,6 +9,7 @@ class LogtoConfig(
     scopes: List<String>? = null,
     val resources: List<String>? = null,
     val usingPersistStorage: Boolean = false,
+    val prompt: String = PromptValue.CONSENT,
 ) {
     val scopes = ScopeUtils.withReservedScopes(scopes)
 }

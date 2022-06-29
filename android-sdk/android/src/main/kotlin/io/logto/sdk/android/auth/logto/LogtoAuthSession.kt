@@ -38,6 +38,7 @@ class LogtoAuthSession(
             state = state,
             scopes = logtoConfig.scopes,
             resources = logtoConfig.resources,
+            prompt = logtoConfig.prompt,
         )
 
         LogtoWebViewAuthActivity.launch(context, signInUri)
