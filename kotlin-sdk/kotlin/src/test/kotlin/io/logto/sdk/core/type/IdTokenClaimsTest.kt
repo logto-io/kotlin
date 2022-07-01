@@ -10,6 +10,10 @@ class IdTokenClaimsTest {
     private val exp = 60L
     private val iat = 1234L
     private val atHash = "atHash"
+    private val name = "name"
+    private val username = "username"
+    private val avatar = "avatar"
+    private val roleNames = listOf("roleNames")
 
     private val idTokenClaims = IdTokenClaims(
         iss = iss,
@@ -17,7 +21,11 @@ class IdTokenClaimsTest {
         aud = aud,
         exp = exp,
         iat = iat,
-        atHash = atHash
+        atHash = atHash,
+        name = name,
+        username = username,
+        avatar = avatar,
+        roleNames = roleNames,
     )
 
     @Test
@@ -48,5 +56,25 @@ class IdTokenClaimsTest {
     @Test
     fun `IdTokenClaims should get expected atHash`() {
         assertThat(idTokenClaims.atHash).isEqualTo(atHash)
+    }
+
+    @Test
+    fun `IdTokenClaims should get expected name`() {
+        assertThat(idTokenClaims.name).isEqualTo(name)
+    }
+
+    @Test
+    fun `IdTokenClaims should get expected username`() {
+        assertThat(idTokenClaims.username).isEqualTo(username)
+    }
+
+    @Test
+    fun `IdTokenClaims should get expected avatar`() {
+        assertThat(idTokenClaims.avatar).isEqualTo(avatar)
+    }
+
+    @Test
+    fun `IdTokenClaims should get expected roleNames`() {
+        assertThat(idTokenClaims.roleNames).isEqualTo(roleNames)
     }
 }
