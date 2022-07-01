@@ -13,7 +13,6 @@ import io.logto.sdk.core.http.httpPost
 import io.logto.sdk.core.type.CodeTokenResponse
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
-import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.ScopeUtils
 import okhttp3.FormBody
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -104,16 +103,6 @@ object Core {
         }.build()
         httpPost(tokenEndpoint, formBody, completion)
     }
-
-    fun fetchUserInfo(
-        userInfoEndpoint: String,
-        accessToken: String,
-        completion: HttpCompletion<UserInfoResponse>,
-    ) = httpGet(
-        userInfoEndpoint,
-        headers = mapOf("Authorization" to "Bearer $accessToken"),
-        completion,
-    )
 
     fun revoke(
         revocationEndpoint: String,

@@ -16,6 +16,10 @@ class JwtClaimsExtKtTest {
         val testExp = NumericDate.fromSeconds(0L)
         val testIssueAt = NumericDate.fromSeconds(0L)
         val testAtHash = "testAtHash"
+        val testName = "testName"
+        val testUsername = "testUsername"
+        val testAvatar = "testAvatar"
+        val testRoleNames = listOf("testRoleNames")
 
         val idTokenClaims = IdTokenClaims(
             iss = testIssuer,
@@ -23,7 +27,11 @@ class JwtClaimsExtKtTest {
             aud = testAudience[0],
             exp = testExp.value,
             iat = testIssueAt.value,
-            atHash = testAtHash
+            atHash = testAtHash,
+            name = testName,
+            username = testUsername,
+            avatar = testAvatar,
+            roleNames = testRoleNames,
         )
 
         val jwtClaims = JwtClaims().apply {
@@ -33,6 +41,10 @@ class JwtClaimsExtKtTest {
             expirationTime = testExp
             issuedAt = testIssueAt
             setClaim(ClaimName.AT_HASH, testAtHash)
+            setClaim(ClaimName.NAME, testName)
+            setClaim(ClaimName.USERNAME, testUsername)
+            setClaim(ClaimName.AVATAR, testAvatar)
+            setStringListClaim(ClaimName.ROLE_NAMES, testRoleNames)
         }
 
         assertThat(jwtClaims.toIdTokenClaims()).isEqualTo(idTokenClaims)
