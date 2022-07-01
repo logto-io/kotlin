@@ -17,7 +17,6 @@ import io.logto.sdk.android.util.LogtoUtils.nowRoundToSec
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
-import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.TokenUtils
 import org.jetbrains.annotations.TestOnly
 import org.jose4j.jwk.JsonWebKeySet
@@ -311,38 +310,6 @@ open class LogtoClient(
                 LogtoException(LogtoException.Type.UNABLE_TO_PARSE_ID_TOKEN_CLAIMS, exception),
                 null,
             )
-        }
-    }
-
-    /**
-     * Fetch user info
-     * @param[completion] the completion which handles the retrieved result
-     */
-    fun fetchUserInfo(completion: Completion<LogtoException, UserInfoResponse>) {
-        getOidcConfig { getOidcConfigException, oidcConfig ->
-            getOidcConfigException?.let {
-                completion.onComplete(it, null)
-                return@getOidcConfig
-            }
-            getAccessToken { getAccessTokenException, accessToken ->
-                getAccessTokenException?.let {
-                    completion.onComplete(it, null)
-                    return@getAccessToken
-                }
-                Core.fetchUserInfo(
-                    userInfoEndpoint = requireNotNull(oidcConfig).userinfoEndpoint,
-                    accessToken = requireNotNull(accessToken).token,
-                ) fetchUserInfoInCore@{ fetchUserInfoException, userInfoResponse ->
-                    fetchUserInfoException?.let {
-                        completion.onComplete(
-                            LogtoException(LogtoException.Type.UNABLE_TO_FETCH_USER_INFO, it),
-                            null,
-                        )
-                        return@fetchUserInfoInCore
-                    }
-                    completion.onComplete(null, userInfoResponse)
-                }
-            }
         }
     }
 

@@ -4,7 +4,6 @@ import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.core.type.CodeTokenResponse
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
-import io.logto.sdk.core.type.UserInfoResponse
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -19,7 +18,6 @@ class CoreFetchTest {
         private const val TEST_AUTHORIZATION_ENDPOINT = "https://logto.dev/oidc/auth"
         private const val TEST_TOKEN_ENDPOINT = "https://logto.dev/oidc/token"
         private const val TEST_END_SESSION_ENDPOINT = "https://logto.dev/oidc/session/end"
-        private const val TEST_USERINFO_ENDPOINT = "https://logto.dev/oidc/me"
         private const val TEST_REVOCATION_ENDPOINT = "https://logto.dev/oidc/token/revocation"
         private const val TEST_JWKS_URI = "https://logto.dev/oidc/jwks"
         private const val TEST_ISSUER = "http://localhost:443/oidc"
@@ -49,7 +47,6 @@ class CoreFetchTest {
                             "authorization_endpoint": "$TEST_AUTHORIZATION_ENDPOINT",
                             "token_endpoint": "$TEST_TOKEN_ENDPOINT",
                             "end_session_endpoint": "$TEST_END_SESSION_ENDPOINT",
-                            "userinfo_endpoint": "$TEST_USERINFO_ENDPOINT",
                             "revocation_endpoint": "$TEST_REVOCATION_ENDPOINT",
                             "jwks_uri": "$TEST_JWKS_URI",
                             "issuer": "$TEST_ISSUER"
@@ -123,7 +120,6 @@ class CoreFetchTest {
             authorizationEndpoint = TEST_AUTHORIZATION_ENDPOINT,
             tokenEndpoint = TEST_TOKEN_ENDPOINT,
             endSessionEndpoint = TEST_END_SESSION_ENDPOINT,
-            userinfoEndpoint = TEST_USERINFO_ENDPOINT,
             revocationEndpoint = TEST_REVOCATION_ENDPOINT,
             jwksUri = TEST_JWKS_URI,
             issuer = TEST_ISSUER
@@ -275,46 +271,6 @@ class CoreFetchTest {
             refreshToken = "refreshToken",
             resource = "resource",
             scopes = listOf("scope1", "scope2"),
-        ) { throwable, response ->
-            throwableReceiver = throwable
-            responseReceiver = response
-            countDownLatch.countDown()
-        }
-        countDownLatch.await()
-
-        assertThat(throwableReceiver).isNotNull()
-        assertThat(responseReceiver).isNull()
-    }
-
-    @Test
-    fun `fetchUserInfo should get expected user info`() {
-        var throwableReceiver: Throwable? = null
-        var responseReceiver: UserInfoResponse? = null
-
-        val countDownLatch = CountDownLatch(1)
-        Core.fetchUserInfo(
-            userInfoEndpoint = "${mockWebServer.url("/user:good")}",
-            accessToken = "accessToken"
-        ) { throwable, response ->
-            throwableReceiver = throwable
-            responseReceiver = response
-            countDownLatch.countDown()
-        }
-        countDownLatch.await()
-
-        assertThat(throwableReceiver).isNull()
-        assertThat(responseReceiver).isNotNull()
-    }
-
-    @Test
-    fun `fetchUserInfo should fail without response`() {
-        var throwableReceiver: Throwable? = null
-        var responseReceiver: UserInfoResponse? = null
-
-        val countDownLatch = CountDownLatch(1)
-        Core.fetchUserInfo(
-            userInfoEndpoint = "${mockWebServer.url("/user:bad")}",
-            accessToken = "accessToken"
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response
