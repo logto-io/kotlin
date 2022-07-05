@@ -12,5 +12,5 @@ data class IdTokenClaims(
     val name: String?,
     val username: String?,
     val avatar: String?,
-    val roleNames: List<String?>?,
+    val roleNames: List<String>?,
 )
