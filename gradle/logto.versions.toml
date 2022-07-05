@@ -1,0 +1,7 @@
+[versions]
+logtoSdk = "1.0.0-alpha.0"
+
+[libraries]
+logtoSdk-alipay = { module = "io.logto.sdk:alipay", version.ref = "logtoSdk" }
+logtoSdk-android = { module = "io.logto.sdk:android", version.ref = "logtoSdk" }
+logtoSdk-kotlin = { module = "io.logto.sdk:kotlin", version.ref = "logtoSdk" }

@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "io.logto.sdk"
-version = libs.versions.logtoSdk.get()
+version = logto.versions.logtoSdk.get()
 
 repositories {
     google()
@@ -60,9 +60,9 @@ android {
 }
 
 dependencies {
-    api(libs.logtoSdk.kotlin)
+    api(logto.logtoSdk.kotlin)
 
-    compileOnly(libs.logtoSdk.alipay)
+    compileOnly(logto.logtoSdk.alipay)
     compileOnly(libs.wechatSdkAndroid)
 
     implementation(libs.androidx.appcompat)
@@ -73,7 +73,7 @@ dependencies {
     testImplementation(libs.truth)
     testImplementation(libs.mockk)
     testImplementation(libs.androidx.test.ext.junit)
-    testImplementation(libs.logtoSdk.alipay)
+    testImplementation(logto.logtoSdk.alipay)
     testImplementation(libs.wechatSdkAndroid)
 }
 
@@ -101,8 +101,8 @@ publishing {
 
                 developers {
                     developer {
-                        name.set("Xiao Yijun")
-                        email.set("xiaoyijun@silverhand.io")
+                        name.set("Silverhand Inc.")
+                        email.set("contact@silverhand.io")
                         organization.set("Silverhand Inc.")
                         organizationUrl.set("https://github.com/silverhand-io")
                     }

@@ -11,7 +11,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.logtoSdk.android)
+    implementation(logto.logtoSdk.android)
     implementation(libs.androidx.core)
     implementation(libs.androidx.navigation.fragment)
 }
