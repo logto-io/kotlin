@@ -8,7 +8,7 @@ class LogtoConfig(
     val appId: String,
     scopes: List<String>? = null,
     val resources: List<String>? = null,
-    val usingPersistStorage: Boolean = false,
+    val usingPersistStorage: Boolean = true,
     val prompt: String = PromptValue.CONSENT,
 ) {
     val scopes = ScopeUtils.withReservedScopes(scopes)
