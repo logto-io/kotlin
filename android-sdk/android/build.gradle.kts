@@ -101,8 +101,8 @@ publishing {
 
                 developers {
                     developer {
-                        name.set("Xiao Yijun")
-                        email.set("xiaoyijun@silverhand.io")
+                        name.set("Silverhand Inc.")
+                        email.set("contact@silverhand.io")
                         organization.set("Silverhand Inc.")
                         organizationUrl.set("https://github.com/silverhand-io")
                     }
