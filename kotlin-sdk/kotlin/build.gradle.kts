@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "io.logto.sdk"
-version = libs.versions.logtoSdk.get()
+version = logto.versions.logtoSdk.get()
 
 repositories {
     mavenCentral()

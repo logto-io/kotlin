@@ -15,10 +15,10 @@ android {
 
 dependencies {
     // TODO - Use Custom Plugins
-    implementation(libs.logtoSdk.alipay)
+    implementation(logto.logtoSdk.alipay)
     api("com.tencent.mm.opensdk:wechat-sdk-android:6.8.0")
 
-    implementation(libs.logtoSdk.android)
+    implementation(logto.logtoSdk.android)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
 }
