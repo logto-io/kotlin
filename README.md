@@ -21,16 +21,11 @@ We also provide [集成指南](https://docs.logto.io/zh-cn/docs/recipes/integrat
 ## Installation
 Logto Android SDK is now available on [MavenCentral](https://search.maven.org/search?q=io.logto.sdk).
 
-### Install Android SDK
-Logto Android SDK provides a standard way to integrate your Android application with Logto service in an easy way.
-
-Check out the [Logto Android SDK Integration Guide]() to have a quick start with Logto.
-
-#### Groovy
+### Groovy
 ```groovy
 implementation 'io.logto.sdk:android:<version>'
 ```
-#### Kotlin
+### Kotlin
 ```kotlin
 implementation("io.logto.sdk:android:<version>")
 ```
@@ -44,5 +39,5 @@ implementation("io.logto.sdk:android:<version>")
 ## Resources
 
 [![Website](https://img.shields.io/badge/website-logto.io-8262F8.svg)](https://logto.io/)
-[![Docs](https://img.shields.io/badge/docs-logto.io-green.svg)](https://docs.logto.io/docs/sdk/kotlin/)
+[![Docs](https://img.shields.io/badge/docs-logto.io-green.svg)](https://docs.logto.io/)
 [![Discord](https://img.shields.io/discord/965845662535147551?logo=discord&logoColor=ffffff&color=7389D8&cacheSeconds=600)](https://discord.gg/UEPaF3j5e6)
