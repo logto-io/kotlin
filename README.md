@@ -14,9 +14,9 @@
 
 The monorepo for SDKs written in Kotlin.
 
-Check out our [integration guide](https://docs.logto.io/integrate-sdk/kotlin) or [docs](https://docs.logto.io/sdk/kotlin) for more information.
+Check out our [integration guide](https://docs.logto.io/docs/recipes/integrate-logto/android) or [SDK reference](https://docs.logto.io/sdk/Kotlin) for more information.
 
-We also provide [集成指南](https://docs.logto.io/zh-cn/integrate-sdk/kotlin) and [文档](https://docs.logto.io/zh-cn/sdk/kotlin) in Simplified Chinese.
+We also provide [集成指南](https://docs.logto.io/zh-cn/docs/recipes/integrate-logto/android) and [SDK 参考](https://docs.logto.io/zh-cn/sdk/Kotlin) in Simplified Chinese.
 
 ## Installation
 Logto Android SDK is now available on [MavenCentral](https://search.maven.org/search?q=io.logto.sdk).
