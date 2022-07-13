@@ -110,11 +110,7 @@ open class LogtoClient(
                 }
 
                 val codeToken = requireNotNull(fetchedTokenResponse)
-                // Note
-                // - Treat `scopes` as `null` to construct the default access token key
-                // for we do not support custom scopes in V1
-                // - Treat `resource` as `null`: https://github.com/logto-io/swift/pull/35#discussion_r795145645
-                val accessTokenKey = buildAccessTokenKey(null, null)
+
                 val accessToken = AccessToken(
                     codeToken.accessToken,
                     codeToken.scope,
@@ -125,7 +121,6 @@ open class LogtoClient(
                     issuer = oidcConfig.issuer,
                     responseIdToken = codeToken.idToken,
                     responseRefreshToken = codeToken.refreshToken,
-                    accessTokenKey = accessTokenKey,
                     accessToken = accessToken,
                     completion = completion,
                 )
@@ -279,7 +274,6 @@ open class LogtoClient(
                     issuer = oidcConfig.issuer,
                     responseIdToken = refreshedToken.idToken,
                     responseRefreshToken = refreshedToken.refreshToken,
-                    accessTokenKey = accessTokenKey,
                     accessToken = refreshedAccessToken,
                 ) { verifyException ->
                     verifyException?.let {
@@ -318,7 +312,6 @@ open class LogtoClient(
         issuer: String,
         responseIdToken: String?,
         responseRefreshToken: String?,
-        accessTokenKey: String,
         accessToken: AccessToken,
         completion: EmptyCompletion<LogtoException>,
     ) {
@@ -337,6 +330,11 @@ open class LogtoClient(
                 idToken = it
             }
 
+            // Note
+            // - Treat `scopes` as `null` to construct the default access token key
+            // for we do not support custom scopes in V1
+            val accessTokenKey = buildAccessTokenKey(null, getResourceFromAccessToken(accessToken.token))
+            println("LOGTO_ACCESS_TOKEN_KEY: $accessTokenKey")
             accessTokenMap[accessTokenKey] = accessToken
             refreshToken = responseRefreshToken
             completion.onComplete(null)
@@ -396,6 +394,12 @@ open class LogtoClient(
     private fun loadFromStorage() {
         refreshToken = storage?.getItem(StorageKey.REFRESH_TOKEN)
         idToken = storage?.getItem(StorageKey.ID_TOKEN)
+    }
+
+    private fun getResourceFromAccessToken(accessToken: String) = try {
+        TokenUtils.decodeToken(accessToken).audience[0]
+    } catch (_: InvalidJwtException) {
+        null
     }
 
     internal fun buildAccessTokenKey(scopes: List<String>?, resource: String?): String {

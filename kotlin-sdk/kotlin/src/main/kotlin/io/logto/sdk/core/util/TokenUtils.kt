@@ -3,6 +3,7 @@ package io.logto.sdk.core.util
 import io.logto.sdk.core.extension.toIdTokenClaims
 import io.logto.sdk.core.type.IdTokenClaims
 import org.jose4j.jwk.JsonWebKeySet
+import org.jose4j.jwt.JwtClaims
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver
@@ -40,8 +41,16 @@ object TokenUtils {
      * @return[IdTokenClaims]
      * @throws[InvalidJwtException]
      */
-    fun decodeIdToken(token: String): IdTokenClaims = JwtConsumerBuilder().apply {
+    fun decodeIdToken(token: String): IdTokenClaims = decodeToken(token).toIdTokenClaims()
+
+    /**
+     * Decode JWT token without verification
+     * @param[token] the row string token to be decoded
+     * @return[JwtClaims]
+     * @throws[InvalidJwtException]
+     */
+    fun decodeToken(token: String): JwtClaims = JwtConsumerBuilder().apply {
         setSkipAllValidators()
         setSkipSignatureVerification()
-    }.build().processToClaims(token).toIdTokenClaims()
+    }.build().processToClaims(token)
 }
