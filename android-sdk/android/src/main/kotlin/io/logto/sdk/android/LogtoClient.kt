@@ -334,7 +334,6 @@ open class LogtoClient(
             // - Treat `scopes` as `null` to construct the default access token key
             // for we do not support custom scopes in V1
             val accessTokenKey = buildAccessTokenKey(null, getResourceFromAccessToken(accessToken.token))
-            println("LOGTO_ACCESS_TOKEN_KEY: $accessTokenKey")
             accessTokenMap[accessTokenKey] = accessToken
             refreshToken = responseRefreshToken
             completion.onComplete(null)
