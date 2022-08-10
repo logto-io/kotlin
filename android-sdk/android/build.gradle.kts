@@ -87,7 +87,7 @@ publishing {
             }
 
             pom {
-            name.set("$groupId:$artifactId")
+                name.set("$groupId:$artifactId")
 
                 description.set("the Logto Android SDK")
                 url.set("https://github.com/logto-io/kotlin")
