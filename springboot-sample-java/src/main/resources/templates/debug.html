@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Debug page</title>
+</head>
+
+<body>
+
+<h1>Debug page</h1>
+<h2 th:text="${claims.get('name')}"/>
+
+<h3>Claims</h3>
+<div>
+    <pre><code th:text="${claimsJson}"></code></pre>
+</div>
+
+<h3>OIDC User</h3>
+<div>
+    <pre><code th:text="${oidcUserJson}"></code></pre>
+</div>
+
+</body>
+
+</html>

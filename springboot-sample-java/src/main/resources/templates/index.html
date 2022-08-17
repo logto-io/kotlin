@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+>
+
+<head>
+    <title>Home page</title>
+</head>
+
+<body>
+
+<h1>Home page</h1>
+<h2 sec:authorize="isAuthenticated()" th:text="${profile.get('name')}"></h2>
+
+<ul sec:authorize="!isAuthenticated()">
+    <li>
+        <a th:href="@{/oauth2/authorization/logto}">Sign in</a>
+    </li>
+</ul>
+
+<ul sec:authorize="isAuthenticated()">
+    <li>
+        <a href="/profile">Profile</a>
+    </li>
+    <li>
+        <a href="/debug">Debug</a>
+    </li>
+    <li>
+        <a th:href="@{/sign-out}">Sign out</a>
+    </li>
+</ul>
+
+</body>
+
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Profile page</title>
+</head>
+
+<body>
+
+<h1>Profile page</h1>
+<h2 th:text="${profile.get('name')}"/>
+
+<div>
+    <img th:src="${profile.get('avatar')}"/>
+</div>
+
+<div>
+    <pre><code th:text="${profileJson}"></code></pre>
+</div>
+
+</body>
+
+</html>

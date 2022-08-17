@@ -1,0 +1,23 @@
+server:
+  port: 3000
+
+logging:
+  level:
+    root: DEBUG
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          logto:
+            client-id: RwDhRfroduPAAG3dJ2N1Z
+            client-secret: DQVje3nzTo3kWdWFDdz3Y
+            scope:
+              - openid
+              - profile
+        provider:
+          logto:
+            issuer-uri: http://localhost:3001/oidc
+
+postLogoutRedirectUri: http://localhost:3000
