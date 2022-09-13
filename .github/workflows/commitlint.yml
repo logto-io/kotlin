@@ -27,8 +27,7 @@ jobs:
 
       - name: Install commitlint tools
         run: |
-          npm install -g @commitlint/config-conventional @commitlint/cli
-          npm link @commitlint/config-conventional
+          npm install @commitlint/config-conventional
 
       - name: Create commitlint config file
         run: |
