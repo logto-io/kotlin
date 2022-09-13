@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install commitlint tools
+      - name: Install commitlint config conventional
         run: |
           npm install @commitlint/config-conventional
 
