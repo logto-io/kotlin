@@ -1,7 +1,8 @@
 package io.logto.sdk.android.type
 
 import com.google.common.truth.Truth.assertThat
-import io.logto.sdk.core.constant.ReservedScope
+import io.logto.sdk.core.constant.PreservedScope
+import io.logto.sdk.core.constant.UserScope
 import org.junit.Test
 
 class LogtoConfigTest {
@@ -13,9 +14,9 @@ class LogtoConfigTest {
         )
 
         assertThat(logtoConfigWithoutScope.scopes).apply {
-            contains(ReservedScope.OPENID)
-            contains(ReservedScope.OFFLINE_ACCESS)
-            contains(ReservedScope.PROFILE)
+            contains(PreservedScope.OPENID)
+            contains(PreservedScope.OFFLINE_ACCESS)
+            contains(UserScope.PROFILE)
         }
 
         val logtoConfigWithOtherScope = LogtoConfig(
@@ -25,9 +26,9 @@ class LogtoConfigTest {
         )
 
         assertThat(logtoConfigWithOtherScope.scopes).apply {
-            contains(ReservedScope.OPENID)
-            contains(ReservedScope.OFFLINE_ACCESS)
-            contains(ReservedScope.PROFILE)
+            contains(PreservedScope.OPENID)
+            contains(PreservedScope.OFFLINE_ACCESS)
+            contains(UserScope.PROFILE)
             contains("other_scope")
         }
     }

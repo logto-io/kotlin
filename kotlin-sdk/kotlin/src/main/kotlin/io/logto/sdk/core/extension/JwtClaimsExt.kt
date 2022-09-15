@@ -13,6 +13,10 @@ fun JwtClaims.toIdTokenClaims(): IdTokenClaims = IdTokenClaims(
     atHash = this.getClaimValueAsString(ClaimName.AT_HASH),
     name = this.getClaimValueAsString(ClaimName.NAME),
     username = this.getClaimValueAsString(ClaimName.USERNAME),
-    avatar = this.getClaimValueAsString(ClaimName.AVATAR),
+    picture = this.getClaimValueAsString(ClaimName.PICTURE),
     roleNames = this.getStringListClaimValue(ClaimName.ROLE_NAMES),
+    email = this.getClaimValueAsString(ClaimName.EMAIL),
+    emailVerified = this.getClaimValue(ClaimName.EMAIL_VERIFIED) as Boolean?,
+    phoneNumber = this.getClaimValueAsString(ClaimName.PHONE_NUMBER),
+    phoneNumberVerified = this.getClaimValue(ClaimName.PHONE_NUMBER_VERIFIED) as Boolean?,
 )

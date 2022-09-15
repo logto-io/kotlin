@@ -1,6 +1,8 @@
 package io.logto.sdk.core.type
 
-data class IdTokenClaims(
+import com.google.gson.JsonObject
+
+data class UserInfoResponse(
     val iss: String,
     val sub: String,
     val aud: String,
@@ -21,4 +23,10 @@ data class IdTokenClaims(
     // Scope `phone`
     val phoneNumber: String?,
     val phoneNumberVerified: Boolean?,
+
+    // Scope `custom_data`
+    val customData: JsonObject?,
+
+    // Scope `identities`
+    val identities: JsonObject?,
 )

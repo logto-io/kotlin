@@ -13,6 +13,7 @@ import io.logto.sdk.core.http.httpPost
 import io.logto.sdk.core.type.CodeTokenResponse
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
+import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.ScopeUtils
 import okhttp3.FormBody
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -38,7 +39,7 @@ object Core {
             addQueryParameter(QueryKey.STATE, state)
             addQueryParameter(QueryKey.REDIRECT_URI, redirectUri)
             addQueryParameter(QueryKey.RESPONSE_TYPE, ResponseType.CODE)
-            addQueryParameter(QueryKey.SCOPE, ScopeUtils.withReservedScopes(scopes).joinToString(" "))
+            addQueryParameter(QueryKey.SCOPE, ScopeUtils.withDefaultScopes(scopes).joinToString(" "))
             resources?.let { for (value in it) { addQueryParameter(QueryKey.RESOURCE, value) } }
             addQueryParameter(QueryKey.PROMPT, prompt ?: PromptValue.CONSENT)
         }.build().toString()
@@ -103,6 +104,16 @@ object Core {
         }.build()
         httpPost(tokenEndpoint, formBody, completion)
     }
+
+    fun fetchUserInfo(
+        userInfoEndpoint: String,
+        accessToken: String,
+        completion: HttpCompletion<UserInfoResponse>,
+    ) = httpGet(
+        userInfoEndpoint,
+        headers = mapOf("Authorization" to "Bearer $accessToken"),
+        completion,
+    )
 
     fun revoke(
         revocationEndpoint: String,

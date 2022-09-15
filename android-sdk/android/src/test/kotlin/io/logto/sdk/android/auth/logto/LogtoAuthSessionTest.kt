@@ -31,6 +31,7 @@ class LogtoAuthSessionTest {
         authorizationEndpoint = "authorizationEndpoint",
         tokenEndpoint = "tokenEndpoint",
         endSessionEndpoint = "endSessionEndpoint",
+        userinfoEndpoint = "userinfoEndpoint",
         jwksUri = "jwksUri",
         issuer = "issuer",
         revocationEndpoint = "revocationEndpoint",

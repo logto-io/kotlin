@@ -15,9 +15,10 @@ import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils.expiresAtFrom
 import io.logto.sdk.android.util.LogtoUtils.nowRoundToSec
 import io.logto.sdk.core.Core
-import io.logto.sdk.core.constant.ReservedScope
+import io.logto.sdk.core.constant.PreservedScope
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
+import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.TokenUtils
 import org.jetbrains.annotations.TestOnly
 import org.jose4j.jwk.JsonWebKeySet
@@ -245,7 +246,7 @@ open class LogtoClient(
                 clientId = logtoConfig.appId,
                 refreshToken = byRefreshToken,
                 resource = resource,
-                scopes = resource?.let { listOf(ReservedScope.OFFLINE_ACCESS) },
+                scopes = resource?.let { listOf(PreservedScope.OFFLINE_ACCESS) },
             ) { fetchRefreshedTokenException, fetchedTokenResponse ->
                 fetchRefreshedTokenException?.let {
                     pendingRefreshTokenCompletion.remove(byRefreshToken)?.map { pendingCompletion ->
@@ -305,6 +306,38 @@ open class LogtoClient(
                 LogtoException(LogtoException.Type.UNABLE_TO_PARSE_ID_TOKEN_CLAIMS, exception),
                 null,
             )
+        }
+    }
+
+    /**
+     * Fetch user info
+     * @param[completion] the completion which handles the retrieved result
+     */
+    fun fetchUserInfo(completion: Completion<LogtoException, UserInfoResponse>) {
+        getOidcConfig { getOidcConfigException, oidcConfig ->
+            getOidcConfigException?.let {
+                completion.onComplete(it, null)
+                return@getOidcConfig
+            }
+            getAccessToken { getAccessTokenException, accessToken ->
+                getAccessTokenException?.let {
+                    completion.onComplete(it, null)
+                    return@getAccessToken
+                }
+                Core.fetchUserInfo(
+                    userInfoEndpoint = requireNotNull(oidcConfig).userinfoEndpoint,
+                    accessToken = requireNotNull(accessToken).token,
+                ) fetchUserInfoInCore@{ fetchUserInfoException, userInfoResponse ->
+                    fetchUserInfoException?.let {
+                        completion.onComplete(
+                            LogtoException(LogtoException.Type.UNABLE_TO_FETCH_USER_INFO, it),
+                            null,
+                        )
+                        return@fetchUserInfoInCore
+                    }
+                    completion.onComplete(null, userInfoResponse)
+                }
+            }
         }
     }
 
