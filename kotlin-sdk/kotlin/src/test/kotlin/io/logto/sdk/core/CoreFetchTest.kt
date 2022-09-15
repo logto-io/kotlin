@@ -82,11 +82,6 @@ class CoreFetchTest {
                         """
                         {
                             "sub": "foo",
-                            "iss": "iss",
-                            "aud": "aud",
-                            "exp": 1234567,
-                            "iat": 1234567,
-                            "at_hash": "at_hash",
                             "name": "name",
                             "username": "username",
                             "picture": "picture",

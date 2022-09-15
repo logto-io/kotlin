@@ -3,12 +3,7 @@ package io.logto.sdk.core.type
 import com.google.gson.JsonObject
 
 data class UserInfoResponse(
-    val iss: String,
     val sub: String,
-    val aud: String,
-    val exp: Long,
-    val iat: Long,
-    val atHash: String?,
 
     // Scope `profile`
     val name: String?,

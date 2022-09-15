@@ -6,11 +6,6 @@ import org.junit.Test
 
 class UserInfoResponseTest {
     private val sub = "testSub"
-    private val iss = "testIss"
-    private val aud = "testAud"
-    private val exp = 60L
-    private val iat = 1234L
-    private val atHash = "atHash"
     private val name = "name"
     private val username = "username"
     private val picture = "picture"
@@ -22,14 +17,8 @@ class UserInfoResponseTest {
     private val customData = JsonObject()
     private val identities = JsonObject()
 
-
     private val userInfoResponse = UserInfoResponse(
         sub = sub,
-        iss = iss,
-        aud = aud,
-        exp = exp,
-        iat = iat,
-        atHash = atHash,
         name = name,
         username = username,
         picture = picture,
@@ -45,12 +34,6 @@ class UserInfoResponseTest {
     @Test
     fun `RefreshTokenTokenResponse should get expected content`() {
         assertThat(userInfoResponse.sub).isEqualTo(sub)
-        assertThat(userInfoResponse.iss).isEqualTo(iss)
-        assertThat(userInfoResponse.aud).isEqualTo(aud)
-        assertThat(userInfoResponse.sub).isEqualTo(sub)
-        assertThat(userInfoResponse.exp).isEqualTo(exp)
-        assertThat(userInfoResponse.iat).isEqualTo(iat)
-        assertThat(userInfoResponse.atHash).isEqualTo(atHash)
         assertThat(userInfoResponse.name).isEqualTo(name)
         assertThat(userInfoResponse.username).isEqualTo(username)
         assertThat(userInfoResponse.picture).isEqualTo(picture)
