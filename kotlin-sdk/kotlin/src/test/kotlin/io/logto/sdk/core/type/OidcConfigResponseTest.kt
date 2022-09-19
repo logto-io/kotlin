@@ -8,6 +8,7 @@ class OidcConfigResponseTest {
     private val authorizationEndpoint = "authorizationEndpoint"
     private val tokenEndpoint = "tokenEndpoint"
     private val endSessionEndpoint = "endSessionEndpoint"
+    private val userinfoEndpoint = "userinfoEndpoint"
     private val jwksUri = "jwksUri"
     private val issuer = "issuer"
     private val revocationEndpoint = "revocationEndpoint"
@@ -16,6 +17,7 @@ class OidcConfigResponseTest {
         authorizationEndpoint = "authorizationEndpoint",
         tokenEndpoint = "tokenEndpoint",
         endSessionEndpoint = "endSessionEndpoint",
+        userinfoEndpoint = "userinfoEndpoint",
         jwksUri = "jwksUri",
         issuer = "issuer",
         revocationEndpoint = "revocationEndpoint"
@@ -34,6 +36,11 @@ class OidcConfigResponseTest {
     @Test
     fun `OidcConfigResponse should get expected end session endpoint`() {
         assertThat(oidcConfigResponse.endSessionEndpoint).isEqualTo(endSessionEndpoint)
+    }
+
+    @Test
+    fun `OidcConfigResponse should get expected user info endpoint`() {
+        assertThat(oidcConfigResponse.userinfoEndpoint).isEqualTo(userinfoEndpoint)
     }
 
     @Test

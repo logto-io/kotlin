@@ -11,5 +11,5 @@ class LogtoConfig(
     val usingPersistStorage: Boolean = true,
     val prompt: String = PromptValue.CONSENT,
 ) {
-    val scopes = ScopeUtils.withReservedScopes(scopes)
+    val scopes = ScopeUtils.withDefaultScopes(scopes)
 }

@@ -14,6 +14,7 @@ import io.logto.sdk.core.http.HttpEmptyCompletion
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
+import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.TokenUtils
 import io.mockk.Runs
 import io.mockk.clearAllMocks
@@ -50,6 +51,7 @@ class LogtoClientTest {
         private const val TEST_APP_ID = "app_id"
         private const val TEST_REFRESH_TOKEN = "refreshToken"
         private const val TEST_TOKEN_ENDPOINT = "tokenEndpoint"
+        private const val TEST_USERINFO_ENDPOINT = "userinfoEndpoint"
         private const val TEST_REVOCATION_ENDPOINT = "endSessionEndpoint"
         private const val TEST_ISSUER = "issuer"
         private const val TEST_ACCESS_TOKEN = "accessToken"
@@ -435,6 +437,109 @@ class LogtoClientTest {
             assertThat(logtoException)
                 .hasMessageThat()
                 .contains(LogtoException.Type.UNABLE_TO_PARSE_ID_TOKEN_CLAIMS.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `fetchUserInfo should complete with user info`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        every { oidcConfigResponseMock.userinfoEndpoint } returns TEST_USERINFO_ENDPOINT
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+        val accessTokenMock: AccessToken = mockk()
+        every { accessTokenMock.token } returns TEST_ACCESS_TOKEN
+        every { logtoClient.getAccessToken(any(), any()) } answers {
+            lastArg<Completion<LogtoException, AccessToken>>().onComplete(null, accessTokenMock)
+        }
+
+        val userInfoResponseMock: UserInfoResponse = mockk()
+
+        mockkObject(Core)
+        every { Core.fetchUserInfo(any(), any(), any()) } answers {
+            lastArg<HttpCompletion<UserInfoResponse>>().onComplete(null, userInfoResponseMock)
+        }
+
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException).isNull()
+            assertThat(result).isEqualTo(userInfoResponseMock)
+        }
+    }
+
+    @Test
+    fun `fetchUserInfo should complete with exception if cannot get oidc config`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG),
+                null,
+            )
+        }
+
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `fetchUserInfo should complete with exception if cannot get access token`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        every { oidcConfigResponseMock.userinfoEndpoint } returns TEST_USERINFO_ENDPOINT
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        val mockGetAccessTokenException: LogtoException = mockk()
+        every { logtoClient.getAccessToken(any(), any()) } answers {
+            lastArg<Completion<LogtoException, AccessToken>>().onComplete(mockGetAccessTokenException, null)
+        }
+
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException).isEqualTo(mockGetAccessTokenException)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `fetchUserInfo should complete with exception if fetchUserInfo failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        every { oidcConfigResponseMock.userinfoEndpoint } returns TEST_USERINFO_ENDPOINT
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+        val accessTokenMock: AccessToken = mockk()
+        every { accessTokenMock.token } returns TEST_ACCESS_TOKEN
+        every { logtoClient.getAccessToken(any(), any()) } answers {
+            lastArg<Completion<LogtoException, AccessToken>>().onComplete(null, accessTokenMock)
+        }
+
+        mockkObject(Core)
+        every { Core.fetchUserInfo(any(), any(), any()) } answers {
+            lastArg<HttpCompletion<UserInfoResponse>>().onComplete(
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_USER_INFO),
+                null,
+            )
+        }
+
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_USER_INFO.name)
             assertThat(result).isNull()
         }
     }

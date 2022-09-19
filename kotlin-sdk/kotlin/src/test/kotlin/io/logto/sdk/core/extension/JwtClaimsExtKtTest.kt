@@ -18,8 +18,12 @@ class JwtClaimsExtKtTest {
         val testAtHash = "testAtHash"
         val testName = "testName"
         val testUsername = "testUsername"
-        val testAvatar = "testAvatar"
+        val testPicture = "testPicture"
         val testRoleNames = listOf("testRoleNames")
+        val testEmail = "testEmail"
+        val testEmailVerified = true
+        val testPhone = "testPhone"
+        val testPhoneVerified = true
 
         val idTokenClaims = IdTokenClaims(
             iss = testIssuer,
@@ -30,8 +34,12 @@ class JwtClaimsExtKtTest {
             atHash = testAtHash,
             name = testName,
             username = testUsername,
-            avatar = testAvatar,
+            picture = testPicture,
             roleNames = testRoleNames,
+            email = testEmail,
+            emailVerified = testEmailVerified,
+            phoneNumber = testPhone,
+            phoneNumberVerified = testPhoneVerified,
         )
 
         val jwtClaims = JwtClaims().apply {
@@ -43,8 +51,12 @@ class JwtClaimsExtKtTest {
             setClaim(ClaimName.AT_HASH, testAtHash)
             setClaim(ClaimName.NAME, testName)
             setClaim(ClaimName.USERNAME, testUsername)
-            setClaim(ClaimName.AVATAR, testAvatar)
+            setClaim(ClaimName.PICTURE, testPicture)
             setStringListClaim(ClaimName.ROLE_NAMES, testRoleNames)
+            setClaim(ClaimName.EMAIL, testEmail)
+            setClaim(ClaimName.EMAIL_VERIFIED, testEmailVerified)
+            setClaim(ClaimName.PHONE_NUMBER, testPhone)
+            setClaim(ClaimName.PHONE_NUMBER_VERIFIED, testPhoneVerified)
         }
 
         assertThat(jwtClaims.toIdTokenClaims()).isEqualTo(idTokenClaims)

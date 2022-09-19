@@ -16,7 +16,7 @@ class CoreTest {
     private val testScopes = listOf(
         ReservedScope.OPENID,
         ReservedScope.OFFLINE_ACCESS,
-        ReservedScope.PROFILE,
+        UserScope.PROFILE,
     )
     private val testResourceVal1 = "api1.logto.dev"
     private val testResourceVal2 = "api2.logto.dev"
@@ -50,7 +50,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
-                contains(ReservedScope.PROFILE)
+                contains(UserScope.PROFILE)
             }
             assertThat(queryParameterValues(QueryKey.RESOURCE)).apply {
                 contains(testResourceVal1)
@@ -62,7 +62,7 @@ class CoreTest {
     @Test
     fun `generateSignInUri should contain not only reserved scopes but also the extra scope`() {
         val extraScope = "extraScope"
-        val scopes = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, ReservedScope.PROFILE, extraScope)
+        val scopes = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, UserScope.PROFILE, extraScope)
 
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = testAuthorizationEndpoint,
@@ -79,7 +79,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
-                contains(ReservedScope.PROFILE)
+                contains(UserScope.PROFILE)
                 contains(extraScope)
             }
         }
@@ -141,7 +141,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
-                contains(ReservedScope.PROFILE)
+                contains(UserScope.PROFILE)
             }
         }
     }
@@ -163,7 +163,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
-                contains(ReservedScope.PROFILE)
+                contains(UserScope.PROFILE)
             }
         }
     }
@@ -186,7 +186,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
-                contains(ReservedScope.PROFILE)
+                contains(UserScope.PROFILE)
             }
         }
     }
@@ -200,7 +200,7 @@ class CoreTest {
             redirectUri = testRedirectUri,
             codeChallenge = testCodeChallenge,
             state = testState,
-            scopes = listOf(ReservedScope.PROFILE),
+            scopes = listOf(UserScope.PROFILE),
             resources = testResources,
             prompt = testPromptValue,
         )
@@ -209,7 +209,7 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
                 contains(ReservedScope.OPENID)
                 contains(ReservedScope.OFFLINE_ACCESS)
-                contains(ReservedScope.PROFILE)
+                contains(UserScope.PROFILE)
             }
         }
     }
