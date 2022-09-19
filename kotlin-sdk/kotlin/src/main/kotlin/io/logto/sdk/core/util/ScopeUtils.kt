@@ -1,6 +1,6 @@
 package io.logto.sdk.core.util
 
-import io.logto.sdk.core.constant.PreservedScope
+import io.logto.sdk.core.constant.ReservedScope
 import io.logto.sdk.core.constant.UserScope
 
 object ScopeUtils {
@@ -11,8 +11,8 @@ object ScopeUtils {
      */
     fun withDefaultScopes(scopes: List<String>?): List<String> = (
         (scopes ?: listOf()) + listOf(
-            PreservedScope.OPENID,
-            PreservedScope.OFFLINE_ACCESS,
+            ReservedScope.OPENID,
+            ReservedScope.OFFLINE_ACCESS,
             UserScope.PROFILE,
         )
         ).distinct()

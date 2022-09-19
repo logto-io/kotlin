@@ -14,8 +14,8 @@ class CoreTest {
     private val testCodeChallenge = "codeChallenge"
     private val testState = "state"
     private val testScopes = listOf(
-        PreservedScope.OPENID,
-        PreservedScope.OFFLINE_ACCESS,
+        ReservedScope.OPENID,
+        ReservedScope.OFFLINE_ACCESS,
         UserScope.PROFILE,
     )
     private val testResourceVal1 = "api1.logto.dev"
@@ -48,8 +48,8 @@ class CoreTest {
             assertThat(queryParameter(QueryKey.PROMPT)).isEqualTo(PromptValue.CONSENT)
             assertThat(queryParameter(QueryKey.RESPONSE_TYPE)).isEqualTo(ResponseType.CODE)
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
-                contains(PreservedScope.OPENID)
-                contains(PreservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
                 contains(UserScope.PROFILE)
             }
             assertThat(queryParameterValues(QueryKey.RESOURCE)).apply {
@@ -62,7 +62,7 @@ class CoreTest {
     @Test
     fun `generateSignInUri should contain not only reserved scopes but also the extra scope`() {
         val extraScope = "extraScope"
-        val scopes = listOf(PreservedScope.OPENID, PreservedScope.OFFLINE_ACCESS, UserScope.PROFILE, extraScope)
+        val scopes = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, UserScope.PROFILE, extraScope)
 
         val signInUri = Core.generateSignInUri(
             authorizationEndpoint = testAuthorizationEndpoint,
@@ -77,8 +77,8 @@ class CoreTest {
 
         signInUri.toHttpUrl().apply {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
-                contains(PreservedScope.OPENID)
-                contains(PreservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
                 contains(UserScope.PROFILE)
                 contains(extraScope)
             }
@@ -139,8 +139,8 @@ class CoreTest {
 
         signInUri.toHttpUrl().apply {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
-                contains(PreservedScope.OPENID)
-                contains(PreservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
                 contains(UserScope.PROFILE)
             }
         }
@@ -154,15 +154,15 @@ class CoreTest {
             redirectUri = testRedirectUri,
             codeChallenge = testCodeChallenge,
             state = testState,
-            scopes = listOf(PreservedScope.OFFLINE_ACCESS),
+            scopes = listOf(ReservedScope.OFFLINE_ACCESS),
             resources = testResources,
             prompt = testPromptValue,
         )
 
         signInUri.toHttpUrl().apply {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
-                contains(PreservedScope.OPENID)
-                contains(PreservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
                 contains(UserScope.PROFILE)
             }
         }
@@ -177,15 +177,15 @@ class CoreTest {
             redirectUri = testRedirectUri,
             codeChallenge = testCodeChallenge,
             state = testState,
-            scopes = listOf(PreservedScope.OPENID),
+            scopes = listOf(ReservedScope.OPENID),
             resources = testResources,
             prompt = testPromptValue,
         )
 
         signInUri.toHttpUrl().apply {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
-                contains(PreservedScope.OPENID)
-                contains(PreservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
                 contains(UserScope.PROFILE)
             }
         }
@@ -207,8 +207,8 @@ class CoreTest {
 
         signInUri.toHttpUrl().apply {
             assertThat(queryParameter(QueryKey.SCOPE)).apply {
-                contains(PreservedScope.OPENID)
-                contains(PreservedScope.OFFLINE_ACCESS)
+                contains(ReservedScope.OPENID)
+                contains(ReservedScope.OFFLINE_ACCESS)
                 contains(UserScope.PROFILE)
             }
         }

@@ -11,7 +11,7 @@ class ConstantTest {
         assertThat(GrantType).isNotNull()
         assertThat(PromptValue).isNotNull()
         assertThat(QueryKey).isNotNull()
-        assertThat(PreservedScope).isNotNull()
+        assertThat(ReservedScope).isNotNull()
         assertThat(UserScope).isNotNull()
         assertThat(ResponseType).isNotNull()
     }
