@@ -22,6 +22,8 @@ android {
     defaultConfig {
         minSdk = 24
         targetSdk = 30
+
+        consumerProguardFile("./proguard-rules.pro")
     }
 
     sourceSets {
