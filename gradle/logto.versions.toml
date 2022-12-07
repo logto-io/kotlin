@@ -1,5 +1,5 @@
 [versions]
-logtoSdk = "1.0.0-alpha.2"
+logtoSdk = "1.0.0-alpha.3"
 
 [libraries]
 logtoSdk-alipay = { module = "io.logto.sdk:alipay", version.ref = "logtoSdk" }
