@@ -231,7 +231,7 @@ open class LogtoClient(
                 clientId = logtoConfig.appId,
                 refreshToken = requireNotNull(refreshToken),
                 resource = resource,
-                scopes = resource?.let { listOf(ReservedScope.OFFLINE_ACCESS) },
+                scopes = null,
             ) { fetchRefreshedTokenException, fetchedTokenResponse ->
                 fetchRefreshedTokenException?.let {
                     completion.onComplete(
