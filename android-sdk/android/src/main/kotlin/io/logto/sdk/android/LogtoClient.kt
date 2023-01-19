@@ -15,7 +15,6 @@ import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils.expiresAtFrom
 import io.logto.sdk.android.util.LogtoUtils.nowRoundToSec
 import io.logto.sdk.core.Core
-import io.logto.sdk.core.constant.ReservedScope
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.UserInfoResponse
@@ -231,7 +230,7 @@ open class LogtoClient(
                 clientId = logtoConfig.appId,
                 refreshToken = requireNotNull(refreshToken),
                 resource = resource,
-                scopes = resource?.let { listOf(ReservedScope.OFFLINE_ACCESS) },
+                scopes = null,
             ) { fetchRefreshedTokenException, fetchedTokenResponse ->
                 fetchRefreshedTokenException?.let {
                     completion.onComplete(
