@@ -9,7 +9,6 @@ class UserInfoResponseTest {
     private val name = "name"
     private val username = "username"
     private val picture = "picture"
-    private val roleNames = listOf("roleNames")
     private val email = "email"
     private val emailVerified = true
     private val phoneNumber = "123456789"
@@ -22,7 +21,6 @@ class UserInfoResponseTest {
         name = name,
         username = username,
         picture = picture,
-        roleNames = roleNames,
         email = email,
         emailVerified = emailVerified,
         phoneNumber = phoneNumber,
@@ -37,7 +35,6 @@ class UserInfoResponseTest {
         assertThat(userInfoResponse.name).isEqualTo(name)
         assertThat(userInfoResponse.username).isEqualTo(username)
         assertThat(userInfoResponse.picture).isEqualTo(picture)
-        assertThat(userInfoResponse.roleNames).isEqualTo(roleNames)
         assertThat(userInfoResponse.email).isEqualTo(email)
         assertThat(userInfoResponse.emailVerified).isEqualTo(emailVerified)
         assertThat(userInfoResponse.phoneNumber).isEqualTo(phoneNumber)

@@ -19,7 +19,6 @@ class JwtClaimsExtKtTest {
         val testName = "testName"
         val testUsername = "testUsername"
         val testPicture = "testPicture"
-        val testRoleNames = listOf("testRoleNames")
         val testEmail = "testEmail"
         val testEmailVerified = true
         val testPhone = "testPhone"
@@ -35,7 +34,6 @@ class JwtClaimsExtKtTest {
             name = testName,
             username = testUsername,
             picture = testPicture,
-            roleNames = testRoleNames,
             email = testEmail,
             emailVerified = testEmailVerified,
             phoneNumber = testPhone,
@@ -52,7 +50,6 @@ class JwtClaimsExtKtTest {
             setClaim(ClaimName.NAME, testName)
             setClaim(ClaimName.USERNAME, testUsername)
             setClaim(ClaimName.PICTURE, testPicture)
-            setStringListClaim(ClaimName.ROLE_NAMES, testRoleNames)
             setClaim(ClaimName.EMAIL, testEmail)
             setClaim(ClaimName.EMAIL_VERIFIED, testEmailVerified)
             setClaim(ClaimName.PHONE_NUMBER, testPhone)

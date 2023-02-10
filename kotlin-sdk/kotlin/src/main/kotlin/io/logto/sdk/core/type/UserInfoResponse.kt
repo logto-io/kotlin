@@ -9,7 +9,6 @@ data class UserInfoResponse(
     val name: String?,
     val username: String?,
     val picture: String?,
-    val roleNames: List<String>?,
 
     // Scope `email`
     val email: String?,
