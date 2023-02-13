@@ -85,7 +85,6 @@ class CoreFetchTest {
                             "name": "name",
                             "username": "username",
                             "picture": "picture",
-                            "role_names": ["role1", "role2"],
                             "email": "email",
                             "email_verified": true,
                             "phone_number": "12345678",

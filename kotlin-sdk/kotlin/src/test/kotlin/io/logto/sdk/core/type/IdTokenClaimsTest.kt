@@ -14,7 +14,6 @@ class IdTokenClaimsTest {
     private val name = "name"
     private val username = "username"
     private val picture = "picture"
-    private val roleNames = listOf("roleNames")
     private val email = "email"
     private val emailVerified = true
     private val phoneNumber = "123456789"
@@ -30,7 +29,6 @@ class IdTokenClaimsTest {
         name = name,
         username = username,
         picture = picture,
-        roleNames = roleNames,
         email = email,
         emailVerified = emailVerified,
         phoneNumber = phoneNumber,
@@ -49,7 +47,6 @@ class IdTokenClaimsTest {
         assertThat(idTokenClaims.name).isEqualTo(name)
         assertThat(idTokenClaims.username).isEqualTo(username)
         assertThat(idTokenClaims.picture).isEqualTo(picture)
-        assertThat(idTokenClaims.roleNames).isEqualTo(roleNames)
         assertThat(idTokenClaims.email).isEqualTo(email)
         assertThat(idTokenClaims.emailVerified).isEqualTo(emailVerified)
         assertThat(idTokenClaims.phoneNumber).isEqualTo(phoneNumber)

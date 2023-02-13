@@ -5,7 +5,6 @@ object ClaimName {
     const val NAME = "name"
     const val USERNAME = "username"
     const val PICTURE = "picture"
-    const val ROLE_NAMES = "roleNames"
     const val EMAIL = "email"
     const val EMAIL_VERIFIED = "email_verified"
     const val PHONE_NUMBER = "phone_number"
