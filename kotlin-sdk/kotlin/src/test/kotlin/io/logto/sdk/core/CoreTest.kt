@@ -217,41 +217,41 @@ class CoreTest {
     @Test
     fun `generateSignOutUri should contain expected queries`() {
         val endSessionEndpoint = "https://logto.dev/oidc/endSession"
-        val idToken = "idToken"
+        val clientId = "clientId"
         val postLogoutRedirectUri = "https://myapp.com/logout_callback"
 
-        val resultUri = Core.generateSignOutUri(endSessionEndpoint, idToken, postLogoutRedirectUri)
+        val resultUri = Core.generateSignOutUri(endSessionEndpoint, clientId, postLogoutRedirectUri)
 
         val constructedUri = resultUri.toHttpUrl()
         assertThat(constructedUri.scheme).isEqualTo(endSessionEndpoint.toHttpUrl().scheme)
         assertThat(constructedUri.host).isEqualTo(endSessionEndpoint.toHttpUrl().host)
         assertThat(constructedUri.pathSegments).isEqualTo(endSessionEndpoint.toHttpUrl().pathSegments)
-        assertThat(constructedUri.queryParameter(QueryKey.ID_TOKEN_HINT)).isEqualTo(idToken)
+        assertThat(constructedUri.queryParameter(QueryKey.CLIENT_ID)).isEqualTo(clientId)
         assertThat(constructedUri.queryParameter(QueryKey.POST_LOGOUT_REDIRECT_URI)).isEqualTo(postLogoutRedirectUri)
     }
 
     @Test
     fun `generateSignOutUri should not contain postLogoutRedirectUri if that is not provided`() {
         val endSessionEndpoint = "https://logto.dev/oidc/endSession"
-        val idToken = "idToken"
+        val clientId = "clientId"
 
-        val resultUri = Core.generateSignOutUri(endSessionEndpoint, idToken)
+        val resultUri = Core.generateSignOutUri(endSessionEndpoint, clientId)
 
         val constructedUri = resultUri.toHttpUrl()
         assertThat(constructedUri.scheme).isEqualTo(endSessionEndpoint.toHttpUrl().scheme)
         assertThat(constructedUri.host).isEqualTo(endSessionEndpoint.toHttpUrl().host)
         assertThat(constructedUri.pathSegments).isEqualTo(endSessionEndpoint.toHttpUrl().pathSegments)
-        assertThat(constructedUri.queryParameter(QueryKey.ID_TOKEN_HINT)).isEqualTo(idToken)
+        assertThat(constructedUri.queryParameter(QueryKey.CLIENT_ID)).isEqualTo(clientId)
         assertThat(constructedUri.queryParameter(QueryKey.POST_LOGOUT_REDIRECT_URI)).isEqualTo(null)
     }
 
     @Test
     fun `generateSignOutUri should throw exception if the endSessionEndpoint is invalid`() {
         val endSessionEndpoint = "invalid_endpoint"
-        val idToken = "idToken"
+        val clientId = "clientId"
 
         val expectedException = Assert.assertThrows(UriConstructionException::class.java) {
-            Core.generateSignOutUri(endSessionEndpoint, idToken)
+            Core.generateSignOutUri(endSessionEndpoint, clientId)
         }
 
         assertThat(expectedException).hasMessageThat().contains(UriConstructionException.Type.INVALID_ENDPOINT.name)
