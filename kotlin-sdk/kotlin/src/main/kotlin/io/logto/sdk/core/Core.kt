@@ -47,14 +47,14 @@ object Core {
 
     fun generateSignOutUri(
         endSessionEndpoint: String,
-        idToken: String,
+        clientId: String,
         postLogoutRedirectUri: String? = null,
     ): String {
         val constructedUri = endSessionEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
             UriConstructionException.Type.INVALID_ENDPOINT,
         )
         return constructedUri.newBuilder().apply {
-            addQueryParameter(QueryKey.ID_TOKEN_HINT, idToken)
+            addQueryParameter(QueryKey.CLIENT_ID, clientId)
             postLogoutRedirectUri?.let {
                 addQueryParameter(QueryKey.POST_LOGOUT_REDIRECT_URI, postLogoutRedirectUri)
             }
