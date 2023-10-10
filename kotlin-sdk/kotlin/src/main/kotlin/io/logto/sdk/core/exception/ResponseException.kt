@@ -4,6 +4,7 @@ class ResponseException(
     type: Type,
     cause: Throwable? = null,
 ) : RuntimeException(type.name, cause) {
+    var responseCode: Int? = null
     var responseMessage: String? = null
     var responseContent: String? = null
 
