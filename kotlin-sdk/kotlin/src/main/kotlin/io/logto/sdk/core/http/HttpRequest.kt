@@ -37,7 +37,7 @@ fun makeRequest(
                 completion.onComplete(
                     ResponseException(ResponseException.Type.REQUEST_FAILED).apply {
                         responseMessage = response.message
-                        responseContent = response.body?.toString()
+                        responseContent = response.body?.string()
                     },
                     null,
                 )
@@ -71,7 +71,7 @@ fun makeRequest(
             } ?: completion.onComplete(
                 ResponseException(ResponseException.Type.REQUEST_FAILED).apply {
                     responseMessage = response.message
-                    responseContent = response.body?.toString()
+                    responseContent = response.body?.string()
                 },
             )
         }
