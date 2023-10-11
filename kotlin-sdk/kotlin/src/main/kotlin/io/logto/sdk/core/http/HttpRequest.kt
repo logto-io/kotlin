@@ -36,6 +36,7 @@ fun makeRequest(
             if (!response.isSuccessful) {
                 completion.onComplete(
                     ResponseException(ResponseException.Type.REQUEST_FAILED).apply {
+                        responseCode = response.code
                         responseMessage = response.message
                         responseContent = response.body?.string()
                     },
@@ -70,6 +71,7 @@ fun makeRequest(
                 completion.onComplete(null)
             } ?: completion.onComplete(
                 ResponseException(ResponseException.Type.REQUEST_FAILED).apply {
+                    responseCode = response.code
                     responseMessage = response.message
                     responseContent = response.body?.string()
                 },
