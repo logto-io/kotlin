@@ -23,7 +23,7 @@ class LogtoWebViewSocialHandler(
     }
 
     // Note: the `universal` will always be true for it is supported by the Android OS.
-    fun getInjectSocialScript() = """
+    fun getInjectScript() = """
         window.logtoNativeSdk = {
             platform: 'android',
             getPostMessage: () => (data) => window.$NAME.postMessage(JSON.stringify(data)),
