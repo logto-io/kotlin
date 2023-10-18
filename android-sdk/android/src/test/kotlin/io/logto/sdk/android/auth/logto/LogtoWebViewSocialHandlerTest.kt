@@ -48,12 +48,12 @@ class LogtoWebViewSocialHandlerTest {
             SocialSessionHelper.getSupportedNativeConnectorTargets()
         } returns mutableListOf("wechat", "alipay")
 
-        val injectSocialScript = logtoWebViewSocialHandler.getInjectSocialScript()
+        val injectScript = logtoWebViewSocialHandler.getInjectScript()
         verify {
             SocialSessionHelper.getSupportedNativeConnectorTargets()
         }
 
-        assertThat(injectSocialScript)
+        assertThat(injectScript)
             .isEqualTo(
                 """
                 window.logtoNativeSdk = {
