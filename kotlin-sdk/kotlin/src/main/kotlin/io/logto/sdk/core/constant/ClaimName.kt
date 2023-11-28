@@ -9,6 +9,9 @@ object ClaimName {
     const val EMAIL_VERIFIED = "email_verified"
     const val PHONE_NUMBER = "phone_number"
     const val PHONE_NUMBER_VERIFIED = "phone_number_verified"
+    const val ROLES = "roles"
+    const val ORGANIZATIONS = "organizations"
+    const val ORGANIZATION_ROLES = "organization_roles"
     const val CUSTOM_DATA = "custom_data"
     const val IDENTITIES = "identities"
 }

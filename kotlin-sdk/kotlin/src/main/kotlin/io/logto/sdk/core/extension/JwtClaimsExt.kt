@@ -18,4 +18,7 @@ fun JwtClaims.toIdTokenClaims(): IdTokenClaims = IdTokenClaims(
     emailVerified = this.getClaimValue(ClaimName.EMAIL_VERIFIED) as Boolean?,
     phoneNumber = this.getClaimValueAsString(ClaimName.PHONE_NUMBER),
     phoneNumberVerified = this.getClaimValue(ClaimName.PHONE_NUMBER_VERIFIED) as Boolean?,
+    roles = this.getStringListClaimValue(ClaimName.ROLES) as List<String>?,
+    organizations = this.getStringListClaimValue(ClaimName.ORGANIZATIONS) as List<String>?,
+    organizationRoles = this.getStringListClaimValue(ClaimName.ORGANIZATION_ROLES) as List<String>?,
 )

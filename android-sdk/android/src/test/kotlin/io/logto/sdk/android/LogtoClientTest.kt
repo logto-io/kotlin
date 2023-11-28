@@ -270,6 +270,7 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             resource = TEST_RESOURCE_3,
+            organizationId = null,
         ) { logtoException, result ->
             assertThat(logtoException)
                 .hasMessageThat()
@@ -284,7 +285,7 @@ class LogtoClientTest {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
         logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
 
-        val testTokenKey = logtoClient.buildAccessTokenKey(null, null)
+        val testTokenKey = logtoClient.buildAccessTokenKey()
         val testAccessToken: AccessToken = mockk()
         every { testAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() + timeBias
 
@@ -294,6 +295,7 @@ class LogtoClientTest {
         every { logtoClient.isAuthenticated } returns true
 
         logtoClient.getAccessToken(
+            null,
             null,
         ) { logtoException, result ->
             assertThat(logtoException).isNull()
@@ -305,12 +307,13 @@ class LogtoClientTest {
     fun `getAccessToken should refresh token when existing accessToken is expired`() {
         setupRefreshTokenTestEnv()
 
-        val expiredAccessTokenKey = logtoClient.buildAccessTokenKey(null, null)
+        val expiredAccessTokenKey = logtoClient.buildAccessTokenKey()
         val expiredAccessToken: AccessToken = mockk()
         every { expiredAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() - timeBias
         logtoClient.setupAccessTokenMap(mapOf(expiredAccessTokenKey to expiredAccessToken))
 
         logtoClient.getAccessToken(
+            null,
             null,
         ) { logtoException, result ->
             assertThat(logtoException).isNull()
@@ -321,7 +324,7 @@ class LogtoClientTest {
         }
 
         verify(exactly = 1) {
-            Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any())
+            Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any(), any())
         }
     }
 
@@ -331,6 +334,7 @@ class LogtoClientTest {
 
         logtoClient.getAccessToken(
             null,
+            null,
         ) { logtoException, result ->
             assertThat(logtoException).isNull()
             assertThat(result).isNotNull()
@@ -340,7 +344,7 @@ class LogtoClientTest {
         }
 
         verify(exactly = 1) {
-            Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any())
+            Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any(), any())
         }
     }
 
@@ -453,7 +457,7 @@ class LogtoClientTest {
         }
         val accessTokenMock: AccessToken = mockk()
         every { accessTokenMock.token } returns TEST_ACCESS_TOKEN
-        every { logtoClient.getAccessToken(any(), any()) } answers {
+        every { logtoClient.getAccessToken(any(), any(), any()) } answers {
             lastArg<Completion<LogtoException, AccessToken>>().onComplete(null, accessTokenMock)
         }
 
@@ -502,7 +506,7 @@ class LogtoClientTest {
         }
 
         val mockGetAccessTokenException: LogtoException = mockk()
-        every { logtoClient.getAccessToken(any(), any()) } answers {
+        every { logtoClient.getAccessToken(any(), any(), any()) } answers {
             lastArg<Completion<LogtoException, AccessToken>>().onComplete(mockGetAccessTokenException, null)
         }
 
@@ -524,7 +528,7 @@ class LogtoClientTest {
         }
         val accessTokenMock: AccessToken = mockk()
         every { accessTokenMock.token } returns TEST_ACCESS_TOKEN
-        every { logtoClient.getAccessToken(any(), any()) } answers {
+        every { logtoClient.getAccessToken(any(), any(), any()) } answers {
             lastArg<Completion<LogtoException, AccessToken>>().onComplete(null, accessTokenMock)
         }
 
@@ -701,7 +705,7 @@ class LogtoClientTest {
         every { refreshTokenTokenResponseMock.idToken } returns TEST_ID_TOKEN
 
         mockkObject(Core)
-        every { Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any()) } answers {
+        every { Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any(), any()) } answers {
             lastArg<HttpCompletion<RefreshTokenTokenResponse>>()
                 .onComplete(null, refreshTokenTokenResponseMock)
         }

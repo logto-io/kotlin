@@ -18,4 +18,5 @@ object QueryKey {
     const val SCOPE = "scope"
     const val STATE = "state"
     const val TOKEN = "token"
+    const val ORGANIZATION_ID = "organization_id"
 }

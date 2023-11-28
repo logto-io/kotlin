@@ -88,10 +88,20 @@ object Core {
     }
 
     fun fetchTokenByRefreshToken(
+        /** The token endpoint of the authorization server. */
         tokenEndpoint: String,
+        /** The client ID of the application. */
         clientId: String,
+        /** The refresh token to be used to fetch the access token. */
         refreshToken: String,
+        /** The API resource to be fetch the access token for. */
         resource: String?,
+        /** The ID of the organization to be fetch the access token for. */
+        organizationId: String?,
+        /**
+         * The scopes to request for the access token. If not provided, the authorization server
+         * will use all the scopes that the client is authorized for.
+         */
         scopes: List<String>?,
         completion: HttpCompletion<RefreshTokenTokenResponse>,
     ) {
@@ -100,6 +110,7 @@ object Core {
             add(QueryKey.REFRESH_TOKEN, refreshToken)
             add(QueryKey.GRANT_TYPE, GrantType.REFRESH_TOKEN)
             resource?.let { add(QueryKey.RESOURCE, it) }
+            organizationId?.let { add(QueryKey.ORGANIZATION_ID, it) }
             scopes?.let { add(QueryKey.SCOPE, it.joinToString(" ")) }
         }.build()
         httpPost(tokenEndpoint, formBody, completion)
