@@ -1,6 +1,7 @@
 package io.logto.sdk.android.type
 
 import com.google.common.truth.Truth.assertThat
+import io.logto.sdk.core.constant.ReservedResource
 import io.logto.sdk.core.constant.ReservedScope
 import io.logto.sdk.core.constant.UserScope
 import org.junit.Test
@@ -31,5 +32,16 @@ class LogtoConfigTest {
             contains(UserScope.PROFILE)
             contains("other_scope")
         }
+    }
+
+    @Test
+    fun `LogtoConfig's resource should contain 'organization' if organization scope is provided`() {
+        val logtoConfig = LogtoConfig(
+            endpoint = "endpoint",
+            appId = "appId",
+            scopes = listOf(UserScope.ORGANIZATIONS)
+        )
+
+        assertThat(logtoConfig.resources).contains(ReservedResource.ORGANIZATION)
     }
 }

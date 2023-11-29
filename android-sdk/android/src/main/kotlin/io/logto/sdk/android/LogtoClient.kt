@@ -15,12 +15,14 @@ import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils.expiresAtFrom
 import io.logto.sdk.android.util.LogtoUtils.nowRoundToSec
 import io.logto.sdk.core.Core
+import io.logto.sdk.core.constant.UserScope
 import io.logto.sdk.core.type.IdTokenClaims
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.UserInfoResponse
 import io.logto.sdk.core.util.TokenUtils
 import org.jetbrains.annotations.TestOnly
 import org.jose4j.jwk.JsonWebKeySet
+import org.jose4j.jwt.JwtClaims
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.lang.JoseException
 
@@ -118,6 +120,10 @@ open class LogtoClient(
                     issuer = oidcConfig.issuer,
                     responseIdToken = codeToken.idToken,
                     responseRefreshToken = codeToken.refreshToken,
+                    /**
+                     * Treat `scopes` as `null` to construct the default access token key
+                     */
+                    accessTokenKey = buildAccessTokenKey(),
                     accessToken = accessToken,
                     completion = completion,
                 )
@@ -176,7 +182,28 @@ open class LogtoClient(
      * @param[completion] the completion which handles the result
      */
     fun getAccessToken(completion: Completion<LogtoException, AccessToken>) =
-        getAccessToken(null, completion)
+        getAccessToken(null, null, completion)
+
+    /**
+     * Get the access token for the specified organization with refresh strategy.
+     *
+     * Scope `UserScope.Organizations` is required in the config to use organization-related methods.
+     *
+     */
+    fun getOrganizationToken(
+        organizationId: String,
+        completion: Completion<LogtoException, AccessToken>,
+    ) {
+        if (!logtoConfig.scopes.contains(UserScope.ORGANIZATIONS)) {
+            completion.onComplete(
+                LogtoException(LogtoException.Type.MISSING_SCOPE_ORGANIZATIONS),
+                null,
+            )
+            return
+        }
+
+        return getAccessToken(null, organizationId, completion)
+    }
 
     /**
      * Get access token
@@ -185,6 +212,7 @@ open class LogtoClient(
      */
     fun getAccessToken(
         resource: String?,
+        organizationId: String?,
         completion: Completion<LogtoException, AccessToken>,
     ) {
         if (!isAuthenticated) {
@@ -203,7 +231,7 @@ open class LogtoClient(
         }
 
         // MARK: Retrieve access token from accessTokenMap
-        val accessTokenKey = buildAccessTokenKey(null, resource)
+        val accessTokenKey = buildAccessTokenKey(null, resource, organizationId)
         val accessToken = accessTokenMap[accessTokenKey]
         accessToken?.let {
             if (it.expiresAt > nowRoundToSec()) {
@@ -230,6 +258,7 @@ open class LogtoClient(
                 clientId = logtoConfig.appId,
                 refreshToken = requireNotNull(refreshToken),
                 resource = resource,
+                organizationId = organizationId,
                 scopes = null,
             ) { fetchRefreshedTokenException, fetchedTokenResponse ->
                 fetchRefreshedTokenException?.let {
@@ -257,6 +286,7 @@ open class LogtoClient(
                     issuer = oidcConfig.issuer,
                     responseIdToken = refreshedToken.idToken,
                     responseRefreshToken = refreshedToken.refreshToken,
+                    accessTokenKey = buildAccessTokenKey(null, resource, organizationId),
                     accessToken = refreshedAccessToken,
                 ) { verifyException ->
                     verifyException?.let { completion.onComplete(it, null) }
@@ -283,6 +313,34 @@ open class LogtoClient(
                 LogtoException(LogtoException.Type.UNABLE_TO_PARSE_ID_TOKEN_CLAIMS, exception),
                 null,
             )
+        }
+    }
+
+    /**
+     * Get the organization token claims for the specified organization.
+     *
+     * @param[organizationId] The ID of the organization that the access token is granted for.
+     * @param[completion] the completion which handles the retrieved result
+     */
+    fun getOrganizationTokenClaims(
+        organizationId: String,
+        completion: Completion<LogtoException, JwtClaims>,
+    ) {
+        getOrganizationToken(organizationId) { getOrgTokenException, token ->
+            getOrgTokenException?.let {
+                completion.onComplete(it, null)
+                return@getOrganizationToken
+            }
+
+            try {
+                val tokenClaims = TokenUtils.decodeToken(requireNotNull(token).token)
+                completion.onComplete(null, tokenClaims)
+            } catch (exception: InvalidJwtException) {
+                completion.onComplete(
+                    LogtoException(LogtoException.Type.UNABLE_TO_PARSE_TOKEN_CLAIMS, exception),
+                    null,
+                )
+            }
         }
     }
 
@@ -322,6 +380,7 @@ open class LogtoClient(
         issuer: String,
         responseIdToken: String?,
         responseRefreshToken: String?,
+        accessTokenKey: String,
         accessToken: AccessToken,
         completion: EmptyCompletion<LogtoException>,
     ) {
@@ -340,10 +399,6 @@ open class LogtoClient(
                 idToken = it
             }
 
-            // Note
-            // - Treat `scopes` as `null` to construct the default access token key
-            // for we do not support custom scopes in V1
-            val accessTokenKey = buildAccessTokenKey(null, getResourceFromAccessToken(accessToken.token))
             accessTokenMap[accessTokenKey] = accessToken
             refreshToken = responseRefreshToken
             completion.onComplete(null)
@@ -405,16 +460,15 @@ open class LogtoClient(
         idToken = storage?.getItem(StorageKey.ID_TOKEN)
     }
 
-    private fun getResourceFromAccessToken(accessToken: String) = try {
-        TokenUtils.decodeToken(accessToken).audience[0]
-    } catch (_: InvalidJwtException) {
-        null
-    }
-
-    internal fun buildAccessTokenKey(scopes: List<String>?, resource: String?): String {
+    internal fun buildAccessTokenKey(
+        scopes: List<String>? = null,
+        resource: String? = null,
+        organizationId: String? = null,
+    ): String {
         val scopesPart = scopes?.sorted()?.joinToString(" ") ?: ""
         val resourcePart = resource ?: ""
-        return "$scopesPart@$resourcePart"
+        val organizationPart = organizationId?.let { "#$it" } ?: ""
+        return "$scopesPart@$resourcePart$organizationPart"
     }
 
     @TestOnly
