@@ -4,7 +4,9 @@ import io.logto.sdk.core.constant.CodeChallengeMethod
 import io.logto.sdk.core.constant.GrantType
 import io.logto.sdk.core.constant.PromptValue
 import io.logto.sdk.core.constant.QueryKey
+import io.logto.sdk.core.constant.ReservedResource
 import io.logto.sdk.core.constant.ResponseType
+import io.logto.sdk.core.constant.UserScope
 import io.logto.sdk.core.exception.UriConstructionException
 import io.logto.sdk.core.http.HttpCompletion
 import io.logto.sdk.core.http.HttpEmptyCompletion
@@ -39,8 +41,19 @@ object Core {
             addQueryParameter(QueryKey.STATE, state)
             addQueryParameter(QueryKey.REDIRECT_URI, redirectUri)
             addQueryParameter(QueryKey.RESPONSE_TYPE, ResponseType.CODE)
-            addQueryParameter(QueryKey.SCOPE, ScopeUtils.withDefaultScopes(scopes).joinToString(" "))
-            resources?.let { for (value in it) { addQueryParameter(QueryKey.RESOURCE, value) } }
+
+            val usedScopes = ScopeUtils.withDefaultScopes(scopes)
+            addQueryParameter(QueryKey.SCOPE, usedScopes.joinToString(" "))
+
+            val usedResources = resources.orEmpty()
+            for (value in usedResources) { addQueryParameter(QueryKey.RESOURCE, value) }
+            if (
+                usedScopes.contains(UserScope.ORGANIZATIONS) &&
+                !usedResources.contains(ReservedResource.ORGANIZATION)
+            ) {
+                addQueryParameter(QueryKey.RESOURCE, ReservedResource.ORGANIZATION)
+            }
+
             addQueryParameter(QueryKey.PROMPT, prompt ?: PromptValue.CONSENT)
         }.build().toString()
     }
