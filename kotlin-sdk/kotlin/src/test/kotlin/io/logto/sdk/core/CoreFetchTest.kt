@@ -90,7 +90,10 @@ class CoreFetchTest {
                             "phone_number": "12345678",
                             "phone_number_verified": true,
                             "custom_data": {"level": 1},
-                            "identities": {"google": {"id": "123456"}}
+                            "identities": {"google": {"id": "123456"}},
+                            "organization_data": [
+                              {"id": "org_id", "name": "org_name", "description": "org_desc"}
+                            ]
                         }
                         """.trimIndent()
                     )
@@ -315,6 +318,10 @@ class CoreFetchTest {
 
         assertThat(throwableReceiver).isNull()
         assertThat(responseReceiver).isNotNull()
+        assertThat(responseReceiver?.organizationData?.get(0)?.id).isEqualTo("org_id")
+        assertThat(responseReceiver?.organizationData?.get(0)?.name).isEqualTo("org_name")
+        assertThat(responseReceiver?.organizationData?.get(0)?.description)
+            .isEqualTo("org_desc")
     }
 
     @Test
