@@ -15,6 +15,9 @@ class UserInfoResponseTest {
     private val phoneNumberVerified = true
     private val customData = JsonObject()
     private val identities = JsonObject()
+    private val roles = listOf("role1", "role2")
+    private val organizations = listOf("org_id")
+    private val organizationRoles = listOf("viewer", "editor")
     private val organizationData = listOf(
         Organization("org_id", "org_name", "org_desc"),
     )
@@ -30,6 +33,9 @@ class UserInfoResponseTest {
         phoneNumberVerified = phoneNumberVerified,
         customData = customData,
         identities = identities,
+        roles = roles,
+        organizations = organizations,
+        organizationRoles = organizationRoles,
         organizationData = organizationData,
     )
 
@@ -45,6 +51,9 @@ class UserInfoResponseTest {
         assertThat(userInfoResponse.phoneNumberVerified).isEqualTo(phoneNumberVerified)
         assertThat(userInfoResponse.customData).isEqualTo(customData)
         assertThat(userInfoResponse.identities).isEqualTo(identities)
+        assertThat(userInfoResponse.roles).isEqualTo(roles)
+        assertThat(userInfoResponse.organizations).isEqualTo(organizations)
+        assertThat(userInfoResponse.organizationRoles).isEqualTo(organizationRoles)
         assertThat(userInfoResponse.organizationData).isEqualTo(organizationData)
     }
 }
