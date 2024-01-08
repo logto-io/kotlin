@@ -24,6 +24,15 @@ data class UserInfoResponse(
     // Scope `identities`
     val identities: JsonObject?,
 
+    // Scope `roles`
+    val roles: List<String>?,
+
+    // Scope `urn:logto:scope:organizations`
+    val organizations: List<String>?,
+
+    // Scope `urn:logto:scope:organization_roles`
+    val organizationRoles: List<String>?,
+
     // Scope `urn:logto:scope:organizations`
     val organizationData: List<Organization>?,
 )
