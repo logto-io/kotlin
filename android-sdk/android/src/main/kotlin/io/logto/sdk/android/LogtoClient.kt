@@ -178,17 +178,22 @@ open class LogtoClient(
     }
 
     /**
-     * Get access token
+     * Get access token without resource and organization id
      * @param[completion] the completion which handles the result
      */
     fun getAccessToken(completion: Completion<LogtoException, AccessToken>) =
         getAccessToken(null, null, completion)
 
     /**
+     * Get access token by resource without a organization id
+     * @param[completion] the completion which handles the result
+     */
+    fun getAccessToken(resource: String?, completion: Completion<LogtoException, AccessToken>) =
+        getAccessToken(resource, null, completion)
+
+    /**
      * Get the access token for the specified organization with refresh strategy.
-     *
      * Scope `UserScope.Organizations` is required in the config to use organization-related methods.
-     *
      */
     fun getOrganizationToken(
         organizationId: String,
