@@ -13,6 +13,7 @@ import io.logto.sdk.core.http.HttpEmptyCompletion
 import io.logto.sdk.core.http.httpGet
 import io.logto.sdk.core.http.httpPost
 import io.logto.sdk.core.type.CodeTokenResponse
+import io.logto.sdk.core.type.GenerateSignInUriOptions
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.type.RefreshTokenTokenResponse
 import io.logto.sdk.core.type.UserInfoResponse
@@ -21,31 +22,23 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 object Core {
-    fun generateSignInUri(
-        authorizationEndpoint: String,
-        clientId: String,
-        redirectUri: String,
-        codeChallenge: String,
-        state: String,
-        scopes: List<String>?,
-        resources: List<String>?,
-        prompt: String?,
-    ): String {
-        val constructedUri = authorizationEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
+    fun generateSignInUri(options: GenerateSignInUriOptions): String {
+        val constructedUri = options.authorizationEndpoint.toHttpUrlOrNull() ?: throw UriConstructionException(
             UriConstructionException.Type.INVALID_ENDPOINT,
         )
+
         return constructedUri.newBuilder().apply {
-            addQueryParameter(QueryKey.CLIENT_ID, clientId)
-            addQueryParameter(QueryKey.CODE_CHALLENGE, codeChallenge)
+            addQueryParameter(QueryKey.CLIENT_ID, options.clientId)
+            addQueryParameter(QueryKey.CODE_CHALLENGE, options.codeChallenge)
             addQueryParameter(QueryKey.CODE_CHALLENGE_METHOD, CodeChallengeMethod.S256)
-            addQueryParameter(QueryKey.STATE, state)
-            addQueryParameter(QueryKey.REDIRECT_URI, redirectUri)
+            addQueryParameter(QueryKey.STATE, options.state)
+            addQueryParameter(QueryKey.REDIRECT_URI, options.redirectUri)
             addQueryParameter(QueryKey.RESPONSE_TYPE, ResponseType.CODE)
 
-            val usedScopes = ScopeUtils.withDefaultScopes(scopes)
+            val usedScopes = ScopeUtils.withDefaultScopes(options.scopes)
             addQueryParameter(QueryKey.SCOPE, usedScopes.joinToString(" "))
 
-            val usedResources = resources.orEmpty()
+            val usedResources = options.resources.orEmpty()
             for (value in usedResources) { addQueryParameter(QueryKey.RESOURCE, value) }
             if (
                 usedScopes.contains(UserScope.ORGANIZATIONS) &&
@@ -54,7 +47,7 @@ object Core {
                 addQueryParameter(QueryKey.RESOURCE, ReservedResource.ORGANIZATION)
             }
 
-            addQueryParameter(QueryKey.PROMPT, prompt ?: PromptValue.CONSENT)
+            addQueryParameter(QueryKey.PROMPT, options.prompt ?: PromptValue.CONSENT)
         }.build().toString()
     }
 

@@ -10,6 +10,7 @@ import io.logto.sdk.core.Core
 import io.logto.sdk.core.exception.CallbackUriVerificationException
 import io.logto.sdk.core.http.HttpCompletion
 import io.logto.sdk.core.type.CodeTokenResponse
+import io.logto.sdk.core.type.GenerateSignInUriOptions
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.util.CallbackUriUtils
 import io.mockk.Runs
@@ -59,7 +60,7 @@ class LogtoAuthSessionTest {
         val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
 
         every {
-            Core.generateSignInUri(any(), any(), any(), any(), any(), any(), any(), any())
+            Core.generateSignInUri(any())
         } returns "testSignInUri"
 
         val logtoAuthSession = LogtoAuthSession(
@@ -89,7 +90,7 @@ class LogtoAuthSessionTest {
         mockkObject(LogtoAuthManager)
         val mockLogtoConfig: LogtoConfig = mockk()
         val invalidRedirectUri = ""
-        val mockCompletion : Completion<LogtoException, CodeTokenResponse> = mockk()
+        val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
         val logtoAuthSession = LogtoAuthSession(
@@ -114,16 +115,16 @@ class LogtoAuthSessionTest {
             .isEqualTo(LogtoException.Type.INVALID_REDIRECT_URI.name)
         assertThat(codeTokenResponseCapture.last()).isNull()
 
-        verify(exactly = 0){
+        verify(exactly = 0) {
             LogtoAuthManager.handleAuthStart(logtoAuthSession)
-            Core.generateSignInUri(any(), any(), any(), any(), any(), any(), any(), any())
+            Core.generateSignInUri(any())
             mockActivity.startActivity(any())
         }
     }
 
     @Test
     fun `handleCallbackUri should complete with expected results`() {
-        val mockCompletion : Completion<LogtoException, CodeTokenResponse> = mockk()
+        val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
         val logtoAuthSession = LogtoAuthSession(
@@ -138,7 +139,13 @@ class LogtoAuthSessionTest {
         val dummyValidCallbackUri = Uri.parse("$dummyRedirectUri?code=$testCode&state=dummystate")
         val mockCodeTokenResponse: CodeTokenResponse = mockk()
         mockkObject(CallbackUriUtils)
-        every { CallbackUriUtils.verifyAndParseCodeFromCallbackUri(any(), any(), any()) } returns testCode
+        every {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(
+                any(),
+                any(),
+                any()
+            )
+        } returns testCode
 
         every {
             Core.fetchTokenByAuthorizationCode(any(), any(), any(), any(), any(), any(), any())
@@ -160,7 +167,7 @@ class LogtoAuthSessionTest {
         val logtoExceptionCapture = mutableListOf<LogtoException?>()
         val codeTokenResponseCapture = mutableListOf<CodeTokenResponse?>()
 
-        val mockCompletion : Completion<LogtoException, CodeTokenResponse> = mockk()
+        val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
         val logtoAuthSession = LogtoAuthSession(
@@ -199,13 +206,19 @@ class LogtoAuthSessionTest {
         val logtoExceptionCapture = mutableListOf<LogtoException?>()
         val codeTokenResponseCapture = mutableListOf<CodeTokenResponse?>()
 
-        val mockCompletion : Completion<LogtoException, CodeTokenResponse> = mockk()
+        val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
         val testCode = "testCode"
         val dummyValidCallbackUri = Uri.parse("$dummyRedirectUri?code=$testCode&state=dummystate")
         mockkObject(CallbackUriUtils)
-        every { CallbackUriUtils.verifyAndParseCodeFromCallbackUri(any(), any(), any()) } returns testCode
+        every {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(
+                any(),
+                any(),
+                any()
+            )
+        } returns testCode
 
         val mockFetchException: Throwable = mockk()
         every {
@@ -247,7 +260,7 @@ class LogtoAuthSessionTest {
         val logtoExceptionCapture = mutableListOf<LogtoException?>()
         val codeTokenResponseCapture = mutableListOf<CodeTokenResponse?>()
 
-        val mockCompletion : Completion<LogtoException, CodeTokenResponse> = mockk()
+        val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
         val logtoAuthSession = LogtoAuthSession(
