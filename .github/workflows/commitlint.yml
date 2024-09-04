@@ -31,12 +31,11 @@ jobs:
 
       - name: Create commitlint config file
         run: |
-          cat <<EEE > commitlint.config.js
-          const { rules } = require('@commitlint/config-conventional');
-          module.exports = {
+          cat <<EEE > commitlint.config.mjs
+          export default {
             extends: ['@commitlint/config-conventional'],
             rules: {
-              'type-enum': [2, 'always', [...rules['type-enum'][2], 'release']],
+              'type-enum': [2, 'always', ['feat', 'fix', 'refactor', 'test', 'ci', 'chore', 'revert', 'release']],
               'scope-enum': [2, 'always', ['core', 'android-sdk', 'android-sample', 'deps']],
             },
           };
