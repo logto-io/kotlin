@@ -9,4 +9,9 @@ class GenerateSignInUriOptions(
     val scopes: List<String>? = null,
     val resources: List<String>? = null,
     val prompt: String? = null,
+    val loginHint: String? = null,
+    val firstScreen: String? = null,
+    val identifiers: List<String>? = null,
+    val extraParams: Map<String, String>? = null,
+    val includeReservedScopes: Boolean? = true,
 )

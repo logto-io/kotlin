@@ -35,8 +35,15 @@ object Core {
             addQueryParameter(QueryKey.REDIRECT_URI, options.redirectUri)
             addQueryParameter(QueryKey.RESPONSE_TYPE, ResponseType.CODE)
 
-            val usedScopes = ScopeUtils.withDefaultScopes(options.scopes)
-            addQueryParameter(QueryKey.SCOPE, usedScopes.joinToString(" "))
+            val usedScopes = if (options.includeReservedScopes == true) {
+                ScopeUtils.withDefaultScopes(options.scopes)
+            } else {
+                options.scopes.orEmpty()
+            }
+
+            if (usedScopes.isNotEmpty()) {
+                addQueryParameter(QueryKey.SCOPE, usedScopes.joinToString(" "))
+            }
 
             val usedResources = options.resources.orEmpty()
             for (value in usedResources) { addQueryParameter(QueryKey.RESOURCE, value) }
@@ -48,6 +55,22 @@ object Core {
             }
 
             addQueryParameter(QueryKey.PROMPT, options.prompt ?: PromptValue.CONSENT)
+
+            options.loginHint?.let {
+                addQueryParameter(QueryKey.LOGIN_HINT, it)
+            }
+
+            options.firstScreen?.let {
+                addQueryParameter(QueryKey.FIRST_SCREEN, it)
+            }
+
+            options.identifiers?.let {
+                addQueryParameter(QueryKey.IDENTIFIER, it.joinToString(" "))
+            }
+
+            options.extraParams?.forEach { (key, value) ->
+                addQueryParameter(key, value)
+            }
         }.build().toString()
     }
 
