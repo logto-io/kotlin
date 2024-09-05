@@ -5,6 +5,7 @@ import android.net.Uri
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.LogtoConfig
+import io.logto.sdk.android.type.SignInOptions
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.exception.CallbackUriVerificationException
 import io.logto.sdk.core.type.CodeTokenResponse
@@ -17,14 +18,14 @@ class LogtoAuthSession(
     val context: Activity,
     val logtoConfig: LogtoConfig,
     val oidcConfig: OidcConfigResponse,
-    val redirectUri: String,
+    val signInOptions: SignInOptions,
     private val completion: Completion<LogtoException, CodeTokenResponse>,
 ) {
     private val codeVerifier = GenerateUtils.generateCodeVerifier()
     private val state = GenerateUtils.generateState()
 
     fun start() {
-        if (Uri.parse(redirectUri) == Uri.EMPTY) {
+        if (Uri.parse(signInOptions.redirectUri) == Uri.EMPTY) {
             completion.onComplete(LogtoException(LogtoException.Type.INVALID_REDIRECT_URI), null)
             return
         }
@@ -35,12 +36,17 @@ class LogtoAuthSession(
             GenerateSignInUriOptions(
                 authorizationEndpoint = oidcConfig.authorizationEndpoint,
                 clientId = logtoConfig.appId,
-                redirectUri = redirectUri,
+                redirectUri = signInOptions.redirectUri,
                 codeChallenge = GenerateUtils.generateCodeChallenge(codeVerifier),
                 state = state,
                 scopes = logtoConfig.scopes,
                 resources = logtoConfig.resources,
-                prompt = logtoConfig.prompt,
+                prompt = signInOptions.prompt ?: logtoConfig.prompt,
+                loginHint = signInOptions.loginHint,
+                firstScreen = signInOptions.firstScreen,
+                identifiers = signInOptions.identifiers,
+                extraParams = signInOptions.extraParams,
+                includeReservedScopes = logtoConfig.includeReservedScopes,
             ),
         )
 
@@ -51,7 +57,7 @@ class LogtoAuthSession(
         val authorizationCode = try {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri(
                 callbackUri.toString(),
-                redirectUri,
+                signInOptions.redirectUri,
                 state,
             )
         } catch (exception: CallbackUriVerificationException) {
@@ -65,7 +71,7 @@ class LogtoAuthSession(
         Core.fetchTokenByAuthorizationCode(
             tokenEndpoint = oidcConfig.tokenEndpoint,
             clientId = logtoConfig.appId,
-            redirectUri = redirectUri,
+            redirectUri = signInOptions.redirectUri,
             codeVerifier = codeVerifier,
             code = authorizationCode,
             resource = null,

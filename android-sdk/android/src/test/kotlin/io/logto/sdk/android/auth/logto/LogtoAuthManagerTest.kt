@@ -2,6 +2,7 @@ package io.logto.sdk.android.auth.logto
 
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
+import io.logto.sdk.android.type.SignInOptions
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -66,7 +67,7 @@ class LogtoAuthManagerTest {
             mockk(),
             mockk(),
             mockk(),
-            redirectUri,
+            SignInOptions(redirectUri = redirectUri),
             mockk()
         )
 

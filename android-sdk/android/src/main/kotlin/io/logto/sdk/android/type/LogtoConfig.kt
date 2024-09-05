@@ -12,14 +12,20 @@ class LogtoConfig(
     resources: List<String>? = null,
     val usingPersistStorage: Boolean = true,
     val prompt: String = PromptValue.CONSENT,
+    val includeReservedScopes: Boolean = true,
 ) {
     /**
      * Normalize the Logto client configuration per the following rules:
      *
-     * - Add default scopes (`openid`, `offline_access` and `profile`) if not provided.
+     * - Add default scopes (`openid`, `offline_access` and `profile`) if not provided if includeReservedScopes is true.
      * - Add `ReservedResource.Organization` to resources if `UserScope.Organizations` is included in scopes.
      */
-    val scopes = ScopeUtils.withDefaultScopes(scopes)
+    val scopes = if (includeReservedScopes) {
+        ScopeUtils.withDefaultScopes(scopes)
+    } else {
+        scopes.orEmpty()
+    }
+
     val resources = if (this.scopes.contains(UserScope.ORGANIZATIONS)) {
         (resources.orEmpty() + ReservedResource.ORGANIZATION)
     } else {

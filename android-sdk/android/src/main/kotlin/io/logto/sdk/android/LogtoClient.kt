@@ -12,6 +12,7 @@ import io.logto.sdk.android.extension.oidcConfigEndpoint
 import io.logto.sdk.android.storage.PersistStorage
 import io.logto.sdk.android.type.AccessToken
 import io.logto.sdk.android.type.LogtoConfig
+import io.logto.sdk.android.type.SignInOptions
 import io.logto.sdk.android.util.LogtoUtils.expiresAtFrom
 import io.logto.sdk.android.util.LogtoUtils.nowRoundToSec
 import io.logto.sdk.core.Core
@@ -83,12 +84,12 @@ open class LogtoClient(
     /**
      * Sign in
      * @param[context] the activity to perform a sign-in action
-     * @param[redirectUri] one of the redirect URIs of this application
+     * @param[options] the sign-in options
      * @param[completion] the completion which handles the result of signing in
      */
     fun signIn(
         context: Activity,
-        redirectUri: String,
+        options: SignInOptions,
         completion: EmptyCompletion<LogtoException>,
     ) {
         getOidcConfig { getOidcConfigException, oidcConfig ->
@@ -101,7 +102,7 @@ open class LogtoClient(
                 context = context,
                 logtoConfig = logtoConfig,
                 oidcConfig = requireNotNull(oidcConfig),
-                redirectUri = redirectUri,
+                signInOptions = options,
             ) { authException, fetchedTokenResponse ->
                 authException?.let {
                     completion.onComplete(it)
@@ -132,6 +133,22 @@ open class LogtoClient(
             logtoAuthSession.start()
         }
     }
+
+    /**
+     * Sign in
+     * @param[context] the activity to perform a sign-in action
+     * @param[redirectUri] one of the redirect URIs of this application
+     * @param[completion] the completion which handles the result of signing in
+     */
+    fun signIn(
+        context: Activity,
+        redirectUri: String,
+        completion: EmptyCompletion<LogtoException>,
+    ) = signIn(
+        context = context,
+        options = SignInOptions(redirectUri = redirectUri),
+        completion = completion,
+    )
 
     /**
      * Sign out

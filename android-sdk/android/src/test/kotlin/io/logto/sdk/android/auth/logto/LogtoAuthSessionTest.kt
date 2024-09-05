@@ -6,6 +6,7 @@ import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.LogtoConfig
+import io.logto.sdk.android.type.SignInOptions
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.exception.CallbackUriVerificationException
 import io.logto.sdk.core.http.HttpCompletion
@@ -45,6 +46,10 @@ class LogtoAuthSessionTest {
 
     private val dummyRedirectUri = "localhost:3001/callback"
 
+    private val dummySignInOptions = SignInOptions(
+        redirectUri = dummyRedirectUri
+    )
+
     @Before
     fun setUp() {
         every { mockActivity.packageName } returns "logto.test"
@@ -67,7 +72,7 @@ class LogtoAuthSessionTest {
             mockActivity,
             dummyLogtoConfig,
             dummyOidcConfigResponse,
-            dummyRedirectUri,
+            dummySignInOptions,
             mockCompletion
         )
 
@@ -97,7 +102,7 @@ class LogtoAuthSessionTest {
             mockActivity,
             mockLogtoConfig,
             dummyOidcConfigResponse,
-            invalidRedirectUri,
+            SignInOptions(redirectUri = invalidRedirectUri),
             mockCompletion,
         )
 
@@ -131,7 +136,7 @@ class LogtoAuthSessionTest {
             mockActivity,
             dummyLogtoConfig,
             dummyOidcConfigResponse,
-            dummyRedirectUri,
+            dummySignInOptions,
             mockCompletion,
         )
 
@@ -174,7 +179,7 @@ class LogtoAuthSessionTest {
             mockActivity,
             dummyLogtoConfig,
             dummyOidcConfigResponse,
-            dummyRedirectUri,
+            dummySignInOptions,
             mockCompletion,
         )
 
@@ -231,7 +236,7 @@ class LogtoAuthSessionTest {
             mockActivity,
             dummyLogtoConfig,
             dummyOidcConfigResponse,
-            dummyRedirectUri,
+            dummySignInOptions,
             mockCompletion,
         )
 
@@ -267,7 +272,7 @@ class LogtoAuthSessionTest {
             mockActivity,
             dummyLogtoConfig,
             dummyOidcConfigResponse,
-            dummyRedirectUri,
+            dummySignInOptions,
             mockCompletion,
         )
 
