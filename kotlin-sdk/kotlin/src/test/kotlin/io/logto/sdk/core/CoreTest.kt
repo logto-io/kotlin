@@ -3,6 +3,7 @@ package io.logto.sdk.core
 import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.core.constant.*
 import io.logto.sdk.core.exception.UriConstructionException
+import io.logto.sdk.core.type.DirectSignInOptions
 import io.logto.sdk.core.type.GenerateSignInUriOptions
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Assert
@@ -314,6 +315,29 @@ class CoreTest {
                     " "
                 )
             )
+        }
+    }
+
+    @Test
+    fun `generateSignInUri should contain direct_sign_in if provided`() {
+        val directSignIn = DirectSignInOptions(
+            method = DirectSignInMethod.SOCIAL,
+            target = "google"
+        )
+
+        val signInUri = Core.generateSignInUri(
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                directSignIn = directSignIn,
+            )
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(queryParameterValues(QueryKey.DIRECT_SIGN_IN)).contains("${directSignIn.method}:${directSignIn.target}")
         }
     }
 

@@ -45,6 +45,7 @@ class LogtoAuthSession(
                 loginHint = signInOptions.loginHint,
                 firstScreen = signInOptions.firstScreen,
                 identifiers = signInOptions.identifiers,
+                directSignIn = signInOptions.directSignIn,
                 extraParams = signInOptions.extraParams,
                 includeReservedScopes = logtoConfig.includeReservedScopes,
             ),

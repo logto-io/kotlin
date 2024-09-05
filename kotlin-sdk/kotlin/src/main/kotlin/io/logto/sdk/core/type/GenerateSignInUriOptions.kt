@@ -12,6 +12,7 @@ class GenerateSignInUriOptions(
     val loginHint: String? = null,
     val firstScreen: String? = null,
     val identifiers: List<String>? = null,
+    val directSignIn: DirectSignInOptions? = null,
     val extraParams: Map<String, String>? = null,
     val includeReservedScopes: Boolean? = true,
 )
