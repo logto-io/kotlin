@@ -64,6 +64,10 @@ object Core {
                 addQueryParameter(QueryKey.FIRST_SCREEN, it)
             }
 
+            options.directSignIn?.let {
+                addQueryParameter(QueryKey.DIRECT_SIGN_IN, "${it.method}:${it.target}")
+            }
+
             options.identifiers?.let {
                 addQueryParameter(QueryKey.IDENTIFIER, it.joinToString(" "))
             }
