@@ -8,6 +8,7 @@ import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.exception.CallbackUriVerificationException
 import io.logto.sdk.core.type.CodeTokenResponse
+import io.logto.sdk.core.type.GenerateSignInUriOptions
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.util.CallbackUriUtils
 import io.logto.sdk.core.util.GenerateUtils
@@ -31,14 +32,16 @@ class LogtoAuthSession(
         LogtoAuthManager.handleAuthStart(this)
 
         val signInUri = Core.generateSignInUri(
-            authorizationEndpoint = oidcConfig.authorizationEndpoint,
-            clientId = logtoConfig.appId,
-            redirectUri = redirectUri,
-            codeChallenge = GenerateUtils.generateCodeChallenge(codeVerifier),
-            state = state,
-            scopes = logtoConfig.scopes,
-            resources = logtoConfig.resources,
-            prompt = logtoConfig.prompt,
+            GenerateSignInUriOptions(
+                authorizationEndpoint = oidcConfig.authorizationEndpoint,
+                clientId = logtoConfig.appId,
+                redirectUri = redirectUri,
+                codeChallenge = GenerateUtils.generateCodeChallenge(codeVerifier),
+                state = state,
+                scopes = logtoConfig.scopes,
+                resources = logtoConfig.resources,
+                prompt = logtoConfig.prompt,
+            ),
         )
 
         LogtoWebViewAuthActivity.launch(context, signInUri)

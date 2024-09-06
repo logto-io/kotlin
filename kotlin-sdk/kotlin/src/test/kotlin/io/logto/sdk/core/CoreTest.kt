@@ -3,6 +3,7 @@ package io.logto.sdk.core
 import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.core.constant.*
 import io.logto.sdk.core.exception.UriConstructionException
+import io.logto.sdk.core.type.GenerateSignInUriOptions
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Assert
 import org.junit.Test
@@ -26,14 +27,16 @@ class CoreTest {
     @Test
     fun `generateSignInUri should contain expected queries in result`() {
         val signInUri = Core.generateSignInUri(
-            authorizationEndpoint = testAuthorizationEndpoint,
-            clientId = testClientId,
-            redirectUri = testRedirectUri,
-            codeChallenge = testCodeChallenge,
-            state = testState,
-            scopes = testScopes,
-            resources = testResources,
-            prompt = testPromptValue,
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                scopes = testScopes,
+                resources = testResources,
+                prompt = testPromptValue,
+            ),
         )
 
         signInUri.toHttpUrl().apply {
@@ -62,17 +65,24 @@ class CoreTest {
     @Test
     fun `generateSignInUri should contain not only reserved scopes but also the extra scope`() {
         val extraScope = "extraScope"
-        val scopes = listOf(ReservedScope.OPENID, ReservedScope.OFFLINE_ACCESS, UserScope.PROFILE, extraScope)
+        val scopes = listOf(
+            ReservedScope.OPENID,
+            ReservedScope.OFFLINE_ACCESS,
+            UserScope.PROFILE,
+            extraScope
+        )
 
         val signInUri = Core.generateSignInUri(
-            authorizationEndpoint = testAuthorizationEndpoint,
-            clientId = testClientId,
-            redirectUri = testRedirectUri,
-            codeChallenge = testCodeChallenge,
-            state = testState,
-            scopes = scopes,
-            resources = testResources,
-            prompt = testPromptValue,
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                scopes = scopes,
+                resources = testResources,
+                prompt = testPromptValue,
+            ),
         )
 
         signInUri.toHttpUrl().apply {
@@ -88,14 +98,16 @@ class CoreTest {
     @Test
     fun `generateSignInUri should not contain resources if no resources is provided`() {
         val signInUri = Core.generateSignInUri(
-            authorizationEndpoint = testAuthorizationEndpoint,
-            clientId = testClientId,
-            redirectUri = testRedirectUri,
-            codeChallenge = testCodeChallenge,
-            state = testState,
-            scopes = testScopes,
-            resources = null,
-            prompt = testPromptValue,
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                scopes = testScopes,
+                resources = null,
+                prompt = testPromptValue,
+            ),
         )
 
         signInUri.toHttpUrl().apply {
@@ -110,31 +122,36 @@ class CoreTest {
 
         val expectedException = Assert.assertThrows(UriConstructionException::class.java) {
             Core.generateSignInUri(
-                authorizationEndpoint = authorizationEndpoint,
-                clientId = testClientId,
-                redirectUri = testRedirectUri,
-                codeChallenge = testCodeChallenge,
-                state = testState,
-                scopes = testScopes,
-                resources = testResources,
-                prompt = testPromptValue,
+                GenerateSignInUriOptions(
+                    authorizationEndpoint = authorizationEndpoint,
+                    clientId = testClientId,
+                    redirectUri = testRedirectUri,
+                    codeChallenge = testCodeChallenge,
+                    state = testState,
+                    scopes = testScopes,
+                    resources = testResources,
+                    prompt = testPromptValue,
+                ),
             )
         }
 
-        assertThat(expectedException).hasMessageThat().contains(UriConstructionException.Type.INVALID_ENDPOINT.name)
+        assertThat(expectedException).hasMessageThat()
+            .contains(UriConstructionException.Type.INVALID_ENDPOINT.name)
     }
 
     @Test
     fun `generateSignInUri should always contain reserved scopes even if no scope is provided`() {
         val signInUri = Core.generateSignInUri(
-            authorizationEndpoint = testAuthorizationEndpoint,
-            clientId = testClientId,
-            redirectUri = testRedirectUri,
-            codeChallenge = testCodeChallenge,
-            state = testState,
-            scopes = null,
-            resources = testResources,
-            prompt = testPromptValue,
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                scopes = null,
+                resources = testResources,
+                prompt = testPromptValue,
+            ),
         )
 
         signInUri.toHttpUrl().apply {
@@ -149,14 +166,16 @@ class CoreTest {
     @Test
     fun `generateSignInUri should always contain reserved scopes if only the reserved OFFLINE_ACCESS is provided`() {
         val signInUri = Core.generateSignInUri(
-            authorizationEndpoint = testAuthorizationEndpoint,
-            clientId = testClientId,
-            redirectUri = testRedirectUri,
-            codeChallenge = testCodeChallenge,
-            state = testState,
-            scopes = listOf(ReservedScope.OFFLINE_ACCESS),
-            resources = testResources,
-            prompt = testPromptValue,
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                scopes = listOf(ReservedScope.OFFLINE_ACCESS),
+                resources = testResources,
+                prompt = testPromptValue,
+            ),
         )
 
         signInUri.toHttpUrl().apply {
@@ -172,14 +191,16 @@ class CoreTest {
     fun `generateSignInUri should always contain reserved scopes if only the reserved OPENID is provided`() {
 
         val signInUri = Core.generateSignInUri(
-            authorizationEndpoint = testAuthorizationEndpoint,
-            clientId = testClientId,
-            redirectUri = testRedirectUri,
-            codeChallenge = testCodeChallenge,
-            state = testState,
-            scopes = listOf(ReservedScope.OPENID),
-            resources = testResources,
-            prompt = testPromptValue,
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                scopes = listOf(ReservedScope.OPENID),
+                resources = testResources,
+                prompt = testPromptValue,
+            ),
         )
 
         signInUri.toHttpUrl().apply {
@@ -195,14 +216,16 @@ class CoreTest {
     fun `generateSignInUri should always contain reserved scopes if only the reserved PROFILE is provided`() {
 
         val signInUri = Core.generateSignInUri(
-            authorizationEndpoint = testAuthorizationEndpoint,
-            clientId = testClientId,
-            redirectUri = testRedirectUri,
-            codeChallenge = testCodeChallenge,
-            state = testState,
-            scopes = listOf(UserScope.PROFILE),
-            resources = testResources,
-            prompt = testPromptValue,
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                scopes = listOf(UserScope.PROFILE),
+                resources = testResources,
+                prompt = testPromptValue,
+            ),
         )
 
         signInUri.toHttpUrl().apply {
@@ -227,7 +250,9 @@ class CoreTest {
         assertThat(constructedUri.host).isEqualTo(endSessionEndpoint.toHttpUrl().host)
         assertThat(constructedUri.pathSegments).isEqualTo(endSessionEndpoint.toHttpUrl().pathSegments)
         assertThat(constructedUri.queryParameter(QueryKey.CLIENT_ID)).isEqualTo(clientId)
-        assertThat(constructedUri.queryParameter(QueryKey.POST_LOGOUT_REDIRECT_URI)).isEqualTo(postLogoutRedirectUri)
+        assertThat(constructedUri.queryParameter(QueryKey.POST_LOGOUT_REDIRECT_URI)).isEqualTo(
+            postLogoutRedirectUri
+        )
     }
 
     @Test
@@ -254,6 +279,7 @@ class CoreTest {
             Core.generateSignOutUri(endSessionEndpoint, clientId)
         }
 
-        assertThat(expectedException).hasMessageThat().contains(UriConstructionException.Type.INVALID_ENDPOINT.name)
+        assertThat(expectedException).hasMessageThat()
+            .contains(UriConstructionException.Type.INVALID_ENDPOINT.name)
     }
 }
