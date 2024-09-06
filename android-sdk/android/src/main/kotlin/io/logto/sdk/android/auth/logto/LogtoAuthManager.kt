@@ -22,6 +22,6 @@ internal object LogtoAuthManager {
     }
 
     fun isLogtoAuthResult(uri: Uri) = logtoAuthSession?.let {
-        uri.toString().startsWith(it.redirectUri)
+        uri.toString().startsWith(it.signInOptions.redirectUri)
     } ?: false
 }
