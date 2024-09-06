@@ -19,4 +19,8 @@ object QueryKey {
     const val STATE = "state"
     const val TOKEN = "token"
     const val ORGANIZATION_ID = "organization_id"
+    const val LOGIN_HINT = "login_hint"
+    const val FIRST_SCREEN = "first_screen"
+    const val IDENTIFIER = "identifier"
+    const val DIRECT_SIGN_IN = "direct_sign_in"
 }

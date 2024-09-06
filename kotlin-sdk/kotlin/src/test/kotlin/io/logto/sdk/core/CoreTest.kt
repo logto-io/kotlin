@@ -189,7 +189,6 @@ class CoreTest {
 
     @Test
     fun `generateSignInUri should always contain reserved scopes if only the reserved OPENID is provided`() {
-
         val signInUri = Core.generateSignInUri(
             GenerateSignInUriOptions(
                 authorizationEndpoint = testAuthorizationEndpoint,
@@ -214,7 +213,6 @@ class CoreTest {
 
     @Test
     fun `generateSignInUri should always contain reserved scopes if only the reserved PROFILE is provided`() {
-
         val signInUri = Core.generateSignInUri(
             GenerateSignInUriOptions(
                 authorizationEndpoint = testAuthorizationEndpoint,
@@ -238,12 +236,116 @@ class CoreTest {
     }
 
     @Test
+    fun `generateSignInUri should not contain reserved scopes if includeReserved options is false`() {
+        val signInUri = Core.generateSignInUri(
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                scopes = listOf(UserScope.CUSTOM_DATA),
+                includeReservedScopes = false,
+            ),
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(queryParameter(QueryKey.SCOPE)).isEqualTo(UserScope.CUSTOM_DATA)
+        }
+    }
+
+    @Test
+    fun `generateSignInUri should contain login_hint if provided`() {
+        val loginHint = "abc@logto.io"
+
+        val signInUri = Core.generateSignInUri(
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                loginHint = loginHint,
+            ),
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(queryParameter(QueryKey.LOGIN_HINT)).isEqualTo(loginHint)
+        }
+    }
+
+    @Test
+    fun `generateSignInUri should contain first_screen if provided`() {
+        val firstScreen = FirstScreen.SIGN_IN
+
+        val signInUri = Core.generateSignInUri(
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                firstScreen = firstScreen,
+            )
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(queryParameter(QueryKey.FIRST_SCREEN)).contains(firstScreen)
+        }
+    }
+
+    @Test
+    fun `generateSignInUri should contain identifier if provided`() {
+        val identifiers = listOf(Identifier.EMAIL, Identifier.PHONE);
+        val signInUri = Core.generateSignInUri(
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                identifiers = identifiers,
+            )
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(queryParameterValues(QueryKey.IDENTIFIER)).contains(
+                identifiers.joinToString(
+                    " "
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `generateSignInUri should contain extra params if provided`() {
+        val extraParamKey = "tenant_id"
+        val extraParamValue = "abced"
+
+        val signInUri = Core.generateSignInUri(
+            GenerateSignInUriOptions(
+                authorizationEndpoint = testAuthorizationEndpoint,
+                clientId = testClientId,
+                redirectUri = testRedirectUri,
+                codeChallenge = testCodeChallenge,
+                state = testState,
+                extraParams = mapOf(extraParamKey to extraParamValue),
+            )
+        )
+
+        signInUri.toHttpUrl().apply {
+            assertThat(queryParameter(extraParamKey)).contains(extraParamValue)
+        }
+    }
+
+    @Test
     fun `generateSignOutUri should contain expected queries`() {
         val endSessionEndpoint = "https://logto.dev/oidc/endSession"
         val clientId = "clientId"
         val postLogoutRedirectUri = "https://myapp.com/logout_callback"
 
-        val resultUri = Core.generateSignOutUri(endSessionEndpoint, clientId, postLogoutRedirectUri)
+        val resultUri =
+            Core.generateSignOutUri(endSessionEndpoint, clientId, postLogoutRedirectUri)
 
         val constructedUri = resultUri.toHttpUrl()
         assertThat(constructedUri.scheme).isEqualTo(endSessionEndpoint.toHttpUrl().scheme)
@@ -267,7 +369,9 @@ class CoreTest {
         assertThat(constructedUri.host).isEqualTo(endSessionEndpoint.toHttpUrl().host)
         assertThat(constructedUri.pathSegments).isEqualTo(endSessionEndpoint.toHttpUrl().pathSegments)
         assertThat(constructedUri.queryParameter(QueryKey.CLIENT_ID)).isEqualTo(clientId)
-        assertThat(constructedUri.queryParameter(QueryKey.POST_LOGOUT_REDIRECT_URI)).isEqualTo(null)
+        assertThat(constructedUri.queryParameter(QueryKey.POST_LOGOUT_REDIRECT_URI)).isEqualTo(
+            null
+        )
     }
 
     @Test
@@ -283,3 +387,4 @@ class CoreTest {
             .contains(UriConstructionException.Type.INVALID_ENDPOINT.name)
     }
 }
+
