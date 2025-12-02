@@ -83,7 +83,7 @@ publishing {
     }
 
     repositories {
-        maven(url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+        maven(url = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/") {
             name = "sonatype"
             credentials {
                 username = (project.properties["ossrhUsername"] as String?)?: ""
