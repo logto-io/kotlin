@@ -14,11 +14,18 @@ Releases are automated via [release-please](https://github.com/googleapis/releas
    | `feat!:` or commit body containing `BREAKING CHANGE:` | major (**X+1**.0.0) |
    | `chore:` / `refactor:` / `docs:` / `test:` / `ci:` / `revert:` | no bump (still listed in changelog) |
 
-3. Merging the release PR triggers the publish job, which:
+3. Merging the release PR triggers the workflow again. release-please creates the git tag `vX.Y.Z` and a GitHub Release with auto-generated notes immediately, then sets `releases_created=true`.
+4. The publish job (gated on `releases_created`) runs next:
    - Builds and signs `io.logto.sdk:kotlin` and `io.logto.sdk:android` with in-memory PGP keys.
    - Uploads artifacts to the Sonatype Central Portal staging area.
    - Calls the Central Portal promote endpoint with `?publishing_type=automatic` so the deployment is auto-released without a manual click.
-4. release-please then creates the git tag `vX.Y.Z` and a GitHub Release with auto-generated notes.
+
+> **Recovery from partial failure.** Because the tag and GitHub Release are created before publish, a publish failure leaves a tag pointing at a version that is not yet on Maven Central. If this happens:
+>
+> - Investigate the failed step in the Actions log (most common: expired `OSSRH_PASSWORD`, GPG key issues).
+> - Re-run the failed `publish` job from the Actions UI. Sonatype's staging is transient, so re-uploading the same version is safe until the deployment is released.
+> - If artifacts are already on Maven Central but the workflow failed at a later step, the release is effectively complete — just verify on Maven Central and move on.
+> - As a last resort, delete the tag and GitHub Release, fix the underlying issue, and re-run the manual fallback below.
 
 ## Day-to-day maintainer workflow
 
