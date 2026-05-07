@@ -44,7 +44,19 @@ internal object LogtoAuthManager {
             }
     }
 
-    private fun Uri.normalizedAuthority(): String? = encodedAuthority?.lowercase()
+    private fun Uri.normalizedAuthority(): String? {
+        if (encodedAuthority == null) {
+            return null
+        }
+
+        host?.let { host ->
+            val userInfo = encodedUserInfo?.let { "$it@" }.orEmpty()
+            val port = if (port == -1) "" else ":$port"
+            return "$userInfo${host.lowercase()}$port"
+        }
+
+        return encodedAuthority
+    }
 
     private fun String.normalizePath(): String = normalizePercentEncodedUnreserved()
 

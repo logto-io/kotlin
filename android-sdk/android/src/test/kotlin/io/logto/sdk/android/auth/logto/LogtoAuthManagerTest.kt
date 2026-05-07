@@ -132,6 +132,23 @@ class LogtoAuthManagerTest {
     }
 
     @Test
+    fun `isLogtoAuthResult should keep user info case-sensitive when normalizing authority`() {
+        val redirectUri = "io.logto.android://User@IO.LOGTO.SAMPLE/callback"
+        val callbackUri = Uri.parse("io.logto.android://user@io.logto.sample/callback?state=state&code=code")
+
+        val logtoAuthSession = LogtoAuthSession(
+            mockk(),
+            mockk(),
+            mockk(),
+            SignInOptions(redirectUri = redirectUri),
+            mockk(),
+        )
+
+        LogtoAuthManager.handleAuthStart(logtoAuthSession)
+        assertThat(LogtoAuthManager.isLogtoAuthResult(callbackUri)).isFalse()
+    }
+
+    @Test
     fun `isLogtoAuthResult should return false if callback or redirect URI contains fragment`() {
         val redirectUri = "io.logto.android://io.logto.sample/callback"
         val callbackUriWithFragment = Uri.parse("$redirectUri?state=state&code=code#fragment")
