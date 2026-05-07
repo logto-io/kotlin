@@ -29,6 +29,18 @@ class CallbackUriUtilsTest {
     }
 
     @Test
+    fun `verifyAndParseCodeFromCallbackUri should decode query parameters`() {
+        val state = "test state"
+        val code = "test/code"
+        val redirectUri = "https://myapp.com/callback"
+        val callbackUri = "https://myapp.com/callback?state=test%20state&code=test%2Fcode"
+
+        val resultCode = CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+
+        assertThat(resultCode).isEqualTo(code)
+    }
+
+    @Test
     fun `verifyAndParseCodeFromCallbackUri should throw with mismatched URI`() {
         val state = GenerateUtils.generateState()
         val code = "testCode"
@@ -42,6 +54,34 @@ class CallbackUriUtilsTest {
         assertThat(expectedException)
             .hasMessageThat()
             .contains(CallbackUriVerificationException.Type.URI_MISMATCHED.name)
+    }
+
+    @Test
+    fun `verifyAndParseCodeFromCallbackUri should throw when callback path is only a prefix match`() {
+        val state = GenerateUtils.generateState()
+        val code = "testCode"
+        val redirectUri = "https://myapp.com/callback"
+        val callbackUri = "https://myapp.com/callback2?state=$state&code=$code"
+
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+        }
+
+        assertThat(expectedException)
+            .hasMessageThat()
+            .contains(CallbackUriVerificationException.Type.URI_MISMATCHED.name)
+    }
+
+    @Test
+    fun `verifyAndParseCodeFromCallbackUri should match redirect URI query parameters`() {
+        val state = GenerateUtils.generateState()
+        val code = "testCode"
+        val redirectUri = "https://myapp.com/callback?connector_id=foo"
+        val callbackUri = "https://myapp.com/callback?connector_id=foo&state=$state&code=$code"
+
+        val resultCode = CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+
+        assertThat(resultCode).isEqualTo(code)
     }
 
     @Test
@@ -87,9 +127,11 @@ class CallbackUriUtilsTest {
         val state = GenerateUtils.generateState()
         val code = "dummyCode"
         val errorDesc = "you hava an error description"
+        val encodedErrorDesc = "you%20hava%20an%20error%20description"
         val error = "error"
         val redirectUri = "https://myapp.com/callback"
-        val callbackUri = "https://myapp.com/callback?error_description=$errorDesc&error=$error&state=$state&code=$code"
+        val callbackUri = "https://myapp.com/callback" +
+            "?error_description=$encodedErrorDesc&error=$error&state=$state&code=$code"
 
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)

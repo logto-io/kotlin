@@ -21,7 +21,20 @@ internal object LogtoAuthManager {
         logtoAuthSession = null
     }
 
-    fun isLogtoAuthResult(uri: Uri) = logtoAuthSession?.let {
-        uri.toString().startsWith(it.signInOptions.redirectUri)
+    fun isLogtoAuthResult(uri: Uri) = logtoAuthSession?.let { authSession ->
+        uri.matchesRedirectUri(Uri.parse(authSession.signInOptions.redirectUri))
     } ?: false
+
+    private fun Uri.matchesRedirectUri(redirectUri: Uri): Boolean {
+        if (!isHierarchical || !redirectUri.isHierarchical) {
+            return false
+        }
+
+        return scheme == redirectUri.scheme &&
+            encodedAuthority == redirectUri.encodedAuthority &&
+            encodedPath == redirectUri.encodedPath &&
+            redirectUri.queryParameterNames.all { queryKey ->
+                getQueryParameters(queryKey) == redirectUri.getQueryParameters(queryKey)
+            }
+    }
 }

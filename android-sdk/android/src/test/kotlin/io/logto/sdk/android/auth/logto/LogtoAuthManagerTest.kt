@@ -59,16 +59,54 @@ class LogtoAuthManagerTest {
 
     @Test
     fun `isLogtoAuthResult should return expected result with valid or invalid callback URI`() {
-        val redirectUri = "localhost:3001/callback"
-        val matchedCallbackUri = Uri.parse(redirectUri)
-        val mismatchedCallbackUri = Uri.parse("logto.dev/callback")
+        val redirectUri = "io.logto.android://io.logto.sample/callback"
+        val matchedCallbackUri = Uri.parse("$redirectUri?state=state&code=code")
+        val mismatchedCallbackUri = Uri.parse("io.logto.android://io.logto.sample/another-callback")
 
         val logtoAuthSession = LogtoAuthSession(
             mockk(),
             mockk(),
             mockk(),
             SignInOptions(redirectUri = redirectUri),
-            mockk()
+            mockk(),
+        )
+
+        LogtoAuthManager.handleAuthStart(logtoAuthSession)
+        assertThat(LogtoAuthManager.isLogtoAuthResult(matchedCallbackUri)).isTrue()
+        assertThat(LogtoAuthManager.isLogtoAuthResult(mismatchedCallbackUri)).isFalse()
+    }
+
+    @Test
+    fun `isLogtoAuthResult should return false when callback path is only a prefix match`() {
+        val redirectUri = "io.logto.android://io.logto.sample/callback"
+        val callbackUri = Uri.parse("io.logto.android://io.logto.sample/callback2?state=state&code=code")
+
+        val logtoAuthSession = LogtoAuthSession(
+            mockk(),
+            mockk(),
+            mockk(),
+            SignInOptions(redirectUri = redirectUri),
+            mockk(),
+        )
+
+        LogtoAuthManager.handleAuthStart(logtoAuthSession)
+        assertThat(LogtoAuthManager.isLogtoAuthResult(callbackUri)).isFalse()
+    }
+
+    @Test
+    fun `isLogtoAuthResult should match redirect URI query parameters`() {
+        val redirectUri = "io.logto.android://io.logto.sample/callback?connector_id=foo"
+        val matchedCallbackUri = Uri.parse("$redirectUri&state=state&code=code")
+        val mismatchedCallbackUri = Uri.parse(
+            "io.logto.android://io.logto.sample/callback?connector_id=bar&state=state&code=code",
+        )
+
+        val logtoAuthSession = LogtoAuthSession(
+            mockk(),
+            mockk(),
+            mockk(),
+            SignInOptions(redirectUri = redirectUri),
+            mockk(),
         )
 
         LogtoAuthManager.handleAuthStart(logtoAuthSession)
