@@ -11,16 +11,15 @@ fi
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 
-# Snapshot files with unstaged work and reset them to their staged version, so
-# detekt --auto-correct only ever touches what would actually be committed.
-unstaged_files=$(git diff --name-only)
+# Files with unstaged content on disk; skip deleted/renamed paths so the cp loops below cannot fail.
+unstaged_files=$(git diff --name-only --diff-filter=ACM)
 backup_dir=
 
 restore_unstaged() {
     [ -n "$backup_dir" ] || return 0
     if [ -n "$unstaged_files" ]; then
         while IFS= read -r f; do
-            [ -f "$backup_dir/$f" ] && cp "$backup_dir/$f" "$f"
+            [ -f "$backup_dir/$f" ] && cp -- "$backup_dir/$f" "$f"
         done <<<"$unstaged_files"
     fi
     rm -rf "$backup_dir"
@@ -30,19 +29,34 @@ trap restore_unstaged EXIT
 if [ -n "$unstaged_files" ]; then
     backup_dir=$(mktemp -d)
     while IFS= read -r f; do
-        mkdir -p "$backup_dir/$(dirname "$f")"
-        cp "$f" "$backup_dir/$f"
+        if [ -f "$f" ]; then
+            mkdir -p "$backup_dir/$(dirname "$f")"
+            cp -- "$f" "$backup_dir/$f"
+        fi
     done <<<"$unstaged_files"
     while IFS= read -r f; do
-        git checkout-index -f -- "$f"
+        [ -f "$f" ] && git checkout-index -f -- "$f"
     done <<<"$unstaged_files"
 fi
 
+# detekt --auto-correct exits non-zero whenever issues were found (even after fixing them),
+# so a non-zero status here is expected. Real failures surface in the verify step below.
 echo "[pre-commit] Running detekt with auto-correct..."
-./gradlew checkCodeStyle -PdetektAutoCorrect=true --console=plain || true
+auto_status=0
+./gradlew checkCodeStyle -PdetektAutoCorrect=true --console=plain || auto_status=$?
+[ $auto_status -ne 0 ] && echo "[pre-commit] detekt --auto-correct finished with status $auto_status."
 
+# Re-stage originally-staged files so their auto-correct fixes are committed.
 printf '%s\n' "$staged_kt" | while IFS= read -r f; do
-    [ -f "$f" ] && git add "$f"
+    [ -f "$f" ] && git add -- "$f"
+done
+
+# Discard auto-correct edits to clean files (not staged, not previously unstaged) — they
+# are unrelated to this commit and should not appear as surprise unstaged changes afterwards.
+git diff --name-only -- '*.kt' '*.kts' | while IFS= read -r f; do
+    if printf '%s\n' "$unstaged_files" | grep -qFx -- "$f"; then continue; fi
+    if printf '%s\n' "$staged_kt" | grep -qFx -- "$f"; then continue; fi
+    git checkout -- "$f"
 done
 
 echo "[pre-commit] Verifying detekt is clean..."
