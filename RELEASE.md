@@ -46,18 +46,18 @@ Configured under **Settings → Secrets and variables → Actions**:
 | `OSSRH_GPG_PRIVATE_KEY` | `gpg --export-secret-keys --armor <KEY_ID>` output, including `-----BEGIN/END PGP PRIVATE KEY BLOCK-----` markers |
 | `OSSRH_GPG_PASSPHRASE` | Passphrase for the GPG key |
 
-The current signing key is the Silverhand role key `r.dev@silverhand.io` (fingerprint `4376E5A16B07517C`). Public key is published on `keys.openpgp.org`.
+The signing key is shared within the team — ask the current maintainer for the key ID and ensure its public key is published on `keys.openpgp.org` (or another major keyserver) so Maven Central can verify signatures.
 
 When the GPG key approaches expiration, extend it instead of generating a new one (keeps the fingerprint and Maven Central trust intact):
 
 ```bash
-gpg --edit-key 4376E5A16B07517C
+gpg --edit-key <KEY_ID>
 # > expire   (extend primary)
 # > key 1
 # > expire   (extend each subkey)
 # > save
-gpg --keyserver keys.openpgp.org --send-keys 4376E5A16B07517C
-gpg --export-secret-keys --armor 4376E5A16B07517C  # update OSSRH_GPG_PRIVATE_KEY secret
+gpg --keyserver keys.openpgp.org --send-keys <KEY_ID>
+gpg --export-secret-keys --armor <KEY_ID>  # update OSSRH_GPG_PRIVATE_KEY secret
 ```
 
 ## Manual fallback
