@@ -4,7 +4,7 @@ Releases are automated via [release-please](https://github.com/googleapis/releas
 
 ## How it works
 
-1. Every PR to `master` uses [Conventional Commits](https://www.conventionalcommits.org/) (already enforced by `commitlint`).
+1. Every PR to `master` uses [Conventional Commits](https://www.conventionalcommits.org/) (the `commitlint` workflow enforces this on contributor PRs; release-please's own release PR uses a fixed, conformant title pattern instead).
 2. release-please scans commits since the last release tag and maintains an open **release PR** titled `release: X.Y.Z`. The next version is computed from commit types:
 
    | Commit prefix | Bump |
