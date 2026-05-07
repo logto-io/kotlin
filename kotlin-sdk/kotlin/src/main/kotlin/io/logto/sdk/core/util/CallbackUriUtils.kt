@@ -7,6 +7,9 @@ import java.net.URISyntaxException
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
+private const val PERCENT_ENCODED_CHARACTER_LENGTH = 3
+private const val HEX_RADIX = 16
+
 object CallbackUriUtils {
     /**
      * Verify and parse code from callback URI
@@ -72,9 +75,9 @@ object CallbackUriUtils {
         }
 
         return ParsedUri(
-            scheme = parsedUri.scheme,
-            authority = parsedUri.rawAuthority,
-            path = parsedUri.rawPath.orEmpty(),
+            scheme = parsedUri.scheme.lowercase(),
+            authority = normalizeAuthority(parsedUri),
+            path = normalizePath(parsedUri.rawPath.orEmpty()),
             queryParameters = parseQueryParameters(parsedUri.rawQuery),
         )
     }
@@ -88,10 +91,78 @@ object CallbackUriUtils {
             val separatorIndex = parameter.indexOf("=")
             val rawName = if (separatorIndex == -1) parameter else parameter.substring(0, separatorIndex)
             val rawValue = if (separatorIndex == -1) "" else parameter.substring(separatorIndex + 1)
+            val name = decodeQueryComponent(rawName)
 
-            queryParameters.putIfAbsent(decodeQueryComponent(rawName), decodeQueryComponent(rawValue))
+            if (queryParameters.containsKey(name)) {
+                throw CallbackUriVerificationException(
+                    CallbackUriVerificationException.Type.INVALID_URI_FORMAT,
+                )
+            }
+
+            queryParameters[name] = decodeQueryComponent(rawValue)
             queryParameters
         }
+    }
+
+    private fun normalizeAuthority(uri: URI): String? {
+        if (uri.rawAuthority == null) {
+            return null
+        }
+
+        uri.host?.let { host ->
+            val userInfo = uri.rawUserInfo?.let { "$it@" }.orEmpty()
+            val port = if (uri.port == -1) "" else ":${uri.port}"
+            return "$userInfo${host.lowercase()}$port"
+        }
+
+        return uri.rawAuthority.lowercase()
+    }
+
+    private fun normalizePath(path: String): String = normalizePercentEncodedUnreserved(path)
+
+    private fun normalizePercentEncodedUnreserved(value: String): String {
+        val normalizedValue = StringBuilder()
+        var index = 0
+
+        while (index < value.length) {
+            val normalizedCharacter = value.normalizedPercentEncodedCharacterAt(index)
+            if (normalizedCharacter != null) {
+                normalizedValue.append(normalizedCharacter)
+                index += PERCENT_ENCODED_CHARACTER_LENGTH
+                continue
+            }
+
+            normalizedValue.append(value[index])
+            index += 1
+        }
+
+        return normalizedValue.toString()
+    }
+
+    private fun String.normalizedPercentEncodedCharacterAt(index: Int): String? {
+        if (this[index] != '%' || index + PERCENT_ENCODED_CHARACTER_LENGTH > length) {
+            return null
+        }
+
+        val hex = substring(index + 1, index + PERCENT_ENCODED_CHARACTER_LENGTH)
+        val char = hex.toIntOrNull(HEX_RADIX)?.toChar() ?: return null
+        return if (char.isUnreservedUriCharacter()) {
+            char.toString()
+        } else {
+            "%${hex.uppercase()}"
+        }
+    }
+
+    private fun Char.isUnreservedUriCharacter(): Boolean = when (this) {
+        in 'A'..'Z',
+        in 'a'..'z',
+        in '0'..'9',
+        '-',
+        '.',
+        '_',
+        '~',
+        -> true
+        else -> false
     }
 
     private fun decodeQueryComponent(value: String): String = try {

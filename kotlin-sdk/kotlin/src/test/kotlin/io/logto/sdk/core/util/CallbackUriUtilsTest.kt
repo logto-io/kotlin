@@ -109,6 +109,18 @@ class CallbackUriUtilsTest {
     }
 
     @Test
+    fun `verifyAndParseCodeFromCallbackUri should normalize URI scheme host and path`() {
+        val state = GenerateUtils.generateState()
+        val code = "testCode"
+        val redirectUri = "https://MYAPP.com/callback%7E"
+        val callbackUri = "HTTPS://myapp.com/callback~?state=$state&code=$code"
+
+        val resultCode = CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+
+        assertThat(resultCode).isEqualTo(code)
+    }
+
+    @Test
     fun `verifyAndParseCodeFromCallbackUriShould throw with empty URI`() {
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri("", "", "dummyState")
@@ -123,6 +135,22 @@ class CallbackUriUtilsTest {
     fun `verifyAndParseCodeFromCallbackUri should throw with invalid URI format`() {
         val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri("invalidUri", "invalidUri", "dummyState")
+        }
+
+        assertThat(expectedException)
+            .hasMessageThat()
+            .contains(CallbackUriVerificationException.Type.INVALID_URI_FORMAT.name)
+    }
+
+    @Test
+    fun `verifyAndParseCodeFromCallbackUri should throw with duplicate query parameters`() {
+        val state = GenerateUtils.generateState()
+        val code = "testCode"
+        val redirectUri = "https://myapp.com/callback"
+        val callbackUri = "https://myapp.com/callback?state=$state&state=anotherState&code=$code"
+
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
         }
 
         assertThat(expectedException)
