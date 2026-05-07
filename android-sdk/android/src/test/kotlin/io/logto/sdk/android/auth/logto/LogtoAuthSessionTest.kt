@@ -44,7 +44,7 @@ class LogtoAuthSessionTest {
         "appId",
     )
 
-    private val dummyRedirectUri = "localhost:3001/callback"
+    private val dummyRedirectUri = "io.logto.android:/callback"
 
     private val dummySignInOptions = SignInOptions(
         redirectUri = dummyRedirectUri
@@ -94,7 +94,7 @@ class LogtoAuthSessionTest {
 
         mockkObject(LogtoAuthManager)
         val mockLogtoConfig: LogtoConfig = mockk()
-        val invalidRedirectUri = ""
+        val invalidRedirectUri = "localhost:3001/callback"
         val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
         every { mockCompletion.onComplete(any(), any()) } just Runs
 

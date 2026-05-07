@@ -65,7 +65,7 @@ object CallbackUriUtils {
             )
         }
 
-        if (parsedUri.scheme == null || parsedUri.rawSchemeSpecificPart?.startsWith("//") != true) {
+        if (parsedUri.scheme == null || parsedUri.isOpaque) {
             throw CallbackUriVerificationException(
                 CallbackUriVerificationException.Type.INVALID_URI_FORMAT,
             )
@@ -74,7 +74,7 @@ object CallbackUriUtils {
         return ParsedUri(
             scheme = parsedUri.scheme,
             authority = parsedUri.rawAuthority,
-            path = parsedUri.rawPath,
+            path = parsedUri.rawPath.orEmpty(),
             queryParameters = parseQueryParameters(parsedUri.rawQuery),
         )
     }

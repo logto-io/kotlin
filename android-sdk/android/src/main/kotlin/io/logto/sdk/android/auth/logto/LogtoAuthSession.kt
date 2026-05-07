@@ -25,7 +25,8 @@ class LogtoAuthSession(
     private val state = GenerateUtils.generateState()
 
     fun start() {
-        if (Uri.parse(signInOptions.redirectUri) == Uri.EMPTY) {
+        val redirectUri = Uri.parse(signInOptions.redirectUri)
+        if (redirectUri.scheme == null || !redirectUri.isHierarchical) {
             completion.onComplete(LogtoException(LogtoException.Type.INVALID_REDIRECT_URI), null)
             return
         }

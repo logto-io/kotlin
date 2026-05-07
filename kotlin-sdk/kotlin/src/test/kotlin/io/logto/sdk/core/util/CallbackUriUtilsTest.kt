@@ -29,6 +29,30 @@ class CallbackUriUtilsTest {
     }
 
     @Test
+    fun `verifyAndParseCodeFromCallbackUri should get expected code from custom scheme URI without authority`() {
+        val state = GenerateUtils.generateState()
+        val code = "testCode"
+        val redirectUri = "io.logto.android:/callback"
+        val callbackUri = "io.logto.android:/callback?state=$state&code=$code"
+
+        val resultCode = CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+
+        assertThat(resultCode).isEqualTo(code)
+    }
+
+    @Test
+    fun `verifyAndParseCodeFromCallbackUri should get expected code from custom scheme URI without path`() {
+        val state = GenerateUtils.generateState()
+        val code = "testCode"
+        val redirectUri = "io.logto.android://io.logto.sample"
+        val callbackUri = "io.logto.android://io.logto.sample?state=$state&code=$code"
+
+        val resultCode = CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+
+        assertThat(resultCode).isEqualTo(code)
+    }
+
+    @Test
     fun `verifyAndParseCodeFromCallbackUri should decode query parameters`() {
         val state = "test state"
         val code = "test/code"
@@ -107,6 +131,21 @@ class CallbackUriUtilsTest {
     }
 
     @Test
+    fun `verifyAndParseCodeFromCallbackUri should throw with opaque URI`() {
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(
+                "io.logto.android:callback",
+                "io.logto.android:callback",
+                "dummyState",
+            )
+        }
+
+        assertThat(expectedException)
+            .hasMessageThat()
+            .contains(CallbackUriVerificationException.Type.INVALID_URI_FORMAT.name)
+    }
+
+    @Test
     fun `verifyAndParseCodeFromCallbackUri should throw with error parameter`() {
         val state = GenerateUtils.generateState()
         val code = "dummyCode"
@@ -126,8 +165,8 @@ class CallbackUriUtilsTest {
     fun `verifyAndParseCodeFromCallbackUri should throw with error desc with both error and errorDesc parameter`() {
         val state = GenerateUtils.generateState()
         val code = "dummyCode"
-        val errorDesc = "you hava an error description"
-        val encodedErrorDesc = "you%20hava%20an%20error%20description"
+        val errorDesc = "you have an error description"
+        val encodedErrorDesc = "you%20have%20an%20error%20description"
         val error = "error"
         val redirectUri = "https://myapp.com/callback"
         val callbackUri = "https://myapp.com/callback" +
