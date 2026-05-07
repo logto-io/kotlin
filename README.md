@@ -34,6 +34,14 @@ implementation("io.logto.sdk:android:<version>")
 | Kotlin SDK | Kotlin SDK is used to integrate your JVM client with Logto service |
 | Android SDK | Android SDK |
 
+## Contributing
+
+After cloning the repository, install the git hooks once so detekt runs `--auto-correct` on staged Kotlin files before each commit:
+
+```bash
+./gradlew installGitHooks
+```
+
 ## Releasing
 See [RELEASE.md](./RELEASE.md) for the automated release flow, required secrets, and manual fallback.
 

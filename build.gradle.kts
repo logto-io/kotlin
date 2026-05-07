@@ -1,6 +1,23 @@
 createTasksForGithubActions()
 createTasksForSamples()
 
+tasks.register("installGitHooks") {
+    description = "Configures git to use .githooks/ for repository hooks"
+    group = "git hooks"
+    doLast {
+        if (!rootDir.resolve(".git").exists()) {
+            logger.warn("Skipping installGitHooks: not a git repository")
+            return@doLast
+        }
+        exec {
+            workingDir = rootDir
+            commandLine("git", "config", "core.hooksPath", ".githooks")
+        }
+        rootDir.resolve(".githooks").listFiles()?.forEach { it.setExecutable(true) }
+        logger.lifecycle("Git hooks installed: core.hooksPath -> .githooks")
+    }
+}
+
 fun createTasksForGithubActions() {
     tasks.register("clean") {
         dependsOn(gradle.includedBuild("kotlin-sdk").task(":kotlin:clean"))

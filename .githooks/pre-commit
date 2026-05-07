@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -u
+
+staged_kt=$(git diff --cached --name-only --diff-filter=ACMR -- '*.kt' '*.kts' || true)
+[ -z "$staged_kt" ] && exit 0
+
+if ! printf '%s\n' "$staged_kt" | grep -qE '^(kotlin-sdk|android-sdk)/'; then
+    exit 0
+fi
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+echo "[pre-commit] Running detekt with auto-correct..."
+./gradlew :kotlin-sdk:kotlin:detekt :android-sdk:android:detekt \
+    -PdetektAutoCorrect=true --console=plain || true
+
+printf '%s\n' "$staged_kt" | while IFS= read -r f; do
+    [ -f "$f" ] && git add "$f"
+done
+
+echo "[pre-commit] Verifying detekt is clean..."
+./gradlew :kotlin-sdk:kotlin:detekt :android-sdk:android:detekt --console=plain
