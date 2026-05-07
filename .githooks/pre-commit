@@ -40,11 +40,17 @@ if [ -n "$unstaged_files" ]; then
 fi
 
 # detekt --auto-correct exits non-zero whenever issues were found (even after fixing them),
-# so a non-zero status here is expected. Real failures surface in the verify step below.
+# so a non-zero status here is expected. The verify step below decides whether to block.
 echo "[pre-commit] Running detekt with auto-correct..."
 auto_status=0
 ./gradlew checkCodeStyle -PdetektAutoCorrect=true --console=plain || auto_status=$?
-[ $auto_status -ne 0 ] && echo "[pre-commit] detekt --auto-correct finished with status $auto_status."
+
+# Fast path: auto_status == 0 means detekt found nothing, so no fixes happened and verify
+# would be redundant. Skip both the re-stage / revert and the second detekt run.
+if [ $auto_status -eq 0 ]; then
+    exit 0
+fi
+echo "[pre-commit] detekt --auto-correct finished with status $auto_status; reconciling working tree."
 
 # Re-stage originally-staged files so their auto-correct fixes are committed.
 printf '%s\n' "$staged_kt" | while IFS= read -r f; do

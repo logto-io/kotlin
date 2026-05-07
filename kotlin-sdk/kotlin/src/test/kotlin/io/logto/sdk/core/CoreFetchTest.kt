@@ -1,5 +1,3 @@
-@file:Suppress("MaxLineLength", "MaximumLineLength")
-
 package io.logto.sdk.core
 
 import com.google.common.truth.Truth.assertThat
@@ -25,6 +23,7 @@ class CoreFetchTest {
         private const val TEST_REVOCATION_ENDPOINT = "https://logto.dev/oidc/token/revocation"
         private const val TEST_JWKS_URI = "https://logto.dev/oidc/jwks"
         private const val TEST_ISSUER = "http://localhost:443/oidc"
+        @Suppress("MaxLineLength", "MaximumLineLength")
         private const val TEST_JWKS_JSON = """
             {
                 "keys": [

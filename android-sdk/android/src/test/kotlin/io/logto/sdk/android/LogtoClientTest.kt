@@ -1,5 +1,3 @@
-@file:Suppress("MaxLineLength", "MaximumLineLength")
-
 package io.logto.sdk.android
 
 import android.webkit.CookieManager
@@ -59,6 +57,7 @@ class LogtoClientTest {
         private const val TEST_ACCESS_TOKEN = "accessToken"
         private const val TEST_ID_TOKEN = "idToken"
         private const val TEST_EXPIRE_IN = 60L
+        @Suppress("MaxLineLength", "MaximumLineLength")
         private const val TEST_JWKS_JSON = """
             {
                 "keys": [
