@@ -37,7 +37,6 @@ dependencies {
 
     implementation(libs.okhttp)
     implementation(libs.gson)
-    implementation(libs.logbackClassic)
 
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.mockk)
