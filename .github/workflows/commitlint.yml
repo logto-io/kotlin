@@ -35,7 +35,7 @@ jobs:
           export default {
             extends: ['@commitlint/config-conventional'],
             rules: {
-              'type-enum': [2, 'always', ['feat', 'fix', 'refactor', 'test', 'ci', 'chore', 'revert', 'release']],
+              'type-enum': [2, 'always', ['feat', 'fix', 'refactor', 'test', 'ci', 'chore', 'docs', 'revert', 'release']],
               'scope-enum': [2, 'always', ['core', 'android-sdk', 'android-sample', 'deps']],
             },
           };
