@@ -25,8 +25,9 @@ fun createTasksForGithubActions() {
     }
 
     tasks.register("checkCodeStyle") {
-        dependsOn(gradle.includedBuild("kotlin-sdk").task(":kotlin:detektMain"))
-        dependsOn(gradle.includedBuild("android-sdk").task(":android:detektMain"))
+        dependsOn(gradle.includedBuild("kotlin-sdk").task(":kotlin:detekt"))
+        dependsOn(gradle.includedBuild("android-sdk").task(":android:detekt"))
+        dependsOn(gradle.includedBuild("android-sample-kotlin").task(":app:detekt"))
     }
 
     tasks.register("lintAndroid") {
