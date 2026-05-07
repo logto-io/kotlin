@@ -44,7 +44,7 @@ class LogtoAuthSessionTest {
         "appId",
     )
 
-    private val dummyRedirectUri = "localhost:3001/callback"
+    private val dummyRedirectUri = "io.logto.android:/callback"
 
     private val dummySignInOptions = SignInOptions(
         redirectUri = dummyRedirectUri
@@ -94,7 +94,47 @@ class LogtoAuthSessionTest {
 
         mockkObject(LogtoAuthManager)
         val mockLogtoConfig: LogtoConfig = mockk()
-        val invalidRedirectUri = ""
+        val invalidRedirectUri = "localhost:3001/callback"
+        val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
+        every { mockCompletion.onComplete(any(), any()) } just Runs
+
+        val logtoAuthSession = LogtoAuthSession(
+            mockActivity,
+            mockLogtoConfig,
+            dummyOidcConfigResponse,
+            SignInOptions(redirectUri = invalidRedirectUri),
+            mockCompletion,
+        )
+
+        logtoAuthSession.start()
+
+        verify {
+            mockCompletion.onComplete(
+                captureNullable(logtoExceptionCapture),
+                captureNullable(codeTokenResponseCapture),
+            )
+        }
+
+        assertThat(logtoExceptionCapture.last())
+            .hasMessageThat()
+            .isEqualTo(LogtoException.Type.INVALID_REDIRECT_URI.name)
+        assertThat(codeTokenResponseCapture.last()).isNull()
+
+        verify(exactly = 0) {
+            LogtoAuthManager.handleAuthStart(logtoAuthSession)
+            Core.generateSignInUri(any())
+            mockActivity.startActivity(any())
+        }
+    }
+
+    @Test
+    fun `should complete with exception with redirectUri fragment`() {
+        val logtoExceptionCapture = mutableListOf<LogtoException?>()
+        val codeTokenResponseCapture = mutableListOf<CodeTokenResponse?>()
+
+        mockkObject(LogtoAuthManager)
+        val mockLogtoConfig: LogtoConfig = mockk()
+        val invalidRedirectUri = "$dummyRedirectUri#fragment"
         val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
         every { mockCompletion.onComplete(any(), any()) } just Runs
 
