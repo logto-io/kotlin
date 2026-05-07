@@ -23,7 +23,7 @@ class LogtoConfigTest {
         val logtoConfigWithOtherScope = LogtoConfig(
             endpoint = "endpoint",
             appId = "appId",
-            scopes = listOf("other_scope")
+            scopes = listOf("other_scope"),
         )
 
         assertThat(logtoConfigWithOtherScope.scopes).apply {
@@ -39,7 +39,7 @@ class LogtoConfigTest {
         val logtoConfig = LogtoConfig(
             endpoint = "endpoint",
             appId = "appId",
-            scopes = listOf(UserScope.ORGANIZATIONS)
+            scopes = listOf(UserScope.ORGANIZATIONS),
         )
 
         assertThat(logtoConfig.resources).contains(ReservedResource.ORGANIZATION)

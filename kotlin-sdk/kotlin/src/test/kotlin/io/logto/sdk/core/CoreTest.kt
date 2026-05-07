@@ -1,7 +1,15 @@
 package io.logto.sdk.core
 
 import com.google.common.truth.Truth.assertThat
-import io.logto.sdk.core.constant.*
+import io.logto.sdk.core.constant.CodeChallengeMethod
+import io.logto.sdk.core.constant.DirectSignInMethod
+import io.logto.sdk.core.constant.FirstScreen
+import io.logto.sdk.core.constant.Identifier
+import io.logto.sdk.core.constant.PromptValue
+import io.logto.sdk.core.constant.QueryKey
+import io.logto.sdk.core.constant.ReservedScope
+import io.logto.sdk.core.constant.ResponseType
+import io.logto.sdk.core.constant.UserScope
 import io.logto.sdk.core.exception.UriConstructionException
 import io.logto.sdk.core.type.DirectSignInOptions
 import io.logto.sdk.core.type.GenerateSignInUriOptions
@@ -70,7 +78,7 @@ class CoreTest {
             ReservedScope.OPENID,
             ReservedScope.OFFLINE_ACCESS,
             UserScope.PROFILE,
-            extraScope
+            extraScope,
         )
 
         val signInUri = Core.generateSignInUri(
@@ -287,7 +295,7 @@ class CoreTest {
                 codeChallenge = testCodeChallenge,
                 state = testState,
                 firstScreen = firstScreen,
-            )
+            ),
         )
 
         signInUri.toHttpUrl().apply {
@@ -297,7 +305,7 @@ class CoreTest {
 
     @Test
     fun `generateSignInUri should contain identifier if provided`() {
-        val identifiers = listOf(Identifier.EMAIL, Identifier.PHONE);
+        val identifiers = listOf(Identifier.EMAIL, Identifier.PHONE)
         val signInUri = Core.generateSignInUri(
             GenerateSignInUriOptions(
                 authorizationEndpoint = testAuthorizationEndpoint,
@@ -306,14 +314,14 @@ class CoreTest {
                 codeChallenge = testCodeChallenge,
                 state = testState,
                 identifiers = identifiers,
-            )
+            ),
         )
 
         signInUri.toHttpUrl().apply {
             assertThat(queryParameterValues(QueryKey.IDENTIFIER)).contains(
                 identifiers.joinToString(
-                    " "
-                )
+                    " ",
+                ),
             )
         }
     }
@@ -322,7 +330,7 @@ class CoreTest {
     fun `generateSignInUri should contain direct_sign_in if provided`() {
         val directSignIn = DirectSignInOptions(
             method = DirectSignInMethod.SOCIAL,
-            target = "google"
+            target = "google",
         )
 
         val signInUri = Core.generateSignInUri(
@@ -333,11 +341,12 @@ class CoreTest {
                 codeChallenge = testCodeChallenge,
                 state = testState,
                 directSignIn = directSignIn,
-            )
+            ),
         )
 
         signInUri.toHttpUrl().apply {
-            assertThat(queryParameterValues(QueryKey.DIRECT_SIGN_IN)).contains("${directSignIn.method}:${directSignIn.target}")
+            assertThat(queryParameterValues(QueryKey.DIRECT_SIGN_IN))
+                .contains("${directSignIn.method}:${directSignIn.target}")
         }
     }
 
@@ -354,7 +363,7 @@ class CoreTest {
                 codeChallenge = testCodeChallenge,
                 state = testState,
                 extraParams = mapOf(extraParamKey to extraParamValue),
-            )
+            ),
         )
 
         signInUri.toHttpUrl().apply {
@@ -377,7 +386,7 @@ class CoreTest {
         assertThat(constructedUri.pathSegments).isEqualTo(endSessionEndpoint.toHttpUrl().pathSegments)
         assertThat(constructedUri.queryParameter(QueryKey.CLIENT_ID)).isEqualTo(clientId)
         assertThat(constructedUri.queryParameter(QueryKey.POST_LOGOUT_REDIRECT_URI)).isEqualTo(
-            postLogoutRedirectUri
+            postLogoutRedirectUri,
         )
     }
 
@@ -394,7 +403,7 @@ class CoreTest {
         assertThat(constructedUri.pathSegments).isEqualTo(endSessionEndpoint.toHttpUrl().pathSegments)
         assertThat(constructedUri.queryParameter(QueryKey.CLIENT_ID)).isEqualTo(clientId)
         assertThat(constructedUri.queryParameter(QueryKey.POST_LOGOUT_REDIRECT_URI)).isEqualTo(
-            null
+            null,
         )
     }
 
@@ -411,4 +420,3 @@ class CoreTest {
             .contains(UriConstructionException.Type.INVALID_ENDPOINT.name)
     }
 }
-

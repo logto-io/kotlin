@@ -1,7 +1,6 @@
 package io.logto.sdk.core.type
 
 import com.google.common.truth.Truth.assertThat
-import com.google.gson.JsonObject
 import org.junit.Test
 
 class IdTokenClaimsTest {

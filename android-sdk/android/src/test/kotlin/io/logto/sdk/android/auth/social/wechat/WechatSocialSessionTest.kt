@@ -45,7 +45,7 @@ class WechatSocialSessionTest {
             mockActivity,
             redirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         val mockWechatApi: IWXAPI = mockk()
@@ -83,7 +83,7 @@ class WechatSocialSessionTest {
             mockActivity,
             redirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         wechatSocialSession.start()
@@ -113,7 +113,7 @@ class WechatSocialSessionTest {
             mockActivity,
             redirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         wechatSocialSession.start()
@@ -144,7 +144,7 @@ class WechatSocialSessionTest {
             mockActivity,
             redirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         val responseResult = SendAuth.Resp().apply {
@@ -181,7 +181,7 @@ class WechatSocialSessionTest {
             mockActivity,
             redirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         val responseResult = SendAuth.Resp().apply {
@@ -210,7 +210,7 @@ class WechatSocialSessionTest {
     }
 
     @Test
-    fun `handleMissingInformationError should complete with insufficient information exception if no appId is provided`() {
+    fun `handleMissingInformationError should complete with insufficient information if no appId is provided`() {
         every { mockCompletion.onComplete(any(), any()) } just Runs
         val appId = ""
         val state = "state"
@@ -220,7 +220,7 @@ class WechatSocialSessionTest {
             mockActivity,
             redirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         wechatSocialSession.handleMissingInformationError()
@@ -239,7 +239,7 @@ class WechatSocialSessionTest {
     }
 
     @Test
-    fun `handleMissingInformationError should complete with insufficient information exception if no state is provided`() {
+    fun `handleMissingInformationError should complete with insufficient information if no state is provided`() {
         every { mockCompletion.onComplete(any(), any()) } just Runs
         val appId = "wx1234567890"
         val state = ""
@@ -249,7 +249,7 @@ class WechatSocialSessionTest {
             mockActivity,
             redirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         wechatSocialSession.handleMissingInformationError()

@@ -2,7 +2,6 @@ package io.logto.sdk.android.extension
 
 import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.android.type.LogtoConfig
-
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner

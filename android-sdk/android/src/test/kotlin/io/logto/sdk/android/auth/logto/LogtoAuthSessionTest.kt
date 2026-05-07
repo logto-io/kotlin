@@ -11,7 +11,6 @@ import io.logto.sdk.core.Core
 import io.logto.sdk.core.exception.CallbackUriVerificationException
 import io.logto.sdk.core.http.HttpCompletion
 import io.logto.sdk.core.type.CodeTokenResponse
-import io.logto.sdk.core.type.GenerateSignInUriOptions
 import io.logto.sdk.core.type.OidcConfigResponse
 import io.logto.sdk.core.util.CallbackUriUtils
 import io.mockk.Runs
@@ -47,7 +46,7 @@ class LogtoAuthSessionTest {
     private val dummyRedirectUri = "io.logto.android:/callback"
 
     private val dummySignInOptions = SignInOptions(
-        redirectUri = dummyRedirectUri
+        redirectUri = dummyRedirectUri,
     )
 
     @Before
@@ -73,7 +72,7 @@ class LogtoAuthSessionTest {
             dummyLogtoConfig,
             dummyOidcConfigResponse,
             dummySignInOptions,
-            mockCompletion
+            mockCompletion,
         )
 
         logtoAuthSession.start()
@@ -188,7 +187,7 @@ class LogtoAuthSessionTest {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri(
                 any(),
                 any(),
-                any()
+                any(),
             )
         } returns testCode
 
@@ -236,7 +235,7 @@ class LogtoAuthSessionTest {
         verify {
             mockCompletion.onComplete(
                 captureNullable(logtoExceptionCapture),
-                captureNullable(codeTokenResponseCapture)
+                captureNullable(codeTokenResponseCapture),
             )
         }
 
@@ -261,7 +260,7 @@ class LogtoAuthSessionTest {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri(
                 any(),
                 any(),
-                any()
+                any(),
             )
         } returns testCode
 

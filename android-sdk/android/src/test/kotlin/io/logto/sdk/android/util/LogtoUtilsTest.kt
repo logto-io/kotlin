@@ -1,7 +1,6 @@
 package io.logto.sdk.android.util
 
 import com.google.common.truth.Truth.assertThat
-
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic

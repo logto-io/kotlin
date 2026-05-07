@@ -28,7 +28,7 @@ class SocialSessionHelperTest {
             mockContext,
             httpRedirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
         assertThat(httpSocialSession).isInstanceOf(WebSocialSession::class.java)
 
@@ -37,7 +37,7 @@ class SocialSessionHelperTest {
             mockContext,
             httpsRedirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
         assertThat(httpsSocialSession).isInstanceOf(WebSocialSession::class.java)
 
@@ -46,7 +46,7 @@ class SocialSessionHelperTest {
             mockContext,
             alipayRedirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
         assertThat(alipaySocialSession).isInstanceOf(AlipaySocialSession::class.java)
 
@@ -55,7 +55,7 @@ class SocialSessionHelperTest {
             mockContext,
             redirectToWechat,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
         assertThat(wechatSocialSession).isInstanceOf(WechatSocialSession::class.java)
     }

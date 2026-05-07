@@ -1,3 +1,5 @@
+@file:Suppress("MaxLineLength", "MaximumLineLength")
+
 package io.logto.sdk.android
 
 import android.webkit.CookieManager
