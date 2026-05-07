@@ -26,7 +26,7 @@ internal object LogtoAuthManager {
     } ?: false
 
     private fun Uri.matchesRedirectUri(redirectUri: Uri): Boolean {
-        if (!isHierarchical || !redirectUri.isHierarchical) {
+        if (!isHierarchical || !redirectUri.isHierarchical || fragment != null || redirectUri.fragment != null) {
             return false
         }
 

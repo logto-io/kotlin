@@ -65,7 +65,7 @@ object CallbackUriUtils {
             )
         }
 
-        if (parsedUri.scheme == null || parsedUri.isOpaque) {
+        if (parsedUri.scheme == null || parsedUri.isOpaque || parsedUri.rawFragment != null) {
             throw CallbackUriVerificationException(
                 CallbackUriVerificationException.Type.INVALID_URI_FORMAT,
             )

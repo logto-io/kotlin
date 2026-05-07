@@ -115,6 +115,36 @@ class LogtoAuthManagerTest {
     }
 
     @Test
+    fun `isLogtoAuthResult should return false if callback or redirect URI contains fragment`() {
+        val redirectUri = "io.logto.android://io.logto.sample/callback"
+        val callbackUriWithFragment = Uri.parse("$redirectUri?state=state&code=code#fragment")
+
+        val logtoAuthSession = LogtoAuthSession(
+            mockk(),
+            mockk(),
+            mockk(),
+            SignInOptions(redirectUri = redirectUri),
+            mockk(),
+        )
+
+        LogtoAuthManager.handleAuthStart(logtoAuthSession)
+        assertThat(LogtoAuthManager.isLogtoAuthResult(callbackUriWithFragment)).isFalse()
+
+        val redirectUriWithFragment = "$redirectUri#fragment"
+        val fragmentLogtoAuthSession = LogtoAuthSession(
+            mockk(),
+            mockk(),
+            mockk(),
+            SignInOptions(redirectUri = redirectUriWithFragment),
+            mockk(),
+        )
+
+        LogtoAuthManager.handleAuthStart(fragmentLogtoAuthSession)
+        val callbackUri = Uri.parse("$redirectUri?state=state&code=code")
+        assertThat(LogtoAuthManager.isLogtoAuthResult(callbackUri)).isFalse()
+    }
+
+    @Test
     fun `isLogtoAuthResult should return false if no session is provided`() {
         assertThat(LogtoAuthManager.logtoAuthSession).isNull()
         assertThat(LogtoAuthManager.isLogtoAuthResult(mockk())).isFalse()

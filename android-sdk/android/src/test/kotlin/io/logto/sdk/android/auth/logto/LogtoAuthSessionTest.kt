@@ -128,6 +128,46 @@ class LogtoAuthSessionTest {
     }
 
     @Test
+    fun `should complete with exception with redirectUri fragment`() {
+        val logtoExceptionCapture = mutableListOf<LogtoException?>()
+        val codeTokenResponseCapture = mutableListOf<CodeTokenResponse?>()
+
+        mockkObject(LogtoAuthManager)
+        val mockLogtoConfig: LogtoConfig = mockk()
+        val invalidRedirectUri = "$dummyRedirectUri#fragment"
+        val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
+        every { mockCompletion.onComplete(any(), any()) } just Runs
+
+        val logtoAuthSession = LogtoAuthSession(
+            mockActivity,
+            mockLogtoConfig,
+            dummyOidcConfigResponse,
+            SignInOptions(redirectUri = invalidRedirectUri),
+            mockCompletion,
+        )
+
+        logtoAuthSession.start()
+
+        verify {
+            mockCompletion.onComplete(
+                captureNullable(logtoExceptionCapture),
+                captureNullable(codeTokenResponseCapture),
+            )
+        }
+
+        assertThat(logtoExceptionCapture.last())
+            .hasMessageThat()
+            .isEqualTo(LogtoException.Type.INVALID_REDIRECT_URI.name)
+        assertThat(codeTokenResponseCapture.last()).isNull()
+
+        verify(exactly = 0) {
+            LogtoAuthManager.handleAuthStart(logtoAuthSession)
+            Core.generateSignInUri(any())
+            mockActivity.startActivity(any())
+        }
+    }
+
+    @Test
     fun `handleCallbackUri should complete with expected results`() {
         val mockCompletion: Completion<LogtoException, CodeTokenResponse> = mockk()
         every { mockCompletion.onComplete(any(), any()) } just Runs

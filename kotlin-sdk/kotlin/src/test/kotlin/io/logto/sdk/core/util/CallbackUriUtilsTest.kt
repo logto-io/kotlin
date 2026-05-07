@@ -146,6 +146,38 @@ class CallbackUriUtilsTest {
     }
 
     @Test
+    fun `verifyAndParseCodeFromCallbackUri should throw if callback URI contains fragment`() {
+        val state = GenerateUtils.generateState()
+        val code = "testCode"
+        val redirectUri = "https://myapp.com/callback"
+        val callbackUri = "https://myapp.com/callback?state=$state&code=$code#fragment"
+
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+        }
+
+        assertThat(expectedException)
+            .hasMessageThat()
+            .contains(CallbackUriVerificationException.Type.INVALID_URI_FORMAT.name)
+    }
+
+    @Test
+    fun `verifyAndParseCodeFromCallbackUri should throw if redirect URI contains fragment`() {
+        val state = GenerateUtils.generateState()
+        val code = "testCode"
+        val redirectUri = "https://myapp.com/callback#fragment"
+        val callbackUri = "https://myapp.com/callback?state=$state&code=$code"
+
+        val expectedException = Assert.assertThrows(CallbackUriVerificationException::class.java) {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(callbackUri, redirectUri, state)
+        }
+
+        assertThat(expectedException)
+            .hasMessageThat()
+            .contains(CallbackUriVerificationException.Type.INVALID_URI_FORMAT.name)
+    }
+
+    @Test
     fun `verifyAndParseCodeFromCallbackUri should throw with error parameter`() {
         val state = GenerateUtils.generateState()
         val code = "dummyCode"
