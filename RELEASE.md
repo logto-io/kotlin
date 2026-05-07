@@ -58,11 +58,11 @@ gpg --export-secret-keys --armor 4376E5A16B07517C  # update OSSRH_GPG_PRIVATE_KE
 If the automated workflow ever fails and you need to ship urgently, the manual flow still works:
 
 1. Bump `logtoSdk` in `gradle/logto.versions.toml` locally.
-2. Configure `~/.gradle/gradle.properties` with `ossrhUsername`, `ossrhPassword`, plus signing properties (`signing.keyId`, `signing.password`, `signing.secretKeyRingFile`) — or `useInMemoryPgpKeys` via `-PsigningKey=...`.
-3. `./gradlew :kotlin-sdk:kotlin:publish :android-sdk:android:publish`
+2. Configure `~/.gradle/gradle.properties` with `ossrhUsername`, `ossrhPassword`, plus signing properties (`signing.keyId`, `signing.password`, `signing.secretKeyRingFile`) — or `useInMemoryPgpKeys` via `-PsigningKey=...` and `-PsigningPassword=...` (omit the password only for unencrypted keys).
+3. `./gradlew :kotlin-sdk:kotlin:publish :android-sdk:android:publish` (single invocation so both modules land in the same staging repository).
 4. Promote and release the deployment:
    ```bash
-   AUTH=$(printf '%s:%s' "$OSSRH_USERNAME" "$OSSRH_PASSWORD" | base64)
+   AUTH=$(printf '%s:%s' "$OSSRH_USERNAME" "$OSSRH_PASSWORD" | base64 | tr -d '\n')
    curl -X POST -H "Authorization: Basic $AUTH" \
      "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/io.logto.sdk?publishing_type=automatic"
    ```

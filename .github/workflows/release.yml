@@ -37,21 +37,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Publish kotlin-sdk to staging
+      - name: Publish artifacts to staging
         env:
           ORG_GRADLE_PROJECT_ossrhUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_ossrhPassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.OSSRH_GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
-        run: ./gradlew :kotlin-sdk:kotlin:publish
-
-      - name: Publish android-sdk to staging
-        env:
-          ORG_GRADLE_PROJECT_ossrhUsername: ${{ secrets.OSSRH_USERNAME }}
-          ORG_GRADLE_PROJECT_ossrhPassword: ${{ secrets.OSSRH_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.OSSRH_GPG_PRIVATE_KEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
-        run: ./gradlew :android-sdk:android:publish
+        run: ./gradlew :kotlin-sdk:kotlin:publish :android-sdk:android:publish
 
       - name: Promote staging to deployment with auto-release
         env:
