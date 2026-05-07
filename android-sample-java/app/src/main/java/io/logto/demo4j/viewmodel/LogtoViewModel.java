@@ -25,7 +25,8 @@ public class LogtoViewModel extends AndroidViewModel {
             null,
             null,
             true,
-            PromptValue.CONSENT
+            PromptValue.CONSENT,
+            true
     );
 
     private final LogtoClient logtoClient = new LogtoClient(logtoConfig, getApplication());
