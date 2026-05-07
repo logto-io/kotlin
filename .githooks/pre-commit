@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -u
+set -eu
 
 staged_kt=$(git diff --cached --name-only --diff-filter=ACMR -- '*.kt' '*.kts' || true)
 [ -z "$staged_kt" ] && exit 0
@@ -10,6 +10,33 @@ fi
 
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
+
+# Snapshot files with unstaged work and reset them to their staged version, so
+# detekt --auto-correct only ever touches what would actually be committed.
+unstaged_files=$(git diff --name-only)
+backup_dir=
+
+restore_unstaged() {
+    [ -n "$backup_dir" ] || return 0
+    if [ -n "$unstaged_files" ]; then
+        while IFS= read -r f; do
+            [ -f "$backup_dir/$f" ] && cp "$backup_dir/$f" "$f"
+        done <<<"$unstaged_files"
+    fi
+    rm -rf "$backup_dir"
+}
+trap restore_unstaged EXIT
+
+if [ -n "$unstaged_files" ]; then
+    backup_dir=$(mktemp -d)
+    while IFS= read -r f; do
+        mkdir -p "$backup_dir/$(dirname "$f")"
+        cp "$f" "$backup_dir/$f"
+    done <<<"$unstaged_files"
+    while IFS= read -r f; do
+        git checkout-index -f -- "$f"
+    done <<<"$unstaged_files"
+fi
 
 echo "[pre-commit] Running detekt with auto-correct..."
 ./gradlew checkCodeStyle -PdetektAutoCorrect=true --console=plain || true
