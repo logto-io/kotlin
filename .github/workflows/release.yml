@@ -10,16 +10,13 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.BOT_PAT }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
