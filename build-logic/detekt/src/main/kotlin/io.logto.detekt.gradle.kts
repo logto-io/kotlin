@@ -19,6 +19,7 @@ detekt {
 }
 
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    autoCorrect = providers.gradleProperty("detektAutoCorrect").orNull?.toBoolean() ?: false
     reports {
         xml.required.set(false)
         html.required.set(false)

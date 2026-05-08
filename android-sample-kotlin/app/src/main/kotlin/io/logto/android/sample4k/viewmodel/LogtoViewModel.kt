@@ -18,7 +18,7 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         appId = "94fKrpteyMI6BAy9K3pdX",
         scopes = null,
         resources = null,
-        usingPersistStorage = true
+        usingPersistStorage = true,
     )
 
     private val logtoClient = LogtoClient(logtoConfig, getApplication())
@@ -40,7 +40,7 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         get() = _logtoException
 
     fun signIn(context: Activity) {
-        logtoClient.signIn(context, "io.logto.android://io.logto.sample/callback",) {
+        logtoClient.signIn(context, "io.logto.android://io.logto.sample/callback") {
             it?.let { _logtoException.postValue(it) } ?: _authenticated.postValue(logtoClient.isAuthenticated)
         }
     }

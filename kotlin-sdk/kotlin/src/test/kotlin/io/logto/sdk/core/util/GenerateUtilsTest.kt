@@ -21,20 +21,20 @@ class GenerateUtilsTest {
     fun `generateCodeChallenge should generate correct string`() {
         assertThat(
             GenerateUtils.generateCodeChallenge(
-                "tO6MabnMFRAatnlMa1DdSstypzzkgalL1-k8Hr_GdfTj-VXGiEACqAkSkDhFuAuD8FOU8lMishaXjt29Xt2Oww"
-            )
+                "tO6MabnMFRAatnlMa1DdSstypzzkgalL1-k8Hr_GdfTj-VXGiEACqAkSkDhFuAuD8FOU8lMishaXjt29Xt2Oww",
+            ),
         ).isEqualTo("0K3SLeGlNNzFswYJjcVzcN4C76m_8NZORxFJLBJWGwg")
 
         assertThat(
-            GenerateUtils.generateCodeChallenge("ipK7uh7F41nJyYY4RZQzEwBwBTd-BlXSO4W8q0tK5VA")
+            GenerateUtils.generateCodeChallenge("ipK7uh7F41nJyYY4RZQzEwBwBTd-BlXSO4W8q0tK5VA"),
         ).isEqualTo("C51JGVPSnuLTTumLt6X5w2JAL_kBaeqHON3KPIviYaU")
 
         assertThat(
-            GenerateUtils.generateCodeChallenge("Á")
+            GenerateUtils.generateCodeChallenge("Á"),
         ).isEqualTo("p3yvZiKYauPicLIDZ0W1peDz4Z9KFC-9uxtDfoO1KOQ")
 
         assertThat(
-            GenerateUtils.generateCodeChallenge("🚀")
+            GenerateUtils.generateCodeChallenge("🚀"),
         ).isEqualTo("67wLKHDrMj8rbP-lxJPO74GufrNq_HPU4DZzAWMdrsU")
     }
 

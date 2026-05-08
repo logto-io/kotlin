@@ -64,7 +64,7 @@ class AlipaySocialSessionTest {
             activity,
             redirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         alipaySocialSession.start()
@@ -73,7 +73,7 @@ class AlipaySocialSessionTest {
             anyConstructed<OpenAuthTask>().execute(any(), any(), any(), any(), any())
             mockCompletion.onComplete(
                 captureNullable(socialExceptionCapture),
-                captureNullable(continueSignInUriCapture)
+                captureNullable(continueSignInUriCapture),
             )
         }
 
@@ -93,7 +93,7 @@ class AlipaySocialSessionTest {
             activity,
             redirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         alipaySocialSession.start()
@@ -101,7 +101,7 @@ class AlipaySocialSessionTest {
         verify {
             mockCompletion.onComplete(
                 captureNullable(socialExceptionCapture),
-                captureNullable(continueSignInUriCapture)
+                captureNullable(continueSignInUriCapture),
             )
         }
 
@@ -130,7 +130,7 @@ class AlipaySocialSessionTest {
             activity,
             redirectTo,
             callbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         alipaySocialSession.start()
@@ -138,7 +138,7 @@ class AlipaySocialSessionTest {
         verify {
             mockCompletion.onComplete(
                 captureNullable(socialExceptionCapture),
-                captureNullable(continueSignInUriCapture)
+                captureNullable(continueSignInUriCapture),
             )
         }
 

@@ -2,6 +2,7 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("io.logto.android-sample")
+    id("io.logto.detekt")
     alias(libs.plugins.kotlin.android)
 }
 

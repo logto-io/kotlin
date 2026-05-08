@@ -40,7 +40,7 @@ class WebSocialSessionTest {
             mockActivity,
             dummyRedirectTo,
             dummyCallbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         mockkObject(WebSocialResultActivity.Companion)
@@ -62,12 +62,11 @@ class WebSocialSessionTest {
         val dummyRedirectTo = "dummyRedirectTo"
         val validCallbackUri = "https://logto.dev/sign-in/github"
 
-
         val webSocialSession = WebSocialSession(
             mockActivity,
             dummyRedirectTo,
             validCallbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         val resultUri = Uri.parse("logto-callback://io.logto.test/web?code=testCode")
@@ -98,7 +97,7 @@ class WebSocialSessionTest {
             mockActivity,
             dummyRedirectTo,
             validCallbackUri,
-            mockCompletion
+            mockCompletion,
         )
 
         val resultUri = Uri.parse("logto-callback://io.logto.test/web?code=testCode")
@@ -111,7 +110,7 @@ class WebSocialSessionTest {
         verify {
             mockCompletion.onComplete(
                 captureNullable(socialExceptionCapture),
-                captureNullable(continueSignInUriCapture)
+                captureNullable(continueSignInUriCapture),
             )
         }
 

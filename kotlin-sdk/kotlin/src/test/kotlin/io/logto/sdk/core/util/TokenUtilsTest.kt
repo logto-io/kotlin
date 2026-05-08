@@ -63,7 +63,7 @@ class TokenUtilsTest {
     fun `verifyIdToken should throw with overdue issueAt`() {
         val claims = createTestIdTokenClaims()
         claims.issuedAt = NumericDate.fromSeconds(
-            NumericDate.now().value - ISSUED_AT_RESTRICTIONS_IN_SECONDS.toLong() - testTimeDelta
+            NumericDate.now().value - ISSUED_AT_RESTRICTIONS_IN_SECONDS.toLong() - testTimeDelta,
         )
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -81,7 +81,7 @@ class TokenUtilsTest {
     fun `verifyIdToken should throw with issueAt time in the future`() {
         val claims = createTestIdTokenClaims()
         claims.issuedAt = NumericDate.fromSeconds(
-            NumericDate.now().value + ISSUED_AT_RESTRICTIONS_IN_SECONDS.toLong() + testTimeDelta
+            NumericDate.now().value + ISSUED_AT_RESTRICTIONS_IN_SECONDS.toLong() + testTimeDelta,
         )
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -99,7 +99,7 @@ class TokenUtilsTest {
     fun `verifyIdToken should throw with expired token`() {
         val claims = createTestIdTokenClaims()
         claims.expirationTime = NumericDate.fromSeconds(
-            NumericDate.now().value - testTimeDelta
+            NumericDate.now().value - testTimeDelta,
         )
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -152,7 +152,7 @@ class TokenUtilsTest {
         assertThat(expectedException)
             .hasMessageThat()
             .contains(
-                "Issuer (iss) claim value ($testIssuer) doesn't match expected value of ${testIssuer.reversed()}"
+                "Issuer (iss) claim value ($testIssuer) doesn't match expected value of ${testIssuer.reversed()}",
             )
     }
 
@@ -170,7 +170,7 @@ class TokenUtilsTest {
             .hasMessageThat()
             .contains(
                 "Audience (aud) claim [$testAudience] doesn't contain an acceptable identifier. " +
-                    "Expected ${testAudience.reversed()} as an aud value."
+                    "Expected ${testAudience.reversed()} as an aud value.",
             )
     }
 

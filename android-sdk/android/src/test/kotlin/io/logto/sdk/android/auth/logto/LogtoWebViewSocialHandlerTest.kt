@@ -65,7 +65,7 @@ class LogtoWebViewSocialHandlerTest {
                     },
                     callbackLink: 'logto-callback://io.logto.test/web',
                 };
-            """.trimIndent()
+                """.trimIndent(),
             )
     }
 
@@ -129,7 +129,8 @@ class LogtoWebViewSocialHandlerTest {
     @Test
     fun `postMessage should start a social session if receive correspond command from the webView`() {
         val validJsonDataString =
-            "{\"redirectTo\":\"https://github.com/login\",\"callbackUri\":\"https://logto.dev/sign-in/callback/github\"}"
+            "{\"redirectTo\":\"https://github.com/login\"," +
+                "\"callbackUri\":\"https://logto.dev/sign-in/callback/github\"}"
 
         val logtoWebViewSocialHandler = LogtoWebViewSocialHandler(
             mockWebView,
@@ -150,7 +151,7 @@ class LogtoWebViewSocialHandlerTest {
                 any(),
                 any(),
                 any(),
-                any()
+                any(),
             )
         } returns mockSocialSession
 
@@ -178,7 +179,7 @@ class LogtoWebViewSocialHandlerTest {
 
         verify {
             logtoWebViewSocialHandler.postSocialException(
-                capture(socialExceptionCapture)
+                capture(socialExceptionCapture),
             )
         }
 
@@ -205,7 +206,7 @@ class LogtoWebViewSocialHandlerTest {
 
         verify {
             logtoWebViewSocialHandler.postSocialException(
-                capture(socialExceptionCapture)
+                capture(socialExceptionCapture),
             )
         }
 
@@ -232,7 +233,7 @@ class LogtoWebViewSocialHandlerTest {
 
         verify {
             logtoWebViewSocialHandler.postSocialException(
-                capture(socialExceptionCapture)
+                capture(socialExceptionCapture),
             )
         }
 
@@ -245,7 +246,8 @@ class LogtoWebViewSocialHandlerTest {
     fun `postMessage should postSocialException with unknown social scheme in redirectTo`() {
         val socialExceptionCapture = slot<SocialException>()
         val validJsonDataWithInvalidRedirectToString =
-            "{\"redirectTo\":\"unknown://github.com/login\",\"callbackUri\":\"https://logto.dev/sign-in/callback/github\"}"
+            "{\"redirectTo\":\"unknown://github.com/login\"," +
+                "\"callbackUri\":\"https://logto.dev/sign-in/callback/github\"}"
 
         every { mockWebView.post(any()) } answers {
             lastArg<Runnable>().run()
@@ -264,7 +266,7 @@ class LogtoWebViewSocialHandlerTest {
 
         verify {
             logtoWebViewSocialHandler.postSocialException(
-                capture(socialExceptionCapture)
+                capture(socialExceptionCapture),
             )
         }
 

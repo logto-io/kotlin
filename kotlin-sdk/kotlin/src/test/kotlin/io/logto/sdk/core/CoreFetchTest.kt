@@ -23,6 +23,7 @@ class CoreFetchTest {
         private const val TEST_REVOCATION_ENDPOINT = "https://logto.dev/oidc/token/revocation"
         private const val TEST_JWKS_URI = "https://logto.dev/oidc/jwks"
         private const val TEST_ISSUER = "http://localhost:443/oidc"
+        @Suppress("MaxLineLength", "MaximumLineLength")
         private const val TEST_JWKS_JSON = """
             {
                 "keys": [
@@ -54,7 +55,7 @@ class CoreFetchTest {
                             "jwks_uri": "$TEST_JWKS_URI",
                             "issuer": "$TEST_ISSUER"
                         }
-                        """.trimIndent()
+                        """.trimIndent(),
                     )
                 }
                 "/jwks:good" -> MockResponse().apply {
@@ -73,7 +74,7 @@ class CoreFetchTest {
                             "scope": "",
                             "expires_in": 123
                         }
-                        """.trimIndent()
+                        """.trimIndent(),
                     )
                 }
                 "/user:good" -> MockResponse().apply {
@@ -95,7 +96,7 @@ class CoreFetchTest {
                               {"id": "org_id", "name": "org_name", "description": "org_desc"}
                             ]
                         }
-                        """.trimIndent()
+                        """.trimIndent(),
                     )
                 }
                 "/revoke:good" -> MockResponse().setResponseCode(200)
@@ -123,7 +124,7 @@ class CoreFetchTest {
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchOidcConfig(
-            "${mockWebServer.url("/oidc_config:good")}"
+            "${mockWebServer.url("/oidc_config:good")}",
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response
@@ -138,7 +139,7 @@ class CoreFetchTest {
             userinfoEndpoint = TEST_USERINFO_ENDPOINT,
             revocationEndpoint = TEST_REVOCATION_ENDPOINT,
             jwksUri = TEST_JWKS_URI,
-            issuer = TEST_ISSUER
+            issuer = TEST_ISSUER,
         )
 
         assertThat(throwableReceiver).isNull()
@@ -152,7 +153,7 @@ class CoreFetchTest {
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchOidcConfig(
-            "${mockWebServer.url("/oidc_config:bad")}"
+            "${mockWebServer.url("/oidc_config:bad")}",
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response
@@ -171,7 +172,7 @@ class CoreFetchTest {
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchJwksJson(
-            "${mockWebServer.url("/jwks:good")}"
+            "${mockWebServer.url("/jwks:good")}",
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response
@@ -192,7 +193,7 @@ class CoreFetchTest {
 
         val countDownLatch = CountDownLatch(1)
         Core.fetchOidcConfig(
-            "${mockWebServer.url("/jwks:bad")}"
+            "${mockWebServer.url("/jwks:bad")}",
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response
@@ -216,7 +217,7 @@ class CoreFetchTest {
             redirectUri = "https://logto.dev/callback",
             codeVerifier = "codeVerifier",
             code = "code",
-            resource = null
+            resource = null,
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response
@@ -308,7 +309,7 @@ class CoreFetchTest {
         val countDownLatch = CountDownLatch(1)
         Core.fetchUserInfo(
             userInfoEndpoint = "${mockWebServer.url("/user:good")}",
-            accessToken = "accessToken"
+            accessToken = "accessToken",
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response
@@ -332,7 +333,7 @@ class CoreFetchTest {
         val countDownLatch = CountDownLatch(1)
         Core.fetchUserInfo(
             userInfoEndpoint = "${mockWebServer.url("/user:bad")}",
-            accessToken = "accessToken"
+            accessToken = "accessToken",
         ) { throwable, response ->
             throwableReceiver = throwable
             responseReceiver = response
@@ -352,7 +353,7 @@ class CoreFetchTest {
         Core.revoke(
             revocationEndpoint = "${mockWebServer.url("/revoke:good")}",
             clientId = "clientId",
-            token = "refreshToken"
+            token = "refreshToken",
         ) { throwable ->
             throwableReceiver = throwable
             countDownLatch.countDown()
@@ -370,7 +371,7 @@ class CoreFetchTest {
         Core.revoke(
             revocationEndpoint = "${mockWebServer.url("/revoke:bad")}",
             clientId = "clientId",
-            token = "refreshToken"
+            token = "refreshToken",
         ) { throwable ->
             throwableReceiver = throwable
             countDownLatch.countDown()

@@ -27,13 +27,13 @@ class LogtoWebViewAuthClientTest {
 
     @Test
     fun `onPageStarted should call method to inject the script to the page`() {
-        val mockActivity:Activity = mockk()
+        val mockActivity: Activity = mockk()
         every { mockActivity.packageName } returns "io.logto.test"
 
         val injectScript = "injectScript"
         val logtoWebViewAuthClient = LogtoWebViewAuthClient(
             mockActivity,
-            injectScript
+            injectScript,
         )
 
         mockkObject(logtoWebViewAuthClient)
@@ -53,14 +53,14 @@ class LogtoWebViewAuthClientTest {
 
     @Test
     fun `shouldOverrideUrlLoading should handle the auth result and finish the activity if receive the auth result`() {
-        val mockActivity:Activity = mockk()
+        val mockActivity: Activity = mockk()
         every { mockActivity.packageName } returns "io.logto.test"
         every { mockActivity.finish() } just Runs
 
         val injectScript = "injectScript"
         val logtoWebViewAuthClient = LogtoWebViewAuthClient(
             mockActivity,
-            injectScript
+            injectScript,
         )
 
         val mockWebView: WebView = mockk()
@@ -72,9 +72,8 @@ class LogtoWebViewAuthClientTest {
         every { LogtoAuthManager.isLogtoAuthResult(logtoAuthResultUri) } returns true
         every { LogtoAuthManager.handleCallbackUri(any()) } just Runs
 
-
         assertThat(
-            logtoWebViewAuthClient.shouldOverrideUrlLoading(mockWebView, mockWebResourceRequest)
+            logtoWebViewAuthClient.shouldOverrideUrlLoading(mockWebView, mockWebResourceRequest),
         ).isTrue()
 
         verify {
