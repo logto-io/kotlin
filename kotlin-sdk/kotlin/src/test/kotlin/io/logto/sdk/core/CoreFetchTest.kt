@@ -189,10 +189,10 @@ class CoreFetchTest {
     @Test
     fun `fetchJwksJson should fail without response`() {
         var throwableReceiver: Throwable? = null
-        var responseReceiver: OidcConfigResponse? = null
+        var responseReceiver: String? = null
 
         val countDownLatch = CountDownLatch(1)
-        Core.fetchOidcConfig(
+        Core.fetchJwksJson(
             "${mockWebServer.url("/jwks:bad")}",
         ) { throwable, response ->
             throwableReceiver = throwable
