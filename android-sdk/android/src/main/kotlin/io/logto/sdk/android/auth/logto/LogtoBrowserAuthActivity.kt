@@ -46,10 +46,15 @@ class LogtoBrowserAuthActivity : Activity() {
         }
 
         val callbackUri = intent.data
-        if (callbackUri != null && LogtoAuthManager.isLogtoAuthResult(callbackUri)) {
-            LogtoAuthManager.handleCallbackUri(callbackUri)
-        } else {
-            LogtoAuthManager.handleUserCancel()
+        when {
+            // Resumed without a redirect: the user dismissed the Custom Tab.
+            callbackUri == null -> LogtoAuthManager.handleUserCancel()
+            LogtoAuthManager.isLogtoAuthResult(callbackUri) ->
+                LogtoAuthManager.handleCallbackUri(callbackUri)
+            // A URI that does not belong to the pending session can neither complete
+            // nor cancel it. [LogtoRedirectReceiverActivity] already filters these
+            // out; this is defense in depth.
+            else -> Unit
         }
         finish()
     }

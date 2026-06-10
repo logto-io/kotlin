@@ -103,9 +103,8 @@ class LogtoBrowserAuthActivityTest {
     }
 
     @Test
-    fun `the LogtoAuthManager should handle user cancel when the delivered uri is not an auth result`() {
+    fun `a delivered uri that is not an auth result should neither complete nor cancel the session`() {
         every { LogtoAuthManager.isLogtoAuthResult(any()) } returns false
-        every { LogtoAuthManager.handleUserCancel() } just Runs
 
         activityController.create().resume()
         activityController.pause()
@@ -116,7 +115,8 @@ class LogtoBrowserAuthActivityTest {
         )
         activityController.newIntent(redirectIntent).resume()
 
-        verify {
+        verify(exactly = 0) {
+            LogtoAuthManager.handleCallbackUri(any())
             LogtoAuthManager.handleUserCancel()
         }
         assertThat(activity.isFinishing).isTrue()
