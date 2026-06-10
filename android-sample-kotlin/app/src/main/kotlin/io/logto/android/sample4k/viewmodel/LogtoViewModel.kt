@@ -40,7 +40,7 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         get() = _logtoException
 
     fun signIn(context: Activity) {
-        logtoClient.signIn(context, "io.logto.android://io.logto.sample/callback") {
+        logtoClient.signIn(context, "io.logto.android://io.logto.android.sample4k/callback") {
             it?.let { _logtoException.postValue(it) } ?: _authenticated.postValue(logtoClient.isAuthenticated)
         }
     }
@@ -48,7 +48,7 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
     fun signOut(context: Activity) {
         // Ends the session on the Logto server through the browser; local credentials are
         // cleared even if the browser flow is abandoned.
-        logtoClient.signOut(context, "io.logto.android://io.logto.sample/callback") {
+        logtoClient.signOut(context, "io.logto.android://io.logto.android.sample4k/callback") {
             it?.let { _logtoException.postValue(it) }
             _authenticated.postValue(logtoClient.isAuthenticated)
         }

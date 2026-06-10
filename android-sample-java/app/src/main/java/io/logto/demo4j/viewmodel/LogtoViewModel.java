@@ -55,7 +55,7 @@ public class LogtoViewModel extends AndroidViewModel {
     public void signIn(Activity context) {
         logtoClient.signIn(
                 context,
-                "io.logto.android://io.logto.sample/callback",
+                "io.logto.android://io.logto.android.sample4j/callback",
                 logtoException -> {
                     if (logtoException != null) {
                         _logtoException.postValue(logtoException);
@@ -68,7 +68,7 @@ public class LogtoViewModel extends AndroidViewModel {
     public void signOut(Activity context) {
         // Ends the session on the Logto server through the browser; local credentials are
         // cleared even if the browser flow is abandoned.
-        logtoClient.signOut(context, "io.logto.android://io.logto.sample/callback", logtoException -> {
+        logtoClient.signOut(context, "io.logto.android://io.logto.android.sample4j/callback", logtoException -> {
             if (logtoException != null) {
                 _logtoException.postValue(logtoException);
             }
