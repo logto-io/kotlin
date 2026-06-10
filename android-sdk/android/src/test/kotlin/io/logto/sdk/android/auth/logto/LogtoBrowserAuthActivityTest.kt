@@ -57,6 +57,9 @@ class LogtoBrowserAuthActivityTest {
         assertThat(startedIntent.action).isEqualTo(Intent.ACTION_VIEW)
         assertThat(startedIntent.data).isEqualTo(Uri.parse(testAuthUri))
         assertThat(startedIntent.hasExtra("android.support.customtabs.extra.SESSION")).isTrue()
+        assertThat(
+            startedIntent.getIntExtra("androidx.browser.customtabs.extra.SHARE_STATE", 0),
+        ).isEqualTo(2)
         assertThat(activity.isFinishing).isFalse()
     }
 

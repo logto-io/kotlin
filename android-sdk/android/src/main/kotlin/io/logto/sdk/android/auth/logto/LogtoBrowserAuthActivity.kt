@@ -69,7 +69,11 @@ class LogtoBrowserAuthActivity : Activity() {
 
         authStarted = true
         try {
-            CustomTabsIntent.Builder().build().launchUrl(this, uri)
+            val customTabsIntent = CustomTabsIntent.Builder().build()
+            // Sign-in URLs carry one-time state / PKCE parameters and must not be shared.
+            // androidx.browser 1.3.0 predates `setShareState`, so set the extra directly.
+            customTabsIntent.intent.putExtra(EXTRA_SHARE_STATE, SHARE_STATE_OFF)
+            customTabsIntent.launchUrl(this, uri)
         } catch (exception: ActivityNotFoundException) {
             LogtoAuthManager.handleFailure(
                 LogtoException(LogtoException.Type.UNABLE_TO_LAUNCH_BROWSER, exception),
@@ -81,6 +85,10 @@ class LogtoBrowserAuthActivity : Activity() {
     companion object {
         private const val EXTRA_AUTH_URI = "EXTRA_AUTH_URI"
         private const val KEY_AUTH_STARTED = "KEY_AUTH_STARTED"
+
+        // `CustomTabsIntent.EXTRA_SHARE_STATE` / `SHARE_STATE_OFF` from androidx.browser 1.4.0.
+        private const val EXTRA_SHARE_STATE = "androidx.browser.customtabs.extra.SHARE_STATE"
+        private const val SHARE_STATE_OFF = 2
 
         fun launch(context: Activity, uri: String) {
             context.startActivity(
