@@ -76,7 +76,9 @@ on Maven Central and receives fixes on the `v2.x` line.
 
 In v3, `signOut` performs a complete sign-out: it clears local credentials, revokes the
 refresh token, and ends the session on the Logto server by opening the end session
-endpoint in the browser.
+endpoint in the browser. Local credentials are always cleared; the remote steps are
+best-effort and need the OIDC config to be reachable — any failure is reported through
+the completion.
 
 ```kotlin
 // The browser opens briefly and navigates back to the app through the post sign-out
@@ -91,9 +93,10 @@ logtoClient.signOut(this, "io.logto.android://io.logto.sample/callback") { excep
 logtoClient.signOut(this)
 ```
 
-Dismissing the browser during sign-out is not reported as an error: local credentials
-are cleared and the refresh token is revoked before the browser opens, so the sign-out
-has already taken effect.
+Dismissing the browser during sign-out is never reported as `USER_CANCELED`: local
+credentials are cleared and the token revocation has settled before the browser opens,
+so the sign-out has already taken effect. Failures of the earlier steps (such as a
+failed revocation) are still reported through the completion.
 
 The v2 `signOut(completion)` is renamed to `clearCredentials(completion)` with unchanged
 behavior: it clears local credentials and revokes the refresh token, but it cannot clear

@@ -26,8 +26,8 @@ class LogtoSignOutSession(
     }
 
     override fun handleUserCancel() {
-        // Local credentials are cleared and the refresh token is revoked before the
-        // browser opens; ending the server session is best-effort, and without a
+        // Local credentials are cleared and the token revocation has settled before
+        // the browser opens; ending the server session is best-effort, and without a
         // redirect URI dismissing the browser is the only way back to the app.
         completion.onComplete(null)
     }
