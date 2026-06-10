@@ -16,18 +16,24 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 22
+          # commitlint v21 requires Node >= 22.12; resolve the latest 22.x
+          # instead of trusting a possibly stale runner toolcache.
+          check-latest: true
 
-      - name: Install commitlint config conventional
+      # Pin the commitlint major version: `npx commitlint` resolves the locally
+      # installed CLI instead of pulling the latest release, whose Node
+      # requirement may outgrow the version pinned above.
+      - name: Install commitlint
         run: |
-          npm install @commitlint/config-conventional
+          npm install @commitlint/cli@21 @commitlint/config-conventional@21
 
       - name: Create commitlint config file
         run: |
