@@ -16,8 +16,8 @@ your app must declare its scheme via the `logtoRedirectScheme` manifest placehol
 android {
     defaultConfig {
         // Must equal the scheme of the redirect URI passed to `signIn` / `signOut`,
-        // e.g. for the redirect URI "io.logto.android://io.logto.sample/callback":
-        manifestPlaceholders["logtoRedirectScheme"] = "io.logto.android"
+        // e.g. for the redirect URI "io.logto.sample://callback":
+        manifestPlaceholders["logtoRedirectScheme"] = "io.logto.sample"
     }
 }
 ```
@@ -28,14 +28,23 @@ Without this placeholder the manifest merge fails with
 The `signIn` call itself is unchanged:
 
 ```kotlin
-logtoClient.signIn(this, "io.logto.android://io.logto.sample/callback") { exception ->
+logtoClient.signIn(this, "io.logto.sample://callback") { exception ->
     // ...
 }
 ```
 
-Use a unique, reverse-DNS style scheme that other apps are unlikely to claim. If you need
-verified redirects, you can additionally declare an `https` App Link intent filter for
-`io.logto.sdk.android.auth.logto.LogtoRedirectReceiverActivity` in your own manifest.
+Android routes the redirect by scheme alone — the host and path of the redirect URI are
+validated by Logto and the SDK, not by the OS — so the scheme must be unique to your app.
+Use your `applicationId` as the scheme (the convention recommended by
+[RFC 8252](https://datatracker.ietf.org/doc/html/rfc8252#section-7.1)), and keep it
+lowercase: browsers lowercase the scheme before opening it. The v2-style URI pattern
+`io.logto.android://$(YOUR_APP_PACKAGE)/callback` keeps working — registered URIs do not
+need to change — but a scheme shared across apps (like `io.logto.android`) makes Android
+show an app chooser on redirect when two such apps are installed on the same device.
+
+If you need verified redirects, you can additionally declare an `https` App Link intent
+filter for `io.logto.sdk.android.auth.logto.LogtoRedirectReceiverActivity` in your own
+manifest.
 
 ## Removed: WeChat / Alipay native sign-in
 
