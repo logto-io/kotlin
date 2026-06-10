@@ -43,7 +43,7 @@ class TokenFragment : Fragment() {
         }
 
         view.findViewById<Button>(R.id.sign_out_button).setOnClickListener {
-            logtoViewModel.signOut()
+            logtoViewModel.signOut(requireActivity())
         }
     }
 

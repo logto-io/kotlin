@@ -36,7 +36,7 @@ public class TokenFragment extends Fragment {
 
         view.findViewById(R.id.get_access_token_button).setOnClickListener( v -> logtoViewModel.retrieveAccessToken());
 
-        view.findViewById(R.id.sign_out_button).setOnClickListener( v -> logtoViewModel.signOut());
+        view.findViewById(R.id.sign_out_button).setOnClickListener( v -> logtoViewModel.signOut(requireActivity()));
     }
 
     private void initViewModel(View view) {
