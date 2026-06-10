@@ -74,5 +74,5 @@ logtoClient.signOut(this, "io.logto.android://io.logto.sample/callback") { excep
   available to handle the sign-in.
 - If Android kills your app process while the browser is in the foreground (rare), the
   in-flight sign-in is abandoned; initiate the sign-in again.
-- Only one sign-in / sign-out flow can be in flight at a time (unchanged from v2, but now
-  enforced across the browser round-trip).
+- Only the most recent sign-in / sign-out flow is tracked: starting a new flow while
+  another is pending abandons the previous one (its completion is never invoked).
