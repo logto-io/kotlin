@@ -1,6 +1,9 @@
 package io.logto.sdk.android
 
+import android.app.Activity
+import android.net.Uri
 import com.google.common.truth.Truth.assertThat
+import io.logto.sdk.android.auth.logto.LogtoAuthManager
 import io.logto.sdk.android.auth.logto.LogtoAuthSession
 import io.logto.sdk.android.auth.logto.LogtoSignOutSession
 import io.logto.sdk.android.completion.Completion
@@ -32,6 +35,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
+@Suppress("LargeClass")
 @RunWith(RobolectricTestRunner::class)
 class LogtoClientTest {
     private val oidcConfigResponseMock: OidcConfigResponse = mockk()
@@ -82,6 +86,7 @@ class LogtoClientTest {
     @After
     fun tearDown() {
         clearAllMocks()
+        LogtoAuthManager.browserSession = null
     }
 
     @Test
@@ -323,6 +328,173 @@ class LogtoClientTest {
             anyConstructed<LogtoSignOutSession>().start()
         }
 
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should clear local data even if get oidc config failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG),
+                null,
+            )
+        }
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback") {
+            completionResults.add(it)
+        }
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last())
+            .hasMessageThat()
+            .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should report the revoke exception after the browser flow settles`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(LogtoException(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN))
+        }
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            completionResults.add(it)
+        }
+
+        // The revoke has already failed, but the completion should wait for the browser flow
+        assertThat(completionResults).isEmpty()
+
+        LogtoAuthManager.handleCallbackUri(Uri.parse("io.logto.android://io.logto.sample/callback"))
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last())
+            .hasMessageThat()
+            .isEqualTo(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should open the browser only after the revocation settles`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        val revokeCompletions = mutableListOf<HttpEmptyCompletion>()
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            revokeCompletions.add(lastArg())
+        }
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            completionResults.add(it)
+        }
+
+        // The revocation is still pending, so the browser flow should not start yet
+        verify(exactly = 0) { mockActivity.startActivity(any()) }
+
+        revokeCompletions.last().onComplete(null)
+
+        verify { mockActivity.startActivity(any()) }
+        assertThat(completionResults).isEmpty()
+
+        LogtoAuthManager.handleCallbackUri(Uri.parse("io.logto.android://io.logto.sample/callback"))
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last()).isNull()
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should prioritize the browser exception when both flows fail`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(LogtoException(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN))
+        }
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            completionResults.add(it)
+        }
+
+        LogtoAuthManager.handleUserCancel()
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last())
+            .hasMessageThat()
+            .isEqualTo(LogtoException.Type.USER_CANCELED.name)
         assertThat(logtoClient.isAuthenticated).isFalse()
     }
 
