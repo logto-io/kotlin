@@ -38,10 +38,13 @@ class LogtoSignOutSessionTest {
         LogtoAuthManager.browserSession = null
     }
 
-    private fun createSignOutSession(completion: EmptyCompletion<LogtoException>) = LogtoSignOutSession(
+    private fun createSignOutSession(
+        completion: EmptyCompletion<LogtoException>,
+        postLogoutRedirectUri: String? = dummyPostLogoutRedirectUri,
+    ) = LogtoSignOutSession(
         context = mockActivity,
         signOutUri = dummySignOutUri,
-        postLogoutRedirectUri = dummyPostLogoutRedirectUri,
+        postLogoutRedirectUri = postLogoutRedirectUri,
         completion = completion,
     )
 
@@ -49,6 +52,12 @@ class LogtoSignOutSessionTest {
     fun `redirectUri should be the post logout redirect uri`() {
         val signOutSession = createSignOutSession(mockk())
         assertThat(signOutSession.redirectUri).isEqualTo(dummyPostLogoutRedirectUri)
+    }
+
+    @Test
+    fun `redirectUri should be null when no post logout redirect uri is provided`() {
+        val signOutSession = createSignOutSession(mockk(), postLogoutRedirectUri = null)
+        assertThat(signOutSession.redirectUri).isNull()
     }
 
     @Test
@@ -83,7 +92,7 @@ class LogtoSignOutSessionTest {
     }
 
     @Test
-    fun `handleUserCancel should complete with user canceled exception`() {
+    fun `handleUserCancel should complete without exception`() {
         val logtoExceptionCapture = mutableListOf<LogtoException?>()
         val mockCompletion: EmptyCompletion<LogtoException> = mockk()
         every { mockCompletion.onComplete(any()) } just Runs
@@ -94,9 +103,7 @@ class LogtoSignOutSessionTest {
         verify {
             mockCompletion.onComplete(captureNullable(logtoExceptionCapture))
         }
-        assertThat(logtoExceptionCapture.last())
-            .hasMessageThat()
-            .isEqualTo(LogtoException.Type.USER_CANCELED.name)
+        assertThat(logtoExceptionCapture.last()).isNull()
     }
 
     @Test

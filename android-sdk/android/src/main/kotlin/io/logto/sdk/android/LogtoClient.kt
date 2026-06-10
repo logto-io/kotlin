@@ -152,17 +152,19 @@ open class LogtoClient(
     )
 
     /**
-     * Sign out
+     * Clear local credentials: drop the cached access tokens and the ID token, and revoke
+     * the refresh token.
      *
-     * Local credentials will be cleared even though there are errors occurred when signing out.
+     * Local credentials will be cleared even though there are errors occurred when revoking.
      *
-     * Note: the session in the browser is kept since the browser cookies are not accessible
-     * to the app. Use the [signOut] overload with a `postLogoutRedirectUri` to also end
-     * the session on the Logto server.
+     * Note: this does NOT end the session on the Logto server — the session cookie lives in
+     * the browser, which is not accessible to the app, so the next [signIn] may silently
+     * re-enter the account through the existing browser session. Use [signOut] for a
+     * complete sign-out.
      *
-     * @param[completion] the completion which handles the error occurred when signing out
+     * @param[completion] the completion which handles the error occurred when clearing
      */
-    fun signOut(completion: EmptyCompletion<LogtoException>? = null) {
+    fun clearCredentials(completion: EmptyCompletion<LogtoException>? = null) {
         if (!isAuthenticated) {
             completion?.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
             return
@@ -194,27 +196,33 @@ open class LogtoClient(
     }
 
     /**
-     * Sign out and end the session on the Logto server.
+     * Sign out: clear local credentials, revoke the refresh token, and end the session
+     * on the Logto server by opening the end session endpoint in the browser.
      *
      * Local credentials are cleared as soon as the sign-out starts, so the local session
      * always ends even if fetching the OIDC config fails or the browser flow is abandoned.
      *
      * The refresh token is revoked before the end session endpoint is opened in the
-     * browser, and the user is navigated back to the app through the
-     * [postLogoutRedirectUri].
+     * browser. When [postLogoutRedirectUri] is provided, the browser navigates back to
+     * the app through it after the session ends — register the URI in the Logto console
+     * first; its scheme must match the `logtoRedirectScheme` manifest placeholder. When
+     * omitted, the browser shows the Logto sign-out page and the user dismisses it
+     * manually.
+     *
+     * Dismissing the browser is not reported as an error: the local credentials are
+     * cleared and the refresh token is revoked regardless of how the browser flow ends.
      *
      * An invalid [postLogoutRedirectUri] is reported as
      * [LogtoException.Type.INVALID_REDIRECT_URI] without opening the browser; local
      * credentials are still cleared and the refresh token is revoked.
      *
      * @param[context] the activity to perform the sign-out action
-     * @param[postLogoutRedirectUri] one of the post sign-out redirect URIs of this application;
-     * its scheme must match the `logtoRedirectScheme` manifest placeholder
+     * @param[postLogoutRedirectUri] one of the post sign-out redirect URIs of this application
      * @param[completion] the completion which handles the error occurred when signing out
      */
     fun signOut(
         context: Activity,
-        postLogoutRedirectUri: String,
+        postLogoutRedirectUri: String? = null,
         completion: EmptyCompletion<LogtoException>? = null,
     ) {
         if (!isAuthenticated) {
@@ -222,8 +230,8 @@ open class LogtoClient(
             return
         }
 
-        if (!isValidRedirectUri(postLogoutRedirectUri)) {
-            signOut { completion?.onComplete(LogtoException(LogtoException.Type.INVALID_REDIRECT_URI)) }
+        if (postLogoutRedirectUri != null && !isValidRedirectUri(postLogoutRedirectUri)) {
+            clearCredentials { completion?.onComplete(LogtoException(LogtoException.Type.INVALID_REDIRECT_URI)) }
             return
         }
 

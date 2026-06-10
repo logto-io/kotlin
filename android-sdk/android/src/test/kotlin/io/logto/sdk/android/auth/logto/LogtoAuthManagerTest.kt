@@ -92,6 +92,18 @@ class LogtoAuthManagerTest {
     }
 
     @Test
+    fun `isLogtoAuthResult should return false when the session expects no redirect`() {
+        val mockBrowserSession: LogtoBrowserSession = mockk()
+        every { mockBrowserSession.redirectUri } returns null
+
+        LogtoAuthManager.handleAuthStart(mockBrowserSession)
+
+        assertThat(
+            LogtoAuthManager.isLogtoAuthResult(Uri.parse("io.logto.android://io.logto.sample/callback")),
+        ).isFalse()
+    }
+
+    @Test
     fun `isLogtoAuthResult should return false when callback path is only a prefix match`() {
         val redirectUri = "io.logto.android://io.logto.sample/callback"
         val callbackUri = Uri.parse("io.logto.android://io.logto.sample/callback2?state=state&code=code")

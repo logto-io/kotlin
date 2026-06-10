@@ -72,23 +72,35 @@ provider apps via their universal/app links) now happens in the browser, like on
 If you depend on WeChat/Alipay **native SDK** sign-in, stay on v2 — it remains available
 on Maven Central and receives fixes on the `v2.x` line.
 
-## Changed: sign-out behavior
+## Changed: sign-out API
 
-`signOut(completion)` still clears local credentials and revokes the refresh token, but it
-can no longer clear the session cookie — that cookie now lives in the browser, which the
-app cannot touch. After a local-only sign-out, the next `signIn` may silently re-enter the
-account through the existing browser session.
-
-To also end the session on the Logto server, use the new overload, which opens the end
-session endpoint in the browser and returns through your post sign-out redirect URI
-(register it in the Logto console first; its scheme must also match
-`logtoRedirectScheme`):
+In v3, `signOut` performs a complete sign-out: it clears local credentials, revokes the
+refresh token, and ends the session on the Logto server by opening the end session
+endpoint in the browser.
 
 ```kotlin
+// The browser opens briefly and navigates back to the app through the post sign-out
+// redirect URI (register it in the Logto console first; its scheme must also match
+// `logtoRedirectScheme`):
 logtoClient.signOut(this, "io.logto.android://io.logto.sample/callback") { exception ->
     // ...
 }
+
+// Or omit the URI — no console configuration needed; the browser shows the Logto
+// sign-out page and the user dismisses it manually:
+logtoClient.signOut(this)
 ```
+
+Dismissing the browser during sign-out is not reported as an error: local credentials
+are cleared and the refresh token is revoked before the browser opens, so the sign-out
+has already taken effect.
+
+The v2 `signOut(completion)` is renamed to `clearCredentials(completion)` with unchanged
+behavior: it clears local credentials and revokes the refresh token, but it cannot clear
+the session cookie — that cookie now lives in the browser, which the app cannot touch.
+After clearing credentials, the next `signIn` may silently re-enter the account through
+the existing browser session. Prefer `signOut`; use `clearCredentials` when no UI context
+is available (e.g. forcing a local sign-out from a background error handler).
 
 ## Other breaking changes
 

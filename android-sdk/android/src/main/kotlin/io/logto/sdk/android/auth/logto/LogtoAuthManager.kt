@@ -30,8 +30,8 @@ internal object LogtoAuthManager {
         browserSession = null
     }
 
-    fun isLogtoAuthResult(uri: Uri) = browserSession?.let { session ->
-        uri.matchesRedirectUri(Uri.parse(session.redirectUri))
+    fun isLogtoAuthResult(uri: Uri) = browserSession?.redirectUri?.let { redirectUri ->
+        uri.matchesRedirectUri(Uri.parse(redirectUri))
     } ?: false
 
     private fun Uri.matchesRedirectUri(redirectUri: Uri): Boolean {

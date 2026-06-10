@@ -9,9 +9,11 @@ import io.logto.sdk.android.exception.LogtoException
  */
 interface LogtoBrowserSession {
     /**
-     * The URI the browser is expected to redirect back to when this session completes.
+     * The URI the browser is expected to redirect back to when this session completes,
+     * or `null` if this session does not expect a redirect and can only be finished by
+     * the user dismissing the browser.
      */
-    val redirectUri: String
+    val redirectUri: String?
 
     fun handleCallbackUri(callbackUri: Uri)
 
