@@ -16,14 +16,17 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22
+          # commitlint v21 requires Node >= 22.12; resolve the latest 22.x
+          # instead of trusting a possibly stale runner toolcache.
+          check-latest: true
 
       # Pin the commitlint major version: `npx commitlint` resolves the locally
       # installed CLI instead of pulling the latest release, whose Node
