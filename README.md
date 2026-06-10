@@ -38,11 +38,12 @@ its scheme with the `logtoRedirectScheme` manifest placeholder in your app's `bu
 ```kotlin
 android {
     defaultConfig {
-        // Must equal the scheme of the redirect URI passed to `signIn` / `signOut`.
-        // Android routes the redirect by scheme alone, so pick one unique to your
-        // app — your applicationId is the recommended choice (keep it lowercase),
-        // e.g. for the redirect URI "io.logto.sample://callback":
-        manifestPlaceholders["logtoRedirectScheme"] = "io.logto.sample"
+        // The custom scheme of the redirect URI passed to `signIn` / `signOut`
+        // (lowercase, reverse-DNS style). The redirect URI follows the pattern
+        // "$(scheme)://$(applicationId)/callback", e.g.
+        // "io.logto.android://io.logto.sample/callback" — the host is bound to
+        // your applicationId by the SDK and enforced by Android.
+        manifestPlaceholders["logtoRedirectScheme"] = "io.logto.android"
     }
 }
 ```

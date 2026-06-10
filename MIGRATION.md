@@ -8,16 +8,22 @@ for OAuth altogether — and shares the browser session (SSO) with Chrome.
 ## Required: declare the redirect scheme
 
 In v2 the OAuth redirect was intercepted inside the WebView, so no manifest setup was
-needed. In v3 the redirect comes back to the app through an OS-level intent filter, and
-your app must declare its scheme via the `logtoRedirectScheme` manifest placeholder:
+needed. In v3 the redirect comes back to the app through an OS-level intent filter.
+
+The redirect URI keeps the v2 pattern
+`$(LOGTO_REDIRECT_SCHEME)://$(YOUR_APP_PACKAGE)/callback` — e.g.
+`io.logto.android://io.logto.sample/callback` — but v3 turns both parts of the
+convention into enforced requirements:
+
+The **scheme** must be declared via the `logtoRedirectScheme` manifest placeholder
+(a lowercase, reverse-DNS style custom scheme):
 
 ```kotlin
 // app/build.gradle.kts
 android {
     defaultConfig {
-        // Must equal the scheme of the redirect URI passed to `signIn` / `signOut`,
-        // e.g. for the redirect URI "io.logto.sample://callback":
-        manifestPlaceholders["logtoRedirectScheme"] = "io.logto.sample"
+        // Must equal the scheme of the redirect URI passed to `signIn` / `signOut`:
+        manifestPlaceholders["logtoRedirectScheme"] = "io.logto.android"
     }
 }
 ```
@@ -25,26 +31,29 @@ android {
 Without this placeholder the manifest merge fails with
 `requires a placeholder substitution but no value for <logtoRedirectScheme> is provided`.
 
-The `signIn` call itself is unchanged:
+The **host** must be your `applicationId`. The SDK binds the intent filter's host to the
+built-in `${applicationId}` placeholder, so Android only routes redirects addressed to
+your app — several apps sharing the same scheme no longer collide. In v2 this part of the
+pattern was a documented convention; in v3 a redirect URI whose host is not your
+`applicationId` is never delivered to the app, so check your registered URIs when
+upgrading. Keep both parts lowercase: intent filter matching is case-sensitive, and
+browsers lowercase the scheme.
+
+The `signIn` call itself is unchanged; deriving the URI from `BuildConfig.APPLICATION_ID`
+keeps it correct across build variants that use an `applicationIdSuffix`:
 
 ```kotlin
-logtoClient.signIn(this, "io.logto.sample://callback") { exception ->
+logtoClient.signIn(this, "io.logto.android://${BuildConfig.APPLICATION_ID}/callback") { exception ->
     // ...
 }
 ```
 
-Android routes the redirect by scheme alone — the host and path of the redirect URI are
-validated by Logto and the SDK, not by the OS — so the scheme must be unique to your app.
-Use your `applicationId` as the scheme (the convention recommended by
-[RFC 8252](https://datatracker.ietf.org/doc/html/rfc8252#section-7.1)), and keep it
-lowercase: browsers lowercase the scheme before opening it. The v2-style URI pattern
-`io.logto.android://$(YOUR_APP_PACKAGE)/callback` keeps working — registered URIs do not
-need to change — but a scheme shared across apps (like `io.logto.android`) makes Android
-show an app chooser on redirect when two such apps are installed on the same device.
-
-If you need verified redirects, you can additionally declare an `https` App Link intent
-filter for `io.logto.sdk.android.auth.logto.LogtoRedirectReceiverActivity` in your own
-manifest.
+The intent filter narrows routing, but it is not a security boundary — a hostile app can
+copy it verbatim. The actual protections are the SDK validating every delivered URI
+against the in-flight session and PKCE making an intercepted authorization code useless.
+For verified, non-preemptable redirects, you can additionally declare an `https` App Link
+intent filter for `io.logto.sdk.android.auth.logto.LogtoRedirectReceiverActivity` in your
+own manifest.
 
 ## Removed: WeChat / Alipay native sign-in
 
