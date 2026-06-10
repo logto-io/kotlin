@@ -40,22 +40,28 @@ class LogtoBrowserAuthActivity : Activity() {
     override fun onResume() {
         super.onResume()
 
+        // Handle a delivered redirect before consulting [authStarted]: if the system
+        // destroyed this activity while the Custom Tab was in the foreground, the
+        // redirect re-creates it with a fresh instance state.
+        val callbackUri = intent.data
+        if (callbackUri != null) {
+            if (LogtoAuthManager.isLogtoAuthResult(callbackUri)) {
+                LogtoAuthManager.handleCallbackUri(callbackUri)
+            }
+            // A URI that does not belong to the pending session can neither complete
+            // nor cancel it. [LogtoRedirectReceiverActivity] already filters these
+            // out; this is defense in depth.
+            finish()
+            return
+        }
+
         if (!authStarted) {
             startBrowserAuth()
             return
         }
 
-        val callbackUri = intent.data
-        when {
-            // Resumed without a redirect: the user dismissed the Custom Tab.
-            callbackUri == null -> LogtoAuthManager.handleUserCancel()
-            LogtoAuthManager.isLogtoAuthResult(callbackUri) ->
-                LogtoAuthManager.handleCallbackUri(callbackUri)
-            // A URI that does not belong to the pending session can neither complete
-            // nor cancel it. [LogtoRedirectReceiverActivity] already filters these
-            // out; this is defense in depth.
-            else -> Unit
-        }
+        // Resumed without a redirect: the user dismissed the Custom Tab.
+        LogtoAuthManager.handleUserCancel()
         finish()
     }
 
@@ -68,6 +74,13 @@ class LogtoBrowserAuthActivity : Activity() {
     private fun startBrowserAuth() {
         val uri = authUri
         if (uri == null) {
+            // Reachable only if the activity is launched without [EXTRA_AUTH_URI];
+            // still report a failure so a pending session is never left hanging.
+            LogtoAuthManager.handleFailure(
+                LogtoException(LogtoException.Type.UNABLE_TO_LAUNCH_BROWSER).apply {
+                    detail = "Missing auth URI."
+                },
+            )
             finish()
             return
         }

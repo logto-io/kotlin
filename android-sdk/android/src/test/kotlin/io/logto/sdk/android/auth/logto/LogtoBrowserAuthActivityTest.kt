@@ -64,11 +64,38 @@ class LogtoBrowserAuthActivityTest {
     }
 
     @Test
-    fun `should finish without launching anything if no auth uri is provided`() {
+    fun `should report a failure without launching anything if no auth uri is provided`() {
+        every { LogtoAuthManager.handleFailure(any()) } just Runs
+
         val controller = Robolectric.buildActivity(LogtoBrowserAuthActivity::class.java)
         controller.create().resume()
 
+        val exceptionCapture = slot<LogtoException>()
+        verify {
+            LogtoAuthManager.handleFailure(capture(exceptionCapture))
+        }
+        assertThat(exceptionCapture.captured)
+            .hasMessageThat()
+            .isEqualTo(LogtoException.Type.UNABLE_TO_LAUNCH_BROWSER.name)
         assertThat(shadowOf(controller.get()).nextStartedActivity).isNull()
+        assertThat(controller.get().isFinishing).isTrue()
+    }
+
+    @Test
+    fun `a redirect delivered to a recreated activity should complete the session`() {
+        every { LogtoAuthManager.isLogtoAuthResult(testCallbackUri) } returns true
+        every { LogtoAuthManager.handleCallbackUri(testCallbackUri) } just Runs
+
+        val redirectIntent = LogtoBrowserAuthActivity.createRedirectHandlingIntent(
+            ApplicationProvider.getApplicationContext(),
+            testCallbackUri,
+        )
+        val controller = Robolectric.buildActivity(LogtoBrowserAuthActivity::class.java, redirectIntent)
+        controller.create().resume()
+
+        verify {
+            LogtoAuthManager.handleCallbackUri(testCallbackUri)
+        }
         assertThat(controller.get().isFinishing).isTrue()
     }
 
