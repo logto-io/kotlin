@@ -2,6 +2,5 @@
 logtoSdk = "2.0.2" # x-release-please-version
 
 [libraries]
-logtoSdk-alipay = { module = "io.logto.sdk:alipay", version.ref = "logtoSdk" }
 logtoSdk-android = { module = "io.logto.sdk:android", version.ref = "logtoSdk" }
 logtoSdk-kotlin = { module = "io.logto.sdk:kotlin", version.ref = "logtoSdk" }

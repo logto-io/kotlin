@@ -1,8 +1,8 @@
 package io.logto.sdk.android
 
-import android.webkit.CookieManager
 import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.android.auth.logto.LogtoAuthSession
+import io.logto.sdk.android.auth.logto.LogtoSignOutSession
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.AccessToken
@@ -52,7 +52,8 @@ class LogtoClientTest {
         private const val TEST_REFRESH_TOKEN = "refreshToken"
         private const val TEST_TOKEN_ENDPOINT = "tokenEndpoint"
         private const val TEST_USERINFO_ENDPOINT = "userinfoEndpoint"
-        private const val TEST_REVOCATION_ENDPOINT = "endSessionEndpoint"
+        private const val TEST_REVOCATION_ENDPOINT = "revocationEndpoint"
+        private const val TEST_END_SESSION_ENDPOINT = "https://logto.dev/oidc/session/end"
         private const val TEST_ISSUER = "issuer"
         private const val TEST_ACCESS_TOKEN = "accessToken"
         private const val TEST_ID_TOKEN = "idToken"
@@ -140,11 +141,6 @@ class LogtoClientTest {
             firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
         }
 
-        val cookieManagerInstance = CookieManager.getInstance()
-        mockkObject(cookieManagerInstance)
-        every { cookieManagerInstance.removeAllCookies(any()) } just Runs
-        every { cookieManagerInstance.flush() } just Runs
-
         mockkObject(Core)
         every { Core.revoke(any(), any(), any(), any()) } just Runs
 
@@ -228,6 +224,61 @@ class LogtoClientTest {
         }
 
         assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should start a sign out session`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken("dummyRefreshToken")
+        logtoClient.setupIdToken("dummyIdToken")
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(null)
+        }
+
+        mockkConstructor(LogtoSignOutSession::class)
+        every {
+            anyConstructed<LogtoSignOutSession>().start()
+        } just Runs
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback", mockk())
+
+        verify {
+            Core.revoke(any(), any(), any(), any())
+            anyConstructed<LogtoSignOutSession>().start()
+        }
+
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should complete with exception if not authenticated`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        every { logtoClient.isAuthenticated } returns false
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback") {
+            assertThat(it)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.NOT_AUTHENTICATED.name)
+        }
     }
 
     @Test

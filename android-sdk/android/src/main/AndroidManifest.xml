@@ -5,37 +5,32 @@
         <intent>
             <action android:name="android.support.customtabs.action.CustomTabsService" />
         </intent>
-        <package android:name="com.tencent.mm" />
-        <package android:name="com.eg.android.AlipayGphone" />
     </queries>
 
     <application>
-        <activity android:name=".auth.logto.LogtoWebViewAuthActivity"
+        <activity android:name=".auth.logto.LogtoBrowserAuthActivity"
             android:exported="false"
-            android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
-            android:launchMode="singleTop" />
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
-        <activity android:name=".auth.social.web.WebSocialResultActivity"
-            android:exported="true">
+        <!--
+            Receives the OAuth redirect from the browser. The integrating app must define
+            the `logtoRedirectScheme` manifest placeholder, and its value must equal the
+            scheme of the redirect URI passed to `signIn` / `signOut`:
+
+            android {
+                defaultConfig {
+                    manifestPlaceholders["logtoRedirectScheme"] = "io.logto.android"
+                }
+            }
+        -->
+        <activity android:name=".auth.logto.LogtoRedirectReceiverActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="logto-callback"
-                    android:host="${applicationId}"
-                    android:pathPrefix="/web" />
-            </intent-filter>
-        </activity>
-
-        <activity android:name="com.alipay.sdk.app.AlipayResultActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="logto-callback"
-                    android:host="${applicationId}"
-                    android:pathPrefix="/alipay" />
+                <data android:scheme="${logtoRedirectScheme}" />
             </intent-filter>
         </activity>
     </application>

@@ -2,8 +2,8 @@ package io.logto.sdk.android
 
 import android.app.Activity
 import android.app.Application
-import android.webkit.CookieManager
 import io.logto.sdk.android.auth.logto.LogtoAuthSession
+import io.logto.sdk.android.auth.logto.LogtoSignOutSession
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.completion.EmptyCompletion
 import io.logto.sdk.android.constant.StorageKey
@@ -155,18 +155,16 @@ open class LogtoClient(
      *
      * Local credentials will be cleared even though there are errors occurred when signing out.
      *
+     * Note: the session in the browser is kept since the browser cookies are not accessible
+     * to the app. Use the [signOut] overload with a `postLogoutRedirectUri` to also end
+     * the session on the Logto server.
+     *
      * @param[completion] the completion which handles the error occurred when signing out
      */
     fun signOut(completion: EmptyCompletion<LogtoException>? = null) {
         if (!isAuthenticated) {
             completion?.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
             return
-        }
-
-        // Mark - Clear Cookies of WebView
-        CookieManager.getInstance().apply {
-            removeAllCookies(null)
-            flush()
         }
 
         accessTokenMap.clear()
@@ -192,6 +190,54 @@ open class LogtoClient(
                 }
             }
         } ?: completion?.onComplete(null)
+    }
+
+    /**
+     * Sign out and end the session on the Logto server.
+     *
+     * The end session endpoint is opened in the browser, and the user is navigated back
+     * to the app through the [postLogoutRedirectUri]. Local credentials are cleared and
+     * the refresh token is revoked before the browser opens, so the local session always
+     * ends even if the browser flow is abandoned.
+     *
+     * @param[context] the activity to perform the sign-out action
+     * @param[postLogoutRedirectUri] one of the post sign-out redirect URIs of this application;
+     * its scheme must match the `logtoRedirectScheme` manifest placeholder
+     * @param[completion] the completion which handles the error occurred when signing out
+     */
+    fun signOut(
+        context: Activity,
+        postLogoutRedirectUri: String,
+        completion: EmptyCompletion<LogtoException>? = null,
+    ) {
+        if (!isAuthenticated) {
+            completion?.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
+            return
+        }
+
+        getOidcConfig { getOidcConfigException, oidcConfig ->
+            getOidcConfigException?.let {
+                completion?.onComplete(it)
+                return@getOidcConfig
+            }
+
+            val signOutUri = Core.generateSignOutUri(
+                endSessionEndpoint = requireNotNull(oidcConfig).endSessionEndpoint,
+                clientId = logtoConfig.appId,
+                postLogoutRedirectUri = postLogoutRedirectUri,
+            )
+
+            signOut { revokeException ->
+                val signOutSession = LogtoSignOutSession(
+                    context = context,
+                    signOutUri = signOutUri,
+                    postLogoutRedirectUri = postLogoutRedirectUri,
+                ) { browserException ->
+                    completion?.onComplete(browserException ?: revokeException)
+                }
+                signOutSession.start()
+            }
+        }
     }
 
     /**
