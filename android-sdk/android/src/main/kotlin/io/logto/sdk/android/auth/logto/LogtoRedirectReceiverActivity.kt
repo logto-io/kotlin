@@ -12,9 +12,10 @@ class LogtoRedirectReceiverActivity : Activity() {
         super.onCreate(savedInstanceState)
         val redirectUri = intent.data
         // This activity is exported and its intent filter only matches the scheme,
-        // so any app can send it an arbitrary URI. Forward only the redirect the
-        // pending session is waiting for — a forged intent must not be able to
-        // disturb an in-flight flow.
+        // so any app can send it an arbitrary URI. Forwarding is gated on the
+        // pending session's redirect URI to keep unrelated intents away from the
+        // auth activity; a crafted URI that does match the redirect URI is still
+        // forwarded, and rejecting it is up to the session's `state` verification.
         if (redirectUri != null && LogtoAuthManager.isLogtoAuthResult(redirectUri)) {
             startActivity(LogtoBrowserAuthActivity.createRedirectHandlingIntent(this, redirectUri))
         }

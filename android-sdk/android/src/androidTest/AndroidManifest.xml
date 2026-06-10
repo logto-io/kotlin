@@ -2,8 +2,9 @@
 <!--
     The `logtoRedirectScheme` manifest placeholder is provided by the integrating app and
     must stay unsubstituted in the AAR manifest, so no value exists when the library's own
-    unit test manifest is merged. The receiver activity is removed here to keep the test
-    manifest free of the placeholder; Robolectric does not require it to be registered.
+    instrumentation test manifest is merged. The receiver activity is removed here to keep
+    the test manifest free of the placeholder; the instrumentation tests do not need it to
+    be registered.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
