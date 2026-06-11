@@ -20,6 +20,9 @@ jobs:
           token: ${{ secrets.BOT_PAT }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          # Without this, release-please falls back to the repository default
+          # branch (master) and never builds a release PR for this branch.
+          target-branch: v2.x
 
   # GitHub marks the most recently created release as "Latest" by default,
   # so a maintenance release cut here would steal the badge from the v3 line.
