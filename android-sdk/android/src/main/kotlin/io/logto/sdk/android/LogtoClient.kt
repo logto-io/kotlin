@@ -35,9 +35,9 @@ open class LogtoClient(
     /**
      * Guards the credential fields below: token flows that were in flight when
      * [signOut] or [clearCredentials] dropped the credentials must not persist
-     * their (now stale) results. See [SessionGuard].
+     * their (now stale) results. See [CredentialGuard].
      */
-    private val sessionGuard = SessionGuard()
+    private val credentialGuard = CredentialGuard()
 
     /**
      * Cached access tokens.
@@ -105,7 +105,7 @@ open class LogtoClient(
         options: SignInOptions,
         completion: EmptyCompletion<LogtoException>,
     ) {
-        val sessionStamp = sessionGuard.stamp()
+        val credentialStamp = credentialGuard.stamp()
 
         getOidcConfig { getOidcConfigException, oidcConfig ->
             getOidcConfigException?.let {
@@ -133,7 +133,7 @@ open class LogtoClient(
                 )
 
                 verifyAndSaveTokenResponse(
-                    sessionStamp = sessionStamp,
+                    credentialStamp = credentialStamp,
                     issuer = oidcConfig.issuer,
                     responseIdToken = codeToken.idToken,
                     responseRefreshToken = codeToken.refreshToken,
@@ -347,7 +347,7 @@ open class LogtoClient(
         // The stamp must be taken before any credential is read: a sign-out that lands
         // between the read and the stamp would otherwise go unnoticed and the refreshed
         // tokens would be committed against the already-cleared credentials.
-        val sessionStamp = sessionGuard.stamp()
+        val credentialStamp = credentialGuard.stamp()
 
         if (!isAuthenticated) {
             completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED), null)
@@ -376,7 +376,7 @@ open class LogtoClient(
 
         // MARK: If cannot refresh the access token, then return a NOT_AUTHENTICATED error
         // Snapshot the refresh token: a concurrent sign-out can null the field while this
-        // flow is between its async hops; the flow runs on the snapshot and the session
+        // flow is between its async hops; the flow runs on the snapshot and the credential
         // guard arbitrates at commit time.
         val tokenForRefresh = refreshToken
         if (tokenForRefresh == null) {
@@ -421,7 +421,7 @@ open class LogtoClient(
                 )
 
                 verifyAndSaveTokenResponse(
-                    sessionStamp = sessionStamp,
+                    credentialStamp = credentialStamp,
                     issuer = oidcConfig.issuer,
                     responseIdToken = refreshedToken.idToken,
                     responseRefreshToken = refreshedToken.refreshToken,
@@ -523,7 +523,7 @@ open class LogtoClient(
      *
      * @return the refresh token that was current, for the caller to revoke
      */
-    private fun dropCredentials(): String? = sessionGuard.invalidate {
+    private fun dropCredentials(): String? = credentialGuard.invalidate {
         val tokenToRevoke = refreshToken
         accessTokenMap.clear()
         idToken = null
@@ -532,7 +532,7 @@ open class LogtoClient(
     }
 
     private fun verifyAndSaveTokenResponse(
-        sessionStamp: Int,
+        credentialStamp: Int,
         issuer: String,
         responseIdToken: String?,
         responseRefreshToken: String?,
@@ -541,7 +541,7 @@ open class LogtoClient(
         completion: EmptyCompletion<LogtoException>,
     ) {
         // Discard already-stale flows before fetching the JWKS or verifying the response
-        if (!sessionGuard.isCurrent(sessionStamp)) {
+        if (!credentialGuard.isCurrent(credentialStamp)) {
             completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
             return
         }
@@ -550,7 +550,7 @@ open class LogtoClient(
             val verificationException = getJwksException ?: verifyIdToken(responseIdToken, issuer, jwks)
 
             val saved = verificationException == null &&
-                sessionGuard.commit(sessionStamp) {
+                credentialGuard.commit(credentialStamp) {
                     responseIdToken?.let { idToken = it }
                     accessTokenMap[accessTokenKey] = accessToken
                     refreshToken = responseRefreshToken
@@ -561,7 +561,7 @@ open class LogtoClient(
                     saved -> null
                     // Stale flows always complete with NOT_AUTHENTICATED, even when the
                     // response would also have failed verification
-                    !sessionGuard.isCurrent(sessionStamp) ->
+                    !credentialGuard.isCurrent(credentialStamp) ->
                         LogtoException(LogtoException.Type.NOT_AUTHENTICATED)
                     else -> verificationException
                 },
@@ -673,7 +673,7 @@ open class LogtoClient(
  * lands after a sign-out from resurrecting the cleared credentials, and a response
  * from before a sign-out from clobbering the session of a later sign-in.
  */
-private class SessionGuard {
+private class CredentialGuard {
     private var version = 0
 
     @Synchronized
