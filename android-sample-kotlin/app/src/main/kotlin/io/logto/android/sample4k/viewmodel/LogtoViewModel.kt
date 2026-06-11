@@ -45,13 +45,36 @@ class LogtoViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Complete sign-out: clears local credentials AND ends the session on the Logto server
+    // through the browser. With a post sign-out redirect URI, the browser navigates back to
+    // the app automatically (register the URI in the Logto console first).
     fun signOut(context: Activity) {
-        // Ends the session on the Logto server through the browser; local credentials are
-        // cleared even if the browser flow is abandoned.
         logtoClient.signOut(context, "io.logto.android://io.logto.android.sample4k/callback") {
-            it?.let { _logtoException.postValue(it) }
-            _authenticated.postValue(logtoClient.isAuthenticated)
+            handleSignOutResult(it)
         }
+    }
+
+    // Complete sign-out as well — same effect on the server session as the one above. The
+    // only difference is UX: without a redirect URI the browser shows the Logto sign-out
+    // page and the user returns by dismissing it manually (no console configuration needed).
+    fun signOutWithoutRedirect(context: Activity) {
+        logtoClient.signOut(context) {
+            handleSignOutResult(it)
+        }
+    }
+
+    // Local sign-out only: clears the cached tokens and revokes the refresh token, but does
+    // NOT end the session on the Logto server (no browser is opened). The session cookie
+    // stays in the browser, so the next signIn may silently sign back in via SSO.
+    fun clearCredentials() {
+        logtoClient.clearCredentials {
+            handleSignOutResult(it)
+        }
+    }
+
+    private fun handleSignOutResult(exception: LogtoException?) {
+        exception?.let { _logtoException.postValue(it) }
+        _authenticated.postValue(logtoClient.isAuthenticated)
     }
 
     fun getAccessToken() {
