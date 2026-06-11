@@ -197,18 +197,18 @@ open class LogtoClient(
     }
 
     /**
-     * Sign out: clear local credentials, revoke the refresh token, and end the session
-     * on the Logto server by opening the end session endpoint in the browser.
+     * Sign out: clear local credentials, revoke the refresh token if one is present, and
+     * end the session on the Logto server by opening the end session endpoint in the browser.
      *
      * Local credentials are cleared as soon as the sign-out starts, so the local session
      * always ends even if fetching the OIDC config fails or the browser flow is abandoned.
      *
-     * The refresh token revocation settles before the end session endpoint is opened in
-     * the browser. When [postLogoutRedirectUri] is provided, the browser navigates back
-     * to the app through it after the session ends — register the URI in the Logto
-     * console first; its scheme must match the `logtoRedirectScheme` manifest
-     * placeholder. When omitted, the browser shows the Logto sign-out page and the user
-     * dismisses it manually.
+     * When a refresh token is present its revocation settles before the end session
+     * endpoint is opened in the browser. When [postLogoutRedirectUri] is provided, the
+     * browser navigates back to the app through it after the session ends — register the
+     * URI in the Logto console first; its scheme must match the `logtoRedirectScheme`
+     * manifest placeholder. When omitted, the browser shows the Logto sign-out page and
+     * the user dismisses it manually.
      *
      * Dismissing the browser is never reported as [LogtoException.Type.USER_CANCELED]:
      * the local sign-out has already taken effect by the time the browser opens.

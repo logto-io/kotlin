@@ -75,10 +75,10 @@ on Maven Central and receives fixes on the `v2.x` line.
 ## Changed: sign-out API
 
 In v3, `signOut` performs a complete sign-out: it clears local credentials, revokes the
-refresh token, and ends the session on the Logto server by opening the end session
-endpoint in the browser. Local credentials are always cleared; the remote steps are
-best-effort and need the OIDC config to be reachable — any failure is reported through
-the completion.
+refresh token (when one is present), and ends the session on the Logto server by opening
+the end session endpoint in the browser. Local credentials are always cleared; the remote
+steps are best-effort and need the OIDC config to be reachable — any failure is reported
+through the completion.
 
 ```kotlin
 // The browser opens briefly and navigates back to the app through the post sign-out
