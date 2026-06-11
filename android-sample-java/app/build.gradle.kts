@@ -7,6 +7,8 @@ android {
         applicationId = "io.logto.android.sample4j"
         versionCode = 1
         versionName = "1.0.0"
+        // Must equal the scheme of the redirect URI passed to `signIn` / `signOut`.
+        manifestPlaceholders["logtoRedirectScheme"] = "io.logto.android"
     }
 }
 

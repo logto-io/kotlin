@@ -64,11 +64,6 @@ android {
 dependencies {
     api(logto.logtoSdk.kotlin)
 
-    compileOnly(logto.logtoSdk.alipay)
-    compileOnly(libs.wechatSdkAndroid)
-
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.browser)
 
     testImplementation(libs.kotlin.test.junit)
@@ -76,8 +71,6 @@ dependencies {
     testImplementation(libs.truth)
     testImplementation(libs.mockk)
     testImplementation(libs.androidx.test.ext.junit)
-    testImplementation(logto.logtoSdk.alipay)
-    testImplementation(libs.wechatSdkAndroid)
 }
 
 // The content below follows the requirements before we publish this artifact to Maven Central

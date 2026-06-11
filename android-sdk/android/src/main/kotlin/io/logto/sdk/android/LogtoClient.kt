@@ -2,8 +2,8 @@ package io.logto.sdk.android
 
 import android.app.Activity
 import android.app.Application
-import android.webkit.CookieManager
 import io.logto.sdk.android.auth.logto.LogtoAuthSession
+import io.logto.sdk.android.auth.logto.LogtoSignOutSession
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.completion.EmptyCompletion
 import io.logto.sdk.android.constant.StorageKey
@@ -14,6 +14,7 @@ import io.logto.sdk.android.type.AccessToken
 import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.type.SignInOptions
 import io.logto.sdk.android.util.LogtoUtils.expiresAtFrom
+import io.logto.sdk.android.util.LogtoUtils.isValidRedirectUri
 import io.logto.sdk.android.util.LogtoUtils.nowRoundToSec
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.constant.UserScope
@@ -155,18 +156,16 @@ open class LogtoClient(
      *
      * Local credentials will be cleared even though there are errors occurred when signing out.
      *
+     * Note: the session in the browser is kept since the browser cookies are not accessible
+     * to the app. Use the [signOut] overload with a `postLogoutRedirectUri` to also end
+     * the session on the Logto server.
+     *
      * @param[completion] the completion which handles the error occurred when signing out
      */
     fun signOut(completion: EmptyCompletion<LogtoException>? = null) {
         if (!isAuthenticated) {
             completion?.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
             return
-        }
-
-        // Mark - Clear Cookies of WebView
-        CookieManager.getInstance().apply {
-            removeAllCookies(null)
-            flush()
         }
 
         accessTokenMap.clear()
@@ -192,6 +191,63 @@ open class LogtoClient(
                 }
             }
         } ?: completion?.onComplete(null)
+    }
+
+    /**
+     * Sign out and end the session on the Logto server.
+     *
+     * The end session endpoint is opened in the browser, and the user is navigated back
+     * to the app through the [postLogoutRedirectUri]. Local credentials are cleared and
+     * the refresh token is revoked before the browser opens, so the local session always
+     * ends even if the browser flow is abandoned.
+     *
+     * An invalid [postLogoutRedirectUri] is reported as
+     * [LogtoException.Type.INVALID_REDIRECT_URI] without opening the browser; local
+     * credentials are still cleared and the refresh token is revoked.
+     *
+     * @param[context] the activity to perform the sign-out action
+     * @param[postLogoutRedirectUri] one of the post sign-out redirect URIs of this application;
+     * its scheme must match the `logtoRedirectScheme` manifest placeholder
+     * @param[completion] the completion which handles the error occurred when signing out
+     */
+    fun signOut(
+        context: Activity,
+        postLogoutRedirectUri: String,
+        completion: EmptyCompletion<LogtoException>? = null,
+    ) {
+        if (!isAuthenticated) {
+            completion?.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
+            return
+        }
+
+        if (!isValidRedirectUri(postLogoutRedirectUri)) {
+            signOut { completion?.onComplete(LogtoException(LogtoException.Type.INVALID_REDIRECT_URI)) }
+            return
+        }
+
+        getOidcConfig { getOidcConfigException, oidcConfig ->
+            getOidcConfigException?.let {
+                completion?.onComplete(it)
+                return@getOidcConfig
+            }
+
+            val signOutUri = Core.generateSignOutUri(
+                endSessionEndpoint = requireNotNull(oidcConfig).endSessionEndpoint,
+                clientId = logtoConfig.appId,
+                postLogoutRedirectUri = postLogoutRedirectUri,
+            )
+
+            signOut { revokeException ->
+                val signOutSession = LogtoSignOutSession(
+                    context = context,
+                    signOutUri = signOutUri,
+                    postLogoutRedirectUri = postLogoutRedirectUri,
+                ) { browserException ->
+                    completion?.onComplete(browserException ?: revokeException)
+                }
+                signOutSession.start()
+            }
+        }
     }
 
     /**

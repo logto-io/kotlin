@@ -6,6 +6,7 @@ import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.type.SignInOptions
+import io.logto.sdk.android.util.LogtoUtils
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.exception.CallbackUriVerificationException
 import io.logto.sdk.core.type.CodeTokenResponse
@@ -20,13 +21,14 @@ class LogtoAuthSession(
     val oidcConfig: OidcConfigResponse,
     val signInOptions: SignInOptions,
     private val completion: Completion<LogtoException, CodeTokenResponse>,
-) {
+) : LogtoBrowserSession {
     private val codeVerifier = GenerateUtils.generateCodeVerifier()
     private val state = GenerateUtils.generateState()
 
+    override val redirectUri get() = signInOptions.redirectUri
+
     fun start() {
-        val redirectUri = Uri.parse(signInOptions.redirectUri)
-        if (redirectUri.scheme == null || !redirectUri.isHierarchical || redirectUri.fragment != null) {
+        if (!LogtoUtils.isValidRedirectUri(signInOptions.redirectUri)) {
             completion.onComplete(LogtoException(LogtoException.Type.INVALID_REDIRECT_URI), null)
             return
         }
@@ -52,10 +54,10 @@ class LogtoAuthSession(
             ),
         )
 
-        LogtoWebViewAuthActivity.launch(context, signInUri)
+        LogtoBrowserAuthActivity.launch(context, signInUri)
     }
 
-    fun handleCallbackUri(callbackUri: Uri) {
+    override fun handleCallbackUri(callbackUri: Uri) {
         val authorizationCode = try {
             CallbackUriUtils.verifyAndParseCodeFromCallbackUri(
                 callbackUri.toString(),
@@ -91,7 +93,11 @@ class LogtoAuthSession(
         }
     }
 
-    fun handleUserCancel() {
+    override fun handleUserCancel() {
         completion.onComplete(LogtoException(LogtoException.Type.USER_CANCELED), null)
+    }
+
+    override fun handleFailure(exception: LogtoException) {
+        completion.onComplete(exception, null)
     }
 }

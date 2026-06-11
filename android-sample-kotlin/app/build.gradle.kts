@@ -11,14 +11,12 @@ android {
         applicationId = "io.logto.android.sample4k"
         versionCode = 1
         versionName = "1.0.0"
+        // Must equal the scheme of the redirect URI passed to `signIn` / `signOut`.
+        manifestPlaceholders["logtoRedirectScheme"] = "io.logto.android"
     }
 }
 
 dependencies {
-    // TODO - Use Custom Plugins
-    implementation(logto.logtoSdk.alipay)
-    api("com.tencent.mm.opensdk:wechat-sdk-android:6.8.0")
-
     implementation(logto.logtoSdk.android)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)

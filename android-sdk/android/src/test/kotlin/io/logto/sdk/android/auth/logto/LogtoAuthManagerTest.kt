@@ -2,6 +2,7 @@ package io.logto.sdk.android.auth.logto
 
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
+import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.SignInOptions
 import io.mockk.Runs
 import io.mockk.every
@@ -18,43 +19,57 @@ class LogtoAuthManagerTest {
 
     @After
     fun tearDown() {
-        LogtoAuthManager.logtoAuthSession = null
+        LogtoAuthManager.browserSession = null
     }
 
     @Test
-    fun `handleAuthStart should cache current logto auth session`() {
-        val mockLogtoAuthSession: LogtoAuthSession = mockk()
-        LogtoAuthManager.handleAuthStart(mockLogtoAuthSession)
-        assertThat(LogtoAuthManager.logtoAuthSession).isEqualTo(mockLogtoAuthSession)
+    fun `handleAuthStart should cache current browser session`() {
+        val mockBrowserSession: LogtoBrowserSession = mockk()
+        LogtoAuthManager.handleAuthStart(mockBrowserSession)
+        assertThat(LogtoAuthManager.browserSession).isEqualTo(mockBrowserSession)
     }
 
     @Test
     fun `handleCallbackUri should invoke the handleCallbackUri method in the session and clear the session cache`() {
-        val mockLogtoAuthSession: LogtoAuthSession = mockk()
-        every { mockLogtoAuthSession.handleCallbackUri(any()) } just Runs
+        val mockBrowserSession: LogtoBrowserSession = mockk()
+        every { mockBrowserSession.handleCallbackUri(any()) } just Runs
         val mockCallbackUri: Uri = mockk()
 
-        LogtoAuthManager.handleAuthStart(mockLogtoAuthSession)
+        LogtoAuthManager.handleAuthStart(mockBrowserSession)
         LogtoAuthManager.handleCallbackUri(mockCallbackUri)
 
         verify {
-            mockLogtoAuthSession.handleCallbackUri(any())
+            mockBrowserSession.handleCallbackUri(any())
         }
-        assertThat(LogtoAuthManager.logtoAuthSession).isNull()
+        assertThat(LogtoAuthManager.browserSession).isNull()
     }
 
     @Test
     fun `handleUserCancel should invoke the handleUserCancel method in the session and clear session cache`() {
-        val mockLogtoAuthSession: LogtoAuthSession = mockk()
-        every { mockLogtoAuthSession.handleUserCancel() } just Runs
+        val mockBrowserSession: LogtoBrowserSession = mockk()
+        every { mockBrowserSession.handleUserCancel() } just Runs
 
-        LogtoAuthManager.handleAuthStart(mockLogtoAuthSession)
+        LogtoAuthManager.handleAuthStart(mockBrowserSession)
         LogtoAuthManager.handleUserCancel()
 
         verify {
-            mockLogtoAuthSession.handleUserCancel()
+            mockBrowserSession.handleUserCancel()
         }
-        assertThat(LogtoAuthManager.logtoAuthSession).isNull()
+        assertThat(LogtoAuthManager.browserSession).isNull()
+    }
+
+    @Test
+    fun `handleFailure should invoke the handleFailure method in the session and clear session cache`() {
+        val mockBrowserSession: LogtoBrowserSession = mockk()
+        every { mockBrowserSession.handleFailure(any()) } just Runs
+
+        LogtoAuthManager.handleAuthStart(mockBrowserSession)
+        LogtoAuthManager.handleFailure(LogtoException(LogtoException.Type.UNABLE_TO_LAUNCH_BROWSER))
+
+        verify {
+            mockBrowserSession.handleFailure(any())
+        }
+        assertThat(LogtoAuthManager.browserSession).isNull()
     }
 
     @Test
@@ -180,7 +195,7 @@ class LogtoAuthManagerTest {
 
     @Test
     fun `isLogtoAuthResult should return false if no session is provided`() {
-        assertThat(LogtoAuthManager.logtoAuthSession).isNull()
+        assertThat(LogtoAuthManager.browserSession).isNull()
         assertThat(LogtoAuthManager.isLogtoAuthResult(mockk())).isFalse()
     }
 }

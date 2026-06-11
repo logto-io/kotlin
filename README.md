@@ -28,6 +28,40 @@ implementation 'io.logto.sdk:android:<version>'
 implementation("io.logto.sdk:android:<version>")
 ```
 
+### Configure the redirect scheme
+
+The sign-in experience opens in a [Custom Tab](https://developer.android.com/develop/ui/views/layout/webapps/overview-of-android-custom-tabs)
+(the system browser), so WebAuthn/passkeys and the browser session work out of the box.
+The OAuth redirect is routed back to your app through an intent filter, and you must declare
+its scheme with the `logtoRedirectScheme` manifest placeholder in your app's `build.gradle(.kts)`.
+
+The placeholder is the custom scheme of the redirect URI passed to `signIn` / `signOut`
+(lowercase, reverse-DNS style). The redirect URI follows the pattern
+`$(scheme)://$(applicationId)/callback`, e.g. `io.logto.android://io.logto.sample/callback` —
+the host is bound to your `applicationId` by the SDK, the path is fixed to `/callback`,
+and both are enforced by Android's intent filter matching.
+
+#### Groovy
+```groovy
+android {
+    defaultConfig {
+        manifestPlaceholders.logtoRedirectScheme = 'io.logto.android'
+    }
+}
+```
+
+#### Kotlin
+```kotlin
+android {
+    defaultConfig {
+        manifestPlaceholders["logtoRedirectScheme"] = "io.logto.android"
+    }
+}
+```
+
+> Upgrading from v2? See [MIGRATION.md](./MIGRATION.md) for the breaking changes
+> (WebView removal, WeChat/Alipay native sign-in removal, and more).
+
 ## Products
 | Name | Description |
 |---|---|

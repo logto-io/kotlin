@@ -2,30 +2,36 @@ package io.logto.sdk.android.auth.logto
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import io.logto.sdk.android.exception.LogtoException
 
 private const val PERCENT_ENCODED_CHARACTER_LENGTH = 3
 private const val HEX_RADIX = 16
 
 internal object LogtoAuthManager {
     @SuppressLint("StaticFieldLeak")
-    internal var logtoAuthSession: LogtoAuthSession? = null
+    internal var browserSession: LogtoBrowserSession? = null
 
-    fun handleAuthStart(authSession: LogtoAuthSession) {
-        logtoAuthSession = authSession
+    fun handleAuthStart(session: LogtoBrowserSession) {
+        browserSession = session
     }
 
     fun handleCallbackUri(uri: Uri) {
-        logtoAuthSession?.handleCallbackUri(uri)
-        logtoAuthSession = null
+        browserSession?.handleCallbackUri(uri)
+        browserSession = null
     }
 
     fun handleUserCancel() {
-        logtoAuthSession?.handleUserCancel()
-        logtoAuthSession = null
+        browserSession?.handleUserCancel()
+        browserSession = null
     }
 
-    fun isLogtoAuthResult(uri: Uri) = logtoAuthSession?.let { authSession ->
-        uri.matchesRedirectUri(Uri.parse(authSession.signInOptions.redirectUri))
+    fun handleFailure(exception: LogtoException) {
+        browserSession?.handleFailure(exception)
+        browserSession = null
+    }
+
+    fun isLogtoAuthResult(uri: Uri) = browserSession?.let { session ->
+        uri.matchesRedirectUri(Uri.parse(session.redirectUri))
     } ?: false
 
     private fun Uri.matchesRedirectUri(redirectUri: Uri): Boolean {
