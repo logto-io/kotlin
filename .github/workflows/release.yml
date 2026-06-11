@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [master]
+    branches: [v2.x]
 
 permissions:
   contents: read
@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -19,6 +20,20 @@ jobs:
           token: ${{ secrets.BOT_PAT }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  # GitHub marks the most recently created release as "Latest" by default,
+  # so a maintenance release cut here would steal the badge from the v3 line.
+  unmark-latest:
+    needs: release-please
+    if: needs.release-please.outputs.releases_created == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Unmark this release as latest
+        env:
+          GH_TOKEN: ${{ secrets.BOT_PAT }}
+        run: |
+          release_id=$(gh api "repos/${{ github.repository }}/releases/tags/${{ needs.release-please.outputs.tag_name }}" --jq .id)
+          gh api -X PATCH "repos/${{ github.repository }}/releases/$release_id" -f make_latest=false
 
   publish:
     needs: release-please
