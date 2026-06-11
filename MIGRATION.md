@@ -12,8 +12,8 @@ needed. In v3 the redirect comes back to the app through an OS-level intent filt
 
 The redirect URI keeps the v2 pattern
 `$(LOGTO_REDIRECT_SCHEME)://$(YOUR_APP_PACKAGE)/callback` — e.g.
-`io.logto.android://io.logto.sample/callback` — but v3 turns both parts of the
-convention into enforced requirements:
+`io.logto.android://io.logto.sample/callback` — but v3 turns the whole pattern
+into enforced requirements:
 
 The **scheme** must be declared via the `logtoRedirectScheme` manifest placeholder
 (a lowercase, reverse-DNS style custom scheme):
@@ -38,6 +38,10 @@ pattern was a documented convention; in v3 a redirect URI whose host is not your
 `applicationId` is never delivered to the app, so check your registered URIs when
 upgrading. Keep both parts lowercase: intent filter matching is case-sensitive, and
 browsers lowercase the scheme.
+
+The **path** must be `/callback`. In v2 any path worked; in v3 the intent filter also
+constrains the path, so a redirect URI with a different path is never delivered to
+the app — update any registered URIs that deviate from the pattern.
 
 The `signIn` call itself is unchanged; deriving the URI from `BuildConfig.APPLICATION_ID`
 keeps it correct across build variants that use an `applicationIdSuffix`:

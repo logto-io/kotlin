@@ -38,7 +38,8 @@ its scheme with the `logtoRedirectScheme` manifest placeholder in your app's `bu
 The placeholder is the custom scheme of the redirect URI passed to `signIn` / `signOut`
 (lowercase, reverse-DNS style). The redirect URI follows the pattern
 `$(scheme)://$(applicationId)/callback`, e.g. `io.logto.android://io.logto.sample/callback` —
-the host is bound to your `applicationId` by the SDK and enforced by Android.
+the host is bound to your `applicationId` by the SDK, the path is fixed to `/callback`,
+and both are enforced by Android's intent filter matching.
 
 #### Groovy
 ```groovy

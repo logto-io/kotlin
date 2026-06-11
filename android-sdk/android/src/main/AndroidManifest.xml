@@ -30,6 +30,9 @@
             - the host is bound to the app's own application id through the built-in
               `${applicationId}` placeholder, so the OS only routes redirects that are
               addressed to this app even when several apps share the same scheme.
+
+            - the path is fixed to `/callback`, so deep links that share the scheme
+              and host but serve other purposes are not routed here.
         -->
         <activity android:name=".auth.logto.LogtoRedirectReceiverActivity"
             android:exported="true"
@@ -38,7 +41,9 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="${logtoRedirectScheme}" android:host="${applicationId}" />
+                <data android:scheme="${logtoRedirectScheme}"
+                    android:host="${applicationId}"
+                    android:path="/callback" />
             </intent-filter>
         </activity>
     </application>
