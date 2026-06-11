@@ -650,6 +650,41 @@ class LogtoClientTest {
     }
 
     @Test
+    fun `signOut while the oidc config fetch is in flight should not crash the refresh flow`() {
+        setupDeferredRefreshTestEnv()
+
+        // Defer the oidc config fetch as well, so the sign-out can land inside the
+        // window between the refresh-token null check and the token request
+        val oidcConfigCompletions = mutableListOf<Completion<LogtoException, OidcConfigResponse>>()
+        every { logtoClient.getOidcConfig(any()) } answers {
+            oidcConfigCompletions.add(firstArg())
+        }
+
+        val accessTokenResults = mutableListOf<Pair<LogtoException?, AccessToken?>>()
+        logtoClient.getAccessToken { logtoException, result ->
+            accessTokenResults.add(logtoException to result)
+        }
+        assertThat(oidcConfigCompletions).hasSize(1)
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback")
+
+        // The oidc config arrives after the sign-out has already cleared the refresh token
+        oidcConfigCompletions.first().onComplete(null, oidcConfigResponseMock)
+
+        // The refresh runs on the snapshot it started from, and its response is discarded
+        assertThat(usedRefreshTokens).containsExactly(TEST_REFRESH_TOKEN)
+        assertThat(pendingRefreshCompletions).hasSize(1)
+        pendingRefreshCompletions.last().onComplete(null, mockRefreshTokenTokenResponse())
+
+        assertThat(accessTokenResults).hasSize(1)
+        assertThat(accessTokenResults.last().first)
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        assertThat(accessTokenResults.last().second).isNull()
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
     fun `signOut during an ongoing sign-in should discard the sign-in result`() {
         setupDeferredRefreshTestEnv()
 

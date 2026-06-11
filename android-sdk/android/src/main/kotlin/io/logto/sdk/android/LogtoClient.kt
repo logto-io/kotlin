@@ -375,7 +375,11 @@ open class LogtoClient(
         }
 
         // MARK: If cannot refresh the access token, then return a NOT_AUTHENTICATED error
-        if (refreshToken == null) {
+        // Snapshot the refresh token: a concurrent sign-out can null the field while this
+        // flow is between its async hops; the flow runs on the snapshot and the session
+        // guard arbitrates at commit time.
+        val tokenForRefresh = refreshToken
+        if (tokenForRefresh == null) {
             completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED), null)
             return
         }
@@ -390,7 +394,7 @@ open class LogtoClient(
             Core.fetchTokenByRefreshToken(
                 tokenEndpoint = requireNotNull(oidcConfig).tokenEndpoint,
                 clientId = logtoConfig.appId,
-                refreshToken = requireNotNull(refreshToken),
+                refreshToken = tokenForRefresh,
                 resource = resource,
                 organizationId = organizationId,
                 scopes = null,
@@ -436,12 +440,14 @@ open class LogtoClient(
      * @param[completion] the completion which handles the retrieved result
      */
     fun getIdTokenClaims(completion: Completion<LogtoException, IdTokenClaims>) {
-        if (!isAuthenticated) {
+        // Snapshot the ID token: a concurrent sign-out can null the field at any point
+        val currentIdToken = idToken
+        if (!isAuthenticated || currentIdToken == null) {
             completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED), null)
             return
         }
         try {
-            val idTokenClaims = TokenUtils.decodeIdToken(requireNotNull(idToken))
+            val idTokenClaims = TokenUtils.decodeIdToken(currentIdToken)
             completion.onComplete(null, idTokenClaims)
         } catch (exception: InvalidJwtException) {
             completion.onComplete(
