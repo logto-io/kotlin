@@ -45,6 +45,14 @@ class TokenFragment : Fragment() {
         view.findViewById<Button>(R.id.sign_out_button).setOnClickListener {
             logtoViewModel.signOut(requireActivity())
         }
+
+        view.findViewById<Button>(R.id.sign_out_without_redirect_button).setOnClickListener {
+            logtoViewModel.signOutWithoutRedirect(requireActivity())
+        }
+
+        view.findViewById<Button>(R.id.clear_credentials_button).setOnClickListener {
+            logtoViewModel.clearCredentials()
+        }
     }
 
     private fun initViewModel() {

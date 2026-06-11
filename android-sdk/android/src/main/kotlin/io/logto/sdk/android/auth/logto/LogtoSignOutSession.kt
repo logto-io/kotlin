@@ -11,7 +11,7 @@ import io.logto.sdk.android.exception.LogtoException
 class LogtoSignOutSession(
     private val context: Activity,
     private val signOutUri: String,
-    postLogoutRedirectUri: String,
+    postLogoutRedirectUri: String?,
     private val completion: EmptyCompletion<LogtoException>,
 ) : LogtoBrowserSession {
     override val redirectUri = postLogoutRedirectUri
@@ -26,7 +26,10 @@ class LogtoSignOutSession(
     }
 
     override fun handleUserCancel() {
-        completion.onComplete(LogtoException(LogtoException.Type.USER_CANCELED))
+        // Local credentials are cleared, and any refresh token has been revoked, before
+        // the browser opens; ending the server session is best-effort, and without a
+        // redirect URI dismissing the browser is the only way back to the app.
+        completion.onComplete(null)
     }
 
     override fun handleFailure(exception: LogtoException) {

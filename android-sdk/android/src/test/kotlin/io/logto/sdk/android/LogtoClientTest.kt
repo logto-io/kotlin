@@ -131,7 +131,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `signOut should clear all relative data`() {
+    fun `clearCredentials should clear all relevant data`() {
         every { logtoConfigMock.appId } returns TEST_APP_ID
 
         logtoClient = LogtoClient(logtoConfigMock, mockk())
@@ -149,7 +149,7 @@ class LogtoClientTest {
         mockkObject(Core)
         every { Core.revoke(any(), any(), any(), any()) } just Runs
 
-        logtoClient.signOut(mockk())
+        logtoClient.clearCredentials(mockk())
 
         verify {
             Core.revoke(any(), any(), any(), any())
@@ -159,14 +159,14 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `signOut should complete with exception if not authenticated`() {
+    fun `clearCredentials should complete with exception if not authenticated`() {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 
         mockkObject(logtoClient)
 
         every { logtoClient.isAuthenticated } returns false
 
-        logtoClient.signOut {
+        logtoClient.clearCredentials {
             assertThat(it)
                 .hasMessageThat()
                 .isEqualTo(LogtoException.Type.NOT_AUTHENTICATED.name)
@@ -174,7 +174,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `signOut should complete with exception if get oidc config failed`() {
+    fun `clearCredentials should complete with exception if get oidc config failed`() {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 
         mockkObject(logtoClient)
@@ -189,7 +189,7 @@ class LogtoClientTest {
             )
         }
 
-        logtoClient.signOut {
+        logtoClient.clearCredentials {
             assertThat(it)
                 .hasMessageThat()
                 .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
@@ -199,7 +199,7 @@ class LogtoClientTest {
     }
 
     @Test
-    fun `signOutWithBrowser should complete with exception if revoke failed`() {
+    fun `clearCredentials should complete with exception if revoke failed`() {
         every { logtoConfigMock.appId } returns TEST_APP_ID
 
         logtoClient = LogtoClient(logtoConfigMock, mockk())
@@ -222,7 +222,7 @@ class LogtoClientTest {
             lastArg<HttpEmptyCompletion>().onComplete(LogtoException(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN))
         }
 
-        logtoClient.signOut {
+        logtoClient.clearCredentials {
             assertThat(it)
                 .hasMessageThat()
                 .isEqualTo(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN.name)
@@ -456,6 +456,89 @@ class LogtoClientTest {
     }
 
     @Test
+    fun `signOut without postLogoutRedirectUri should complete without exception when the browser is dismissed`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(null)
+        }
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockActivity) {
+            completionResults.add(it)
+        }
+
+        // Without a redirect URI, dismissing the browser is the only way back to the app
+        LogtoAuthManager.handleUserCancel()
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last()).isNull()
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should complete without exception when the browser is dismissed`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(null)
+        }
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            completionResults.add(it)
+        }
+
+        LogtoAuthManager.handleUserCancel()
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last()).isNull()
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
     fun `signOut with postLogoutRedirectUri should prioritize the browser exception when both flows fail`() {
         every { logtoConfigMock.appId } returns TEST_APP_ID
 
@@ -489,12 +572,12 @@ class LogtoClientTest {
             completionResults.add(it)
         }
 
-        LogtoAuthManager.handleUserCancel()
+        LogtoAuthManager.handleFailure(LogtoException(LogtoException.Type.UNABLE_TO_LAUNCH_BROWSER))
 
         assertThat(completionResults).hasSize(1)
         assertThat(completionResults.last())
             .hasMessageThat()
-            .isEqualTo(LogtoException.Type.USER_CANCELED.name)
+            .isEqualTo(LogtoException.Type.UNABLE_TO_LAUNCH_BROWSER.name)
         assertThat(logtoClient.isAuthenticated).isFalse()
     }
 
