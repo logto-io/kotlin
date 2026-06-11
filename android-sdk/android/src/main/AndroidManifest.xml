@@ -36,8 +36,10 @@
 
             Apps may attach additional intent filters to this activity through manifest
             merging (e.g. an App Links filter for an `https` redirect URI), and may drop
-            this built-in filter with `<intent-filter tools:node="removeAll" />` — the
-            placeholder is then no longer required. See "Use App Links" in the README.
+            this built-in filter from their own manifest with
+            `<intent-filter tools:node="removeAll" />` (the app manifest must declare the
+            `tools` namespace) — the placeholder is then no longer required. See
+            "Use App Links" in the README.
         -->
         <activity android:name=".auth.logto.LogtoRedirectReceiverActivity"
             android:exported="true"
