@@ -206,9 +206,10 @@ open class LogtoClient(
      * When a refresh token is present its revocation settles before the end session
      * endpoint is opened in the browser. When [postLogoutRedirectUri] is provided, the
      * browser navigates back to the app through it after the session ends — register the
-     * URI in the Logto console first; its scheme must match the `logtoRedirectScheme`
-     * manifest placeholder. When omitted, the browser shows the Logto sign-out page and
-     * the user dismisses it manually.
+     * URI in the Logto console first; it must match an intent filter declared for the
+     * app, either the SDK's built-in `logtoRedirectScheme` custom-scheme filter or an
+     * App Links filter the app declares itself. When omitted, the browser shows the
+     * Logto sign-out page and the user dismisses it manually.
      *
      * Dismissing the browser is never reported as [LogtoException.Type.USER_CANCELED]:
      * the local sign-out has already taken effect by the time the browser opens.
