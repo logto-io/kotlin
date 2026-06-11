@@ -4,8 +4,14 @@ import android.app.Activity
 import android.os.Bundle
 
 /**
- * Receives the redirect delivered by the browser via the `logtoRedirectScheme` intent filter
- * and forwards it to [LogtoBrowserAuthActivity], clearing the Custom Tab off the back stack.
+ * Receives the redirect delivered by the browser via the redirect intent filters declared
+ * for the app — the SDK's built-in `logtoRedirectScheme` filter or an App Links filter the
+ * app declares — and forwards it to [LogtoBrowserAuthActivity], clearing the Custom Tab off
+ * the back stack.
+ *
+ * The fully qualified name of this activity is public API: integrating apps reference it
+ * from their manifests to attach App Links intent filters (or remove the built-in one)
+ * through manifest merging. Renaming or moving it is a breaking change.
  */
 class LogtoRedirectReceiverActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -59,6 +59,67 @@ android {
 }
 ```
 
+Prefer an `https` redirect URI bound to a domain you own? See
+[Use App Links](#use-app-links-instead-of-a-custom-scheme) below.
+
+### Use App Links instead of a custom scheme
+
+Custom schemes have no ownership: any app can declare the same scheme and race for the
+redirect. [Android App Links](https://developer.android.com/training/app-links) bind an
+`https` redirect URI to a domain you own through a verified
+[Digital Asset Links](https://developers.google.com/digital-asset-links/v1/getting-started)
+file, so the OS guarantees only your app receives the redirect. This is the redirect
+option recommended for native apps by
+[RFC 8252](https://datatracker.ietf.org/doc/html/rfc8252#section-7.2).
+
+The SDK is scheme-agnostic at runtime, and the fully qualified name of the redirect
+receiver activity, `io.logto.sdk.android.auth.logto.LogtoRedirectReceiverActivity`, is
+part of the public API — declare additional intent filters on it in your app's manifest
+and they are merged into the SDK's declaration.
+
+1. Host the Digital Asset Links file at
+   `https://your.domain/.well-known/assetlinks.json`, declaring your application id and
+   the SHA-256 fingerprints of your signing certificates. When publishing with Play App
+   Signing, the release fingerprint comes from Play Console → Setup → App signing. The
+   file must be served as `Content-Type: application/json` with HTTP 200 and no
+   redirects.
+
+2. Declare the App Links intent filter on the SDK's receiver activity in your app's
+   `AndroidManifest.xml`. If you do not use the custom scheme at all, drop the SDK's
+   built-in filter with `tools:node="removeAll"` — the `logtoRedirectScheme` placeholder
+   is then no longer required:
+
+   ```xml
+   <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+       xmlns:tools="http://schemas.android.com/tools">
+       <application>
+           <activity android:name="io.logto.sdk.android.auth.logto.LogtoRedirectReceiverActivity">
+               <!-- Omit this line to keep the custom-scheme redirect working alongside. -->
+               <intent-filter tools:node="removeAll" />
+               <intent-filter android:autoVerify="true">
+                   <action android:name="android.intent.action.VIEW" />
+                   <category android:name="android.intent.category.DEFAULT" />
+                   <category android:name="android.intent.category.BROWSABLE" />
+                   <data
+                       android:scheme="https"
+                       android:host="your.domain"
+                       android:path="/callback" />
+               </intent-filter>
+           </activity>
+       </application>
+   </manifest>
+   ```
+
+3. Register `https://your.domain/callback` as a redirect URI (and, if used for
+   sign-out, a post sign-out redirect URI) in the Logto console, and pass it to
+   `signIn` / `signOut`.
+
+Keep in mind that the callback is now a real URL on your domain: serve a fallback page
+there (e.g. a "Return to app" button) for browsers that do not launch App Links on a
+server redirect. On Android 12+ an unverified domain never opens the app, so a broken
+`assetlinks.json` fails silently — check the verification state with
+`adb shell pm get-app-links <applicationId>`.
+
 > Upgrading from v2? See [MIGRATION.md](./MIGRATION.md) for the breaking changes
 > (WebView removal, WeChat/Alipay native sign-in removal, and more).
 
