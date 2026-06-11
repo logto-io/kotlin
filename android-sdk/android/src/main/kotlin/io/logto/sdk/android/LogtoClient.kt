@@ -196,10 +196,12 @@ open class LogtoClient(
     /**
      * Sign out and end the session on the Logto server.
      *
-     * The end session endpoint is opened in the browser, and the user is navigated back
-     * to the app through the [postLogoutRedirectUri]. Local credentials are cleared and
-     * the refresh token is revoked before the browser opens, so the local session always
-     * ends even if the browser flow is abandoned.
+     * Local credentials are cleared as soon as the sign-out starts, so the local session
+     * always ends even if fetching the OIDC config fails or the browser flow is abandoned.
+     *
+     * The refresh token is revoked before the end session endpoint is opened in the
+     * browser, and the user is navigated back to the app through the
+     * [postLogoutRedirectUri].
      *
      * An invalid [postLogoutRedirectUri] is reported as
      * [LogtoException.Type.INVALID_REDIRECT_URI] without opening the browser; local
@@ -225,28 +227,47 @@ open class LogtoClient(
             return
         }
 
+        val tokenToRevoke = refreshToken
+        accessTokenMap.clear()
+        idToken = null
+        refreshToken = null
+
         getOidcConfig { getOidcConfigException, oidcConfig ->
             getOidcConfigException?.let {
                 completion?.onComplete(it)
                 return@getOidcConfig
             }
 
-            val signOutUri = Core.generateSignOutUri(
-                endSessionEndpoint = requireNotNull(oidcConfig).endSessionEndpoint,
-                clientId = logtoConfig.appId,
-                postLogoutRedirectUri = postLogoutRedirectUri,
-            )
+            val fetchedOidcConfig = requireNotNull(oidcConfig)
 
-            signOut { revokeException ->
+            fun startBrowserSignOut(revokeException: LogtoException?) {
                 val signOutSession = LogtoSignOutSession(
                     context = context,
-                    signOutUri = signOutUri,
+                    signOutUri = Core.generateSignOutUri(
+                        endSessionEndpoint = fetchedOidcConfig.endSessionEndpoint,
+                        clientId = logtoConfig.appId,
+                        postLogoutRedirectUri = postLogoutRedirectUri,
+                    ),
                     postLogoutRedirectUri = postLogoutRedirectUri,
                 ) { browserException ->
                     completion?.onComplete(browserException ?: revokeException)
                 }
                 signOutSession.start()
             }
+
+            tokenToRevoke?.let { token ->
+                Core.revoke(
+                    revocationEndpoint = fetchedOidcConfig.revocationEndpoint,
+                    clientId = logtoConfig.appId,
+                    token = token,
+                ) { revocationException ->
+                    startBrowserSignOut(
+                        revocationException?.let {
+                            LogtoException(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN, it)
+                        },
+                    )
+                }
+            } ?: startBrowserSignOut(null)
         }
     }
 
