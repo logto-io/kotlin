@@ -5,8 +5,11 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.util.*
 
+@RunWith(RobolectricTestRunner::class)
 class LogtoUtilsTest {
 
     @Test
@@ -37,5 +40,25 @@ class LogtoUtilsTest {
     fun `isDependencyInstalled should return false if dependency is not installed`() {
         val notInstalledDependencyIdentify = "notInstalled"
         assertThat(LogtoUtils.isDependencyInstalled(notInstalledDependencyIdentify)).isFalse()
+    }
+
+    @Test
+    fun `isValidRedirectUri should return true for a hierarchical uri with a scheme and no fragment`() {
+        assertThat(LogtoUtils.isValidRedirectUri("io.logto.android://io.logto.sample/callback")).isTrue()
+    }
+
+    @Test
+    fun `isValidRedirectUri should return false for a uri without a scheme`() {
+        assertThat(LogtoUtils.isValidRedirectUri("io.logto.sample/callback")).isFalse()
+    }
+
+    @Test
+    fun `isValidRedirectUri should return false for a non-hierarchical uri`() {
+        assertThat(LogtoUtils.isValidRedirectUri("mailto:foo@logto.io")).isFalse()
+    }
+
+    @Test
+    fun `isValidRedirectUri should return false for a uri with a fragment`() {
+        assertThat(LogtoUtils.isValidRedirectUri("io.logto.android://io.logto.sample/callback#fragment")).isFalse()
     }
 }

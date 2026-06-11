@@ -282,6 +282,51 @@ class LogtoClientTest {
     }
 
     @Test
+    fun `signOut with an invalid postLogoutRedirectUri should still clear credentials without a browser flow`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken("dummyRefreshToken")
+        logtoClient.setupIdToken("dummyIdToken")
+
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(null)
+        }
+
+        mockkConstructor(LogtoSignOutSession::class)
+        every {
+            anyConstructed<LogtoSignOutSession>().start()
+        } just Runs
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback#fragment") {
+            assertThat(it)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.INVALID_REDIRECT_URI.name)
+        }
+
+        verify {
+            Core.revoke(any(), any(), any(), any())
+        }
+        verify(exactly = 0) {
+            anyConstructed<LogtoSignOutSession>().start()
+        }
+
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
     fun `getAccessToken should fail without being authenticated`() {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 

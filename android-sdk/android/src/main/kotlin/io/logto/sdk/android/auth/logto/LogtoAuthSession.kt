@@ -6,6 +6,7 @@ import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.type.SignInOptions
+import io.logto.sdk.android.util.LogtoUtils
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.exception.CallbackUriVerificationException
 import io.logto.sdk.core.type.CodeTokenResponse
@@ -27,8 +28,7 @@ class LogtoAuthSession(
     override val redirectUri get() = signInOptions.redirectUri
 
     fun start() {
-        val redirectUri = Uri.parse(signInOptions.redirectUri)
-        if (redirectUri.scheme == null || !redirectUri.isHierarchical || redirectUri.fragment != null) {
+        if (!LogtoUtils.isValidRedirectUri(signInOptions.redirectUri)) {
             completion.onComplete(LogtoException(LogtoException.Type.INVALID_REDIRECT_URI), null)
             return
         }

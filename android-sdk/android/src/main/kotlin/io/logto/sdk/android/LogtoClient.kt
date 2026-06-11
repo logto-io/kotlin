@@ -14,6 +14,7 @@ import io.logto.sdk.android.type.AccessToken
 import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.type.SignInOptions
 import io.logto.sdk.android.util.LogtoUtils.expiresAtFrom
+import io.logto.sdk.android.util.LogtoUtils.isValidRedirectUri
 import io.logto.sdk.android.util.LogtoUtils.nowRoundToSec
 import io.logto.sdk.core.Core
 import io.logto.sdk.core.constant.UserScope
@@ -200,6 +201,10 @@ open class LogtoClient(
      * the refresh token is revoked before the browser opens, so the local session always
      * ends even if the browser flow is abandoned.
      *
+     * An invalid [postLogoutRedirectUri] is reported as
+     * [LogtoException.Type.INVALID_REDIRECT_URI] without opening the browser; local
+     * credentials are still cleared and the refresh token is revoked.
+     *
      * @param[context] the activity to perform the sign-out action
      * @param[postLogoutRedirectUri] one of the post sign-out redirect URIs of this application;
      * its scheme must match the `logtoRedirectScheme` manifest placeholder
@@ -212,6 +217,11 @@ open class LogtoClient(
     ) {
         if (!isAuthenticated) {
             completion?.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
+            return
+        }
+
+        if (!isValidRedirectUri(postLogoutRedirectUri)) {
+            signOut { completion?.onComplete(LogtoException(LogtoException.Type.INVALID_REDIRECT_URI)) }
             return
         }
 
