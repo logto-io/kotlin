@@ -540,29 +540,45 @@ open class LogtoClient(
         accessToken: AccessToken,
         completion: EmptyCompletion<LogtoException>,
     ) {
-        getJwks { getJwksException, jwks ->
-            getJwksException?.let {
-                completion.onComplete(it)
-                return@getJwks
-            }
-            responseIdToken?.let {
-                try {
-                    TokenUtils.verifyIdToken(it, logtoConfig.appId, issuer, requireNotNull(jwks))
-                } catch (exception: InvalidJwtException) {
-                    completion.onComplete(LogtoException(LogtoException.Type.INVALID_ID_TOKEN, exception))
-                    return@getJwks
-                }
-            }
+        // Discard already-stale flows before fetching the JWKS or verifying the response
+        if (!sessionGuard.isCurrent(sessionStamp)) {
+            completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
+            return
+        }
 
-            val saved = sessionGuard.commit(sessionStamp) {
-                responseIdToken?.let { idToken = it }
-                accessTokenMap[accessTokenKey] = accessToken
-                refreshToken = responseRefreshToken
-            }
+        getJwks { getJwksException, jwks ->
+            val verificationException = getJwksException ?: verifyIdToken(responseIdToken, issuer, jwks)
+
+            val saved = verificationException == null &&
+                sessionGuard.commit(sessionStamp) {
+                    responseIdToken?.let { idToken = it }
+                    accessTokenMap[accessTokenKey] = accessToken
+                    refreshToken = responseRefreshToken
+                }
 
             completion.onComplete(
-                if (saved) null else LogtoException(LogtoException.Type.NOT_AUTHENTICATED),
+                when {
+                    saved -> null
+                    // Stale flows always complete with NOT_AUTHENTICATED, even when the
+                    // response would also have failed verification
+                    !sessionGuard.isCurrent(sessionStamp) ->
+                        LogtoException(LogtoException.Type.NOT_AUTHENTICATED)
+                    else -> verificationException
+                },
             )
+        }
+    }
+
+    private fun verifyIdToken(
+        responseIdToken: String?,
+        issuer: String,
+        jwks: JsonWebKeySet?,
+    ): LogtoException? = responseIdToken?.let {
+        try {
+            TokenUtils.verifyIdToken(it, logtoConfig.appId, issuer, requireNotNull(jwks))
+            null
+        } catch (exception: InvalidJwtException) {
+            LogtoException(LogtoException.Type.INVALID_ID_TOKEN, exception)
         }
     }
 
@@ -662,6 +678,9 @@ private class SessionGuard {
 
     @Synchronized
     fun stamp(): Int = version
+
+    @Synchronized
+    fun isCurrent(stamp: Int): Boolean = stamp == version
 
     @Synchronized
     fun <T> invalidate(block: () -> T): T {

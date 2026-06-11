@@ -650,6 +650,85 @@ class LogtoClientTest {
     }
 
     @Test
+    fun `a stale refresh response should be discarded without fetching the JWKS`() {
+        setupDeferredRefreshTestEnv()
+
+        val accessTokenResults = mutableListOf<LogtoException?>()
+        logtoClient.getAccessToken { logtoException, _ ->
+            accessTokenResults.add(logtoException)
+        }
+        assertThat(pendingRefreshCompletions).hasSize(1)
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback")
+
+        pendingRefreshCompletions.last().onComplete(null, mockRefreshTokenTokenResponse())
+
+        assertThat(accessTokenResults).hasSize(1)
+        assertThat(accessTokenResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        verify(exactly = 0) { logtoClient.getJwks(any()) }
+    }
+
+    @Test
+    fun `signOut while the JWKS fetch is in flight should still discard the refresh response`() {
+        setupDeferredRefreshTestEnv()
+
+        // Defer the JWKS fetch, so the sign-out can land between the staleness
+        // pre-check and the commit
+        val jwksCompletions = mutableListOf<Completion<LogtoException, JsonWebKeySet>>()
+        every { logtoClient.getJwks(any()) } answers {
+            jwksCompletions.add(firstArg())
+        }
+
+        val accessTokenResults = mutableListOf<LogtoException?>()
+        logtoClient.getAccessToken { logtoException, _ ->
+            accessTokenResults.add(logtoException)
+        }
+        pendingRefreshCompletions.last().onComplete(null, mockRefreshTokenTokenResponse())
+        assertThat(jwksCompletions).hasSize(1)
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback")
+
+        jwksCompletions.first().onComplete(null, jwksMock)
+
+        assertThat(accessTokenResults).hasSize(1)
+        assertThat(accessTokenResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `a stale refresh response should report NOT_AUTHENTICATED even when its token is invalid`() {
+        setupDeferredRefreshTestEnv()
+
+        val jwksCompletions = mutableListOf<Completion<LogtoException, JsonWebKeySet>>()
+        every { logtoClient.getJwks(any()) } answers {
+            jwksCompletions.add(firstArg())
+        }
+        every { TokenUtils.verifyIdToken(any(), any(), any(), any()) } throws mockk<InvalidJwtException>()
+
+        val accessTokenResults = mutableListOf<LogtoException?>()
+        logtoClient.getAccessToken { logtoException, _ ->
+            accessTokenResults.add(logtoException)
+        }
+        pendingRefreshCompletions.last().onComplete(null, mockRefreshTokenTokenResponse())
+        assertThat(jwksCompletions).hasSize(1)
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback")
+
+        jwksCompletions.first().onComplete(null, jwksMock)
+
+        assertThat(accessTokenResults).hasSize(1)
+        // Staleness dominates the verification failure: the flow was discarded, so it
+        // must not surface INVALID_ID_TOKEN
+        assertThat(accessTokenResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+    }
+
+    @Test
     fun `signOut while the oidc config fetch is in flight should not crash the refresh flow`() {
         setupDeferredRefreshTestEnv()
 
