@@ -73,19 +73,34 @@ jobs:
           fi
           git push --force origin HEAD:${{ github.ref_name }}
 
-  # GitHub marks the most recently created release as "Latest" by default,
-  # so a maintenance release cut here would steal the badge from the v3 line.
-  unmark-latest:
+  # GitHub marks the most recently created release as "Latest" by default, so a
+  # maintenance release cut here would steal the badge from the v3 line — and
+  # PATCHing the new release with make_latest=false does NOT demote a release
+  # that has already taken the badge (verified on v2.0.3). Assert the badge in
+  # the working direction instead: re-mark the highest stable version. While no
+  # v3 GA exists, the maintenance release IS the highest stable and correctly
+  # keeps the badge.
+  ensure-latest:
     needs: release-please
     if: needs.release-please.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Unmark this release as latest
+      - name: Keep "Latest" on the highest stable release
         env:
           GH_TOKEN: ${{ secrets.BOT_PAT }}
         run: |
-          release_id=$(gh api "repos/${{ github.repository }}/releases/tags/${{ needs.release-please.outputs.tag_name }}" --jq .id)
-          gh api -X PATCH "repos/${{ github.repository }}/releases/$release_id" -f make_latest=false
+          highest=$(gh api "repos/${{ github.repository }}/releases?per_page=100" \
+            --jq '[.[] | select(.prerelease == false and .draft == false
+                               and (.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$")))]
+                  | max_by(.tag_name | ltrimstr("v") | split(".") | map(tonumber))
+                  | .tag_name')
+          if [ "$highest" = "${{ needs.release-please.outputs.tag_name }}" ]; then
+            echo "This release ($highest) is the highest stable version and correctly keeps Latest"
+            exit 0
+          fi
+          release_id=$(gh api "repos/${{ github.repository }}/releases/tags/$highest" --jq .id)
+          gh api -X PATCH "repos/${{ github.repository }}/releases/$release_id" -f make_latest=true
+          echo "Latest re-pointed at $highest"
 
   publish:
     needs: release-please
