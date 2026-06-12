@@ -186,6 +186,7 @@ open class LogtoClient(
      */
     fun clearCredentials(completion: EmptyCompletion<LogtoException>? = null) {
         if (!isAuthenticated) {
+            credentialGuard.invalidate()
             completion?.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
             return
         }
@@ -251,6 +252,7 @@ open class LogtoClient(
         completion: EmptyCompletion<LogtoException>? = null,
     ) {
         if (!isAuthenticated) {
+            credentialGuard.invalidate()
             completion?.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
             return
         }
@@ -424,7 +426,9 @@ open class LogtoClient(
                     credentialStamp = credentialStamp,
                     issuer = oidcConfig.issuer,
                     responseIdToken = refreshedToken.idToken,
-                    responseRefreshToken = refreshedToken.refreshToken,
+                    // RFC 6749 §6: keep the current refresh token when the response
+                    // does not issue a new one
+                    responseRefreshToken = refreshedToken.refreshToken ?: tokenForRefresh,
                     accessTokenKey = buildAccessTokenKey(null, resource, organizationId),
                     accessToken = refreshedAccessToken,
                 ) { verifyException ->
@@ -681,6 +685,11 @@ private class CredentialGuard {
 
     @Synchronized
     fun isCurrent(stamp: Int): Boolean = stamp == version
+
+    @Synchronized
+    fun invalidate() {
+        version++
+    }
 
     @Synchronized
     fun <T> invalidate(block: () -> T): T {
