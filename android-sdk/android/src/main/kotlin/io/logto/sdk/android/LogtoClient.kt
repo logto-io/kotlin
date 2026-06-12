@@ -32,6 +32,13 @@ open class LogtoClient(
     application: Application,
 ) {
     /**
+     * Guards the credential fields below: token flows that were in flight when
+     * [signOut] dropped the credentials must not persist their (now stale) results.
+     * See [CredentialGuard].
+     */
+    private val credentialGuard = CredentialGuard()
+
+    /**
      * Cached access tokens.
      */
     protected val accessTokenMap: MutableMap<String, AccessToken> = mutableMapOf()
@@ -83,6 +90,11 @@ open class LogtoClient(
 
     /**
      * Sign in
+     *
+     * If a sign-out happens while the sign-in is still in progress, the sign-in result
+     * is discarded and the completion receives a
+     * [LogtoException.Type.NOT_AUTHENTICATED] error.
+     *
      * @param[context] the activity to perform a sign-in action
      * @param[options] the sign-in options
      * @param[completion] the completion which handles the result of signing in
@@ -92,6 +104,8 @@ open class LogtoClient(
         options: SignInOptions,
         completion: EmptyCompletion<LogtoException>,
     ) {
+        val credentialStamp = credentialGuard.stamp()
+
         getOidcConfig { getOidcConfigException, oidcConfig ->
             getOidcConfigException?.let {
                 completion.onComplete(it)
@@ -118,6 +132,7 @@ open class LogtoClient(
                 )
 
                 verifyAndSaveTokenResponse(
+                    credentialStamp = credentialStamp,
                     issuer = oidcConfig.issuer,
                     responseIdToken = codeToken.idToken,
                     responseRefreshToken = codeToken.refreshToken,
@@ -155,6 +170,10 @@ open class LogtoClient(
      *
      * Local credentials will be cleared even though there are errors occurred when signing out.
      *
+     * Any token request that is still in flight when the credentials are cleared is
+     * discarded: its result is not persisted and its completion receives a
+     * [LogtoException.Type.NOT_AUTHENTICATED] error.
+     *
      * @param[completion] the completion which handles the error occurred when signing out
      */
     fun signOut(completion: EmptyCompletion<LogtoException>? = null) {
@@ -169,11 +188,7 @@ open class LogtoClient(
             flush()
         }
 
-        accessTokenMap.clear()
-        idToken = null
-
-        refreshToken?.let { tokenToRevoke ->
-            refreshToken = null
+        dropCredentials()?.let { tokenToRevoke ->
             getOidcConfig { getOidcConfigException, oidcConfig ->
                 getOidcConfigException?.let {
                     completion?.onComplete(it)
@@ -237,6 +252,11 @@ open class LogtoClient(
         organizationId: String?,
         completion: Completion<LogtoException, AccessToken>,
     ) {
+        // The stamp must be taken before any credential is read: a sign-out that lands
+        // between the read and the stamp would otherwise go unnoticed and the refreshed
+        // tokens would be committed against the already-cleared credentials.
+        val credentialStamp = credentialGuard.stamp()
+
         if (!isAuthenticated) {
             completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED), null)
             return
@@ -263,7 +283,11 @@ open class LogtoClient(
         }
 
         // MARK: If cannot refresh the access token, then return a NOT_AUTHENTICATED error
-        if (refreshToken == null) {
+        // Snapshot the refresh token: a concurrent sign-out can null the field while this
+        // flow is between its async hops; the flow runs on the snapshot and the credential
+        // guard arbitrates at commit time.
+        val tokenForRefresh = refreshToken
+        if (tokenForRefresh == null) {
             completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED), null)
             return
         }
@@ -278,7 +302,7 @@ open class LogtoClient(
             Core.fetchTokenByRefreshToken(
                 tokenEndpoint = requireNotNull(oidcConfig).tokenEndpoint,
                 clientId = logtoConfig.appId,
-                refreshToken = requireNotNull(refreshToken),
+                refreshToken = tokenForRefresh,
                 resource = resource,
                 organizationId = organizationId,
                 scopes = null,
@@ -305,6 +329,7 @@ open class LogtoClient(
                 )
 
                 verifyAndSaveTokenResponse(
+                    credentialStamp = credentialStamp,
                     issuer = oidcConfig.issuer,
                     responseIdToken = refreshedToken.idToken,
                     responseRefreshToken = refreshedToken.refreshToken,
@@ -323,12 +348,14 @@ open class LogtoClient(
      * @param[completion] the completion which handles the retrieved result
      */
     fun getIdTokenClaims(completion: Completion<LogtoException, IdTokenClaims>) {
-        if (!isAuthenticated) {
+        // Snapshot the ID token: a concurrent sign-out can null the field at any point
+        val currentIdToken = idToken
+        if (!isAuthenticated || currentIdToken == null) {
             completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED), null)
             return
         }
         try {
-            val idTokenClaims = TokenUtils.decodeIdToken(requireNotNull(idToken))
+            val idTokenClaims = TokenUtils.decodeIdToken(currentIdToken)
             completion.onComplete(null, idTokenClaims)
         } catch (exception: InvalidJwtException) {
             completion.onComplete(
@@ -398,7 +425,22 @@ open class LogtoClient(
         }
     }
 
+    /**
+     * Atomically drop the local credentials and invalidate the token flows that are
+     * still in flight, so that their responses can no longer be persisted.
+     *
+     * @return the refresh token that was current, for the caller to revoke
+     */
+    private fun dropCredentials(): String? = credentialGuard.invalidate {
+        val tokenToRevoke = refreshToken
+        accessTokenMap.clear()
+        idToken = null
+        refreshToken = null
+        tokenToRevoke
+    }
+
     private fun verifyAndSaveTokenResponse(
+        credentialStamp: Int,
         issuer: String,
         responseIdToken: String?,
         responseRefreshToken: String?,
@@ -406,24 +448,45 @@ open class LogtoClient(
         accessToken: AccessToken,
         completion: EmptyCompletion<LogtoException>,
     ) {
-        getJwks { getJwksException, jwks ->
-            getJwksException?.let {
-                completion.onComplete(it)
-                return@getJwks
-            }
-            responseIdToken?.let {
-                try {
-                    TokenUtils.verifyIdToken(it, logtoConfig.appId, issuer, requireNotNull(jwks))
-                } catch (exception: InvalidJwtException) {
-                    completion.onComplete(LogtoException(LogtoException.Type.INVALID_ID_TOKEN, exception))
-                    return@getJwks
-                }
-                idToken = it
-            }
+        // Discard already-stale flows before fetching the JWKS or verifying the response
+        if (!credentialGuard.isCurrent(credentialStamp)) {
+            completion.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
+            return
+        }
 
-            accessTokenMap[accessTokenKey] = accessToken
-            refreshToken = responseRefreshToken
-            completion.onComplete(null)
+        getJwks { getJwksException, jwks ->
+            val verificationException = getJwksException ?: verifyIdToken(responseIdToken, issuer, jwks)
+
+            val saved = verificationException == null &&
+                credentialGuard.commit(credentialStamp) {
+                    responseIdToken?.let { idToken = it }
+                    accessTokenMap[accessTokenKey] = accessToken
+                    refreshToken = responseRefreshToken
+                }
+
+            completion.onComplete(
+                when {
+                    saved -> null
+                    // Stale flows always complete with NOT_AUTHENTICATED, even when the
+                    // response would also have failed verification
+                    !credentialGuard.isCurrent(credentialStamp) ->
+                        LogtoException(LogtoException.Type.NOT_AUTHENTICATED)
+                    else -> verificationException
+                },
+            )
+        }
+    }
+
+    private fun verifyIdToken(
+        responseIdToken: String?,
+        issuer: String,
+        jwks: JsonWebKeySet?,
+    ): LogtoException? = responseIdToken?.let {
+        try {
+            TokenUtils.verifyIdToken(it, logtoConfig.appId, issuer, requireNotNull(jwks))
+            null
+        } catch (exception: InvalidJwtException) {
+            LogtoException(LogtoException.Type.INVALID_ID_TOKEN, exception)
         }
     }
 
@@ -506,5 +569,39 @@ open class LogtoClient(
     @TestOnly
     internal fun setupAccessTokenMap(tokenMap: Map<String, AccessToken>) {
         accessTokenMap.putAll(tokenMap)
+    }
+}
+
+/**
+ * An optimistic guard for the local credential set — the in-memory equivalent of an
+ * optimistic lock's "UPDATE ... WHERE version = ?".
+ *
+ * Async token flows take a [stamp] when they start, and [commit] applies their writes
+ * only when no [invalidate] has happened in between. This keeps a token response that
+ * lands after a sign-out from resurrecting the cleared credentials, and a response
+ * from before a sign-out from clobbering the session of a later sign-in.
+ */
+private class CredentialGuard {
+    private var version = 0
+
+    @Synchronized
+    fun stamp(): Int = version
+
+    @Synchronized
+    fun isCurrent(stamp: Int): Boolean = stamp == version
+
+    @Synchronized
+    fun <T> invalidate(block: () -> T): T {
+        version++
+        return block()
+    }
+
+    @Synchronized
+    fun commit(stamp: Int, block: () -> Unit): Boolean {
+        if (stamp != version) {
+            return false
+        }
+        block()
+        return true
     }
 }
