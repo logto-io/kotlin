@@ -20,6 +20,39 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+      # release-please creates its commits through the REST API, which cannot produce
+      # GPG signatures, but the branch ruleset requires verified signatures on every
+      # PR commit. Re-sign the release PR commit with the bot's key (same key and
+      # setup as logto-io/js).
+      - uses: actions/checkout@v4
+        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        with:
+          ref: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Import bot GPG key
+        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.BOT_GPG_KEY }}
+          passphrase: ${{ secrets.BOT_GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Sign the release PR commit
+        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        run: |
+          # Only amend truly unsigned commits ("N"); a manually re-signed commit
+          # ("E"/"U"/"G") is left alone so checks are not re-triggered for nothing.
+          if [ "$(git log -1 --format=%G?)" != "N" ]; then
+            echo "Release PR head commit is already signed, nothing to do"
+            exit 0
+          fi
+          git config user.name silverhand-bot
+          git config user.email bot@silverhand.io
+          git commit --amend --no-edit --gpg-sign
+          git push --force
+
   publish:
     needs: release-please
     if: needs.release-please.outputs.releases_created == 'true'
