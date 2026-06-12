@@ -467,6 +467,55 @@ class LogtoClientTest {
     }
 
     @Test
+    fun `signOut during an unauthenticated ongoing sign-in should discard the sign-in result`() {
+        setupDeferredRefreshTestEnv()
+        logtoClient.setupIdToken(null)
+        logtoClient.setupRefreshToken(null)
+
+        every { oidcConfigResponseMock.authorizationEndpoint } returns "https://logto.dev/oidc/auth"
+        every { logtoConfigMock.scopes } returns emptyList()
+        every { logtoConfigMock.resources } returns null
+        every { logtoConfigMock.prompt } returns "consent"
+        every { logtoConfigMock.includeReservedScopes } returns true
+
+        val codeExchangeCompletions = mutableListOf<HttpCompletion<CodeTokenResponse>>()
+        every {
+            Core.fetchTokenByAuthorizationCode(any(), any(), any(), any(), any(), any(), any())
+        } answers {
+            codeExchangeCompletions.add(lastArg())
+        }
+
+        mockkObject(CallbackUriUtils)
+        every {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(any(), any(), any())
+        } returns "testAuthCode"
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val signInResults = mutableListOf<LogtoException?>()
+        logtoClient.signIn(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            signInResults.add(it)
+        }
+
+        LogtoAuthManager.handleCallbackUri(
+            Uri.parse("io.logto.android://io.logto.sample/callback?code=testAuthCode"),
+        )
+        assertThat(codeExchangeCompletions).hasSize(1)
+
+        logtoClient.signOut()
+
+        codeExchangeCompletions.last().onComplete(null, mockCodeTokenResponse())
+
+        assertThat(signInResults).hasSize(1)
+        assertThat(signInResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
     fun `getAccessToken should fail without being authenticated`() {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 

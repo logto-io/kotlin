@@ -178,6 +178,7 @@ open class LogtoClient(
      */
     fun signOut(completion: EmptyCompletion<LogtoException>? = null) {
         if (!isAuthenticated) {
+            credentialGuard.invalidate()
             completion?.onComplete(LogtoException(LogtoException.Type.NOT_AUTHENTICATED))
             return
         }
@@ -589,6 +590,11 @@ private class CredentialGuard {
 
     @Synchronized
     fun isCurrent(stamp: Int): Boolean = stamp == version
+
+    @Synchronized
+    fun invalidate() {
+        version++
+    }
 
     @Synchronized
     fun <T> invalidate(block: () -> T): T {
