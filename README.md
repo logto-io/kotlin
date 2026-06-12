@@ -16,8 +16,28 @@ The monorepo for SDKs written in Kotlin.
 
 Check out the [Android SDK tutorial](https://docs.logto.io/sdk/android) for more information.
 
+## Versions
+
+| Version | Branch | Status |
+|---|---|---|
+| v3 (beta) | [`master`](https://github.com/logto-io/kotlin/tree/master) | In development — released as `3.0.0-beta` prereleases until GA |
+| v2 (stable) | [`v2.x`](https://github.com/logto-io/kotlin/tree/v2.x) | Maintenance — bug fixes only |
+
+v3 moves the sign-in experience from an embedded WebView to
+[Chrome Custom Tabs](https://developer.android.com/develop/ui/views/layout/webapps/overview-of-android-custom-tabs)
+(the system browser) — unlocking WebAuthn/passkeys and sharing the browser session —
+and revamps the sign-out API accordingly. WeChat / Alipay **native** sign-in is removed
+(social connectors keep working, through the browser); if you depend on the native
+social SDKs, stay on v2.
+
+- **Upgrading from v2?** Follow [MIGRATION.md](./MIGRATION.md).
+- This README documents v3. The v2 documentation lives in the
+  [`v2.x` README](https://github.com/logto-io/kotlin/blob/v2.x/README.md).
+
 ## Installation
 Logto Android SDK is now available on [MavenCentral](https://search.maven.org/search?q=io.logto.sdk).
+v3 is in beta: use the latest `3.0.0-beta` prerelease as the version below. For the
+stable v2 line, see [Versions](#versions).
 
 ### Groovy
 ```groovy
