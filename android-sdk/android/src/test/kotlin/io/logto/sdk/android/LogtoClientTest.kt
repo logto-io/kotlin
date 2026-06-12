@@ -813,6 +813,125 @@ class LogtoClientTest {
     }
 
     @Test
+    fun `signOut during an unauthenticated ongoing sign-in should discard the sign-in result`() {
+        setupDeferredRefreshTestEnv()
+        logtoClient.setupIdToken(null)
+        logtoClient.setupRefreshToken(null)
+
+        every { oidcConfigResponseMock.authorizationEndpoint } returns "https://logto.dev/oidc/auth"
+        every { logtoConfigMock.scopes } returns emptyList()
+        every { logtoConfigMock.resources } returns null
+        every { logtoConfigMock.prompt } returns "consent"
+        every { logtoConfigMock.includeReservedScopes } returns true
+
+        val codeExchangeCompletions = mutableListOf<HttpCompletion<CodeTokenResponse>>()
+        every {
+            Core.fetchTokenByAuthorizationCode(any(), any(), any(), any(), any(), any(), any())
+        } answers {
+            codeExchangeCompletions.add(lastArg())
+        }
+
+        mockkObject(CallbackUriUtils)
+        every {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(any(), any(), any())
+        } returns "testAuthCode"
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val signInResults = mutableListOf<LogtoException?>()
+        logtoClient.signIn(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            signInResults.add(it)
+        }
+
+        LogtoAuthManager.handleCallbackUri(
+            Uri.parse("io.logto.android://io.logto.sample/callback?code=testAuthCode"),
+        )
+        assertThat(codeExchangeCompletions).hasSize(1)
+
+        logtoClient.signOut(mockActivity, "io.logto.android://io.logto.sample/callback")
+
+        codeExchangeCompletions.last().onComplete(null, mockCodeTokenResponse())
+
+        assertThat(signInResults).hasSize(1)
+        assertThat(signInResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `clearCredentials during an unauthenticated ongoing sign-in should discard the sign-in result`() {
+        setupDeferredRefreshTestEnv()
+        logtoClient.setupIdToken(null)
+        logtoClient.setupRefreshToken(null)
+
+        every { oidcConfigResponseMock.authorizationEndpoint } returns "https://logto.dev/oidc/auth"
+        every { logtoConfigMock.scopes } returns emptyList()
+        every { logtoConfigMock.resources } returns null
+        every { logtoConfigMock.prompt } returns "consent"
+        every { logtoConfigMock.includeReservedScopes } returns true
+
+        val codeExchangeCompletions = mutableListOf<HttpCompletion<CodeTokenResponse>>()
+        every {
+            Core.fetchTokenByAuthorizationCode(any(), any(), any(), any(), any(), any(), any())
+        } answers {
+            codeExchangeCompletions.add(lastArg())
+        }
+
+        mockkObject(CallbackUriUtils)
+        every {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(any(), any(), any())
+        } returns "testAuthCode"
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val signInResults = mutableListOf<LogtoException?>()
+        logtoClient.signIn(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            signInResults.add(it)
+        }
+
+        LogtoAuthManager.handleCallbackUri(
+            Uri.parse("io.logto.android://io.logto.sample/callback?code=testAuthCode"),
+        )
+        assertThat(codeExchangeCompletions).hasSize(1)
+
+        logtoClient.clearCredentials()
+
+        codeExchangeCompletions.last().onComplete(null, mockCodeTokenResponse())
+
+        assertThat(signInResults).hasSize(1)
+        assertThat(signInResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `a refresh response without a refresh token should keep the existing one`() {
+        setupDeferredRefreshTestEnv()
+        every { logtoConfigMock.resources } returns listOf(TEST_RESOURCE_1)
+
+        // The first refresh succeeds, but its response does not issue a new refresh token
+        val accessTokenResults = mutableListOf<AccessToken?>()
+        logtoClient.getAccessToken { _, result -> accessTokenResults.add(result) }
+        assertThat(pendingRefreshCompletions).hasSize(1)
+        pendingRefreshCompletions.last().onComplete(
+            null,
+            mockRefreshTokenTokenResponse(refreshToken = null),
+        )
+        assertThat(requireNotNull(accessTokenResults.last()).token).isEqualTo(TEST_ACCESS_TOKEN)
+
+        // A refresh for another resource must still run, on the kept refresh token
+        logtoClient.getAccessToken(TEST_RESOURCE_1) { _, _ -> }
+        assertThat(pendingRefreshCompletions).hasSize(2)
+        assertThat(usedRefreshTokens.last()).isEqualTo(TEST_REFRESH_TOKEN)
+    }
+
+    @Test
     fun `getAccessToken should fail without being authenticated`() {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 
@@ -1305,7 +1424,7 @@ class LogtoClientTest {
 
     private fun mockRefreshTokenTokenResponse(
         accessToken: String = TEST_ACCESS_TOKEN,
-        refreshToken: String = TEST_REFRESH_TOKEN,
+        refreshToken: String? = TEST_REFRESH_TOKEN,
     ): RefreshTokenTokenResponse {
         val response: RefreshTokenTokenResponse = mockk()
         every { response.accessToken } returns accessToken
