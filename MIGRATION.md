@@ -74,36 +74,44 @@ on Maven Central and receives fixes on the `v2.x` line.
 
 ## Changed: sign-out API
 
-In v3, `signOut` performs a complete sign-out: it clears local credentials, revokes the
-refresh token (when one is present), and ends the session on the Logto server by opening
-the end session endpoint in the browser. Local credentials are always cleared; the remote
-steps are best-effort and need the OIDC config to be reachable — any failure is reported
-through the completion.
+The v2 `signOut(completion)` is renamed to `clearCredentials(completion)` with unchanged
+behavior, and v3 adds the browser-based `signOut(context, postLogoutRedirectUri?, completion?)`
+for a complete sign-out: it clears local credentials, revokes the refresh token (when one
+is present), and ends the session on the Logto server by opening the end session endpoint
+in the browser. Local credentials are always cleared; the remote steps are best-effort
+and need the OIDC config to be reachable — any failure is reported through the completion.
+
+This leaves three ways to sign out — the [Kotlin sample app](./android-sample-kotlin)
+demonstrates them side by side:
 
 ```kotlin
-// The browser opens briefly and navigates back to the app through the post sign-out
-// redirect URI (register it in the Logto console first; its scheme must also match
-// `logtoRedirectScheme`):
+// 1. Complete sign-out: ends the Logto session in the browser, which then navigates
+//    back to the app through the post sign-out redirect URI (register it in the Logto
+//    console first; its scheme must also match `logtoRedirectScheme`):
 logtoClient.signOut(this, "io.logto.android://io.logto.sample/callback") { exception ->
     // ...
 }
 
-// Or omit the URI — no console configuration needed; the browser shows the Logto
-// sign-out page and the user dismisses it manually:
+// 2. Complete sign-out, no redirect back: same effect on the Logto session, no console
+//    configuration needed — the browser shows the Logto sign-out page and the user
+//    returns by dismissing it manually:
 logtoClient.signOut(this)
+
+// 3. Local sign-out — this is v2's `signOut(completion)`, renamed: clears local
+//    credentials and revokes the refresh token, but keeps the Logto session, because
+//    the session cookie now lives in the browser, which the app cannot touch. The next
+//    `signIn` may silently re-enter the account through that session. Use it when no
+//    UI context is available (e.g. forcing a local sign-out from a background error
+//    handler); otherwise prefer `signOut`:
+logtoClient.clearCredentials { exception ->
+    // ...
+}
 ```
 
 Dismissing the browser during sign-out is never reported as `USER_CANCELED`: local
 credentials are cleared and the token revocation has settled before the browser opens,
 so the sign-out has already taken effect. Failures of the earlier steps (such as a
 failed revocation) are still reported through the completion.
-
-The v2 `signOut(completion)` is renamed to `clearCredentials(completion)` with unchanged
-behavior: it clears local credentials and revokes the refresh token, but it cannot clear
-the session cookie — that cookie now lives in the browser, which the app cannot touch.
-After clearing credentials, the next `signIn` may silently re-enter the account through
-the existing browser session. Prefer `signOut`; use `clearCredentials` when no UI context
-is available (e.g. forcing a local sign-out from a background error handler).
 
 ## Other breaking changes
 
