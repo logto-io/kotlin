@@ -36,6 +36,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.BOT_PAT }}
+          # Amending in the default shallow clone rewrites the head commit into a
+          # parentless orphan (its parents are behind the shallow boundary) — the
+          # full history is required for the amend to keep the parent.
+          fetch-depth: 0
 
       - name: Import bot GPG key
         uses: crazy-max/ghaction-import-gpg@v6
@@ -56,6 +60,13 @@ jobs:
           git config user.name silverhand-bot
           git config user.email bot@silverhand.io
           git commit --amend --no-edit --gpg-sign
+          # Never push a history rewrite: the amended commit must keep its parent
+          # (an empty %P means the orphan bug above — abort instead of clobbering
+          # the branch and auto-closing the release PR).
+          if [ -z "$(git log -1 --format=%P)" ]; then
+            echo "Amended commit lost its parent; refusing to push" >&2
+            exit 1
+          fi
           git push --force origin HEAD:${{ github.ref_name }}
 
   publish:
