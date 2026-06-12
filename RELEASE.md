@@ -15,9 +15,11 @@ Releases are automated via [release-please](https://github.com/googleapis/releas
    | `chore:` / `refactor:` / `docs:` / `test:` / `ci:` / `revert:` | no bump (still listed in changelog) |
 
    release-please creates the release PR commit through the REST API, which cannot
-   produce a GPG signature, so the workflow immediately amends the commit with the
-   bot's GPG key (`BOT_GPG_KEY` org secret, shared with logto-io/js) — without this
-   the branch ruleset's required-signatures rule blocks the merge.
+   produce a GPG signature, and the "Update branch" rebase button also rewrites the
+   commit unsigned — either way the branch ruleset's required-signatures rule would
+   block the merge. Every push to the release branch therefore runs a job that
+   amends an unsigned head commit with the bot's GPG key (`BOT_GPG_KEY` org secret,
+   shared with logto-io/js).
 
 3. Merging the release PR triggers the workflow again. release-please creates the git tag `vX.Y.Z` and a GitHub Release with auto-generated notes immediately, then sets `releases_created=true`.
 4. The publish job (gated on `releases_created`) runs next:

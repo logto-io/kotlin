@@ -2,13 +2,16 @@ name: Release
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
+      - 'release-please--branches--**'
 
 permissions:
   contents: read
 
 jobs:
   release-please:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
@@ -20,18 +23,21 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-      # release-please creates its commits through the REST API, which cannot produce
-      # GPG signatures, but the branch ruleset requires verified signatures on every
-      # PR commit. Re-sign the release PR commit with the bot's key (same key and
-      # setup as logto-io/js).
+  # The branch ruleset requires verified signatures on every PR commit, but two
+  # paths put unsigned commits on the release branch: release-please creates its
+  # commits through the REST API (which cannot sign), and the "Update branch"
+  # rebase button rewrites the commit unsigned. Reacting to pushes on the release
+  # branch itself covers both: whenever its head commit is unsigned, amend it with
+  # the bot's GPG key (same key and setup as logto-io/js).
+  sign-release-branch:
+    if: startsWith(github.ref_name, 'release-please--branches--')
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v4
-        if: ${{ steps.release.outputs.prs_created == 'true' }}
         with:
-          ref: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
           token: ${{ secrets.BOT_PAT }}
 
       - name: Import bot GPG key
-        if: ${{ steps.release.outputs.prs_created == 'true' }}
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.BOT_GPG_KEY }}
@@ -39,19 +45,18 @@ jobs:
           git_user_signingkey: true
           git_commit_gpgsign: true
 
-      - name: Sign the release PR commit
-        if: ${{ steps.release.outputs.prs_created == 'true' }}
+      - name: Sign the head commit when unsigned
         run: |
-          # Only amend truly unsigned commits ("N"); a manually re-signed commit
-          # ("E"/"U"/"G") is left alone so checks are not re-triggered for nothing.
+          # Only amend truly unsigned commits ("N"); an already-signed commit
+          # ("E"/"U"/"G") is left alone so this job does not retrigger itself.
           if [ "$(git log -1 --format=%G?)" != "N" ]; then
-            echo "Release PR head commit is already signed, nothing to do"
+            echo "Head commit is already signed, nothing to do"
             exit 0
           fi
           git config user.name silverhand-bot
           git config user.email bot@silverhand.io
           git commit --amend --no-edit --gpg-sign
-          git push --force
+          git push --force origin HEAD:${{ github.ref_name }}
 
   publish:
     needs: release-please
