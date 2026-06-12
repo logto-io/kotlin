@@ -1,5 +1,5 @@
 [versions]
-logtoSdk = "2.0.2" # x-release-please-version
+logtoSdk = "3.0.0-beta" # x-release-please-version
 
 [libraries]
 logtoSdk-android = { module = "io.logto.sdk:android", version.ref = "logtoSdk" }
