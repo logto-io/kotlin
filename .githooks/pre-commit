@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -eu
+
+staged_kt=$(git diff --cached --name-only --diff-filter=ACMR -- '*.kt' '*.kts' || true)
+[ -z "$staged_kt" ] && exit 0
+
+if ! printf '%s\n' "$staged_kt" | grep -qE '^(kotlin-sdk|android-sdk|android-sample-kotlin)/'; then
+    exit 0
+fi
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+# Files with unstaged content on disk; skip deleted/renamed paths so the cp loops below cannot fail.
+unstaged_files=$(git diff --name-only --diff-filter=ACM)
+backup_dir=
+
+restore_unstaged() {
+    [ -n "$backup_dir" ] || return 0
+    if [ -n "$unstaged_files" ]; then
+        while IFS= read -r f; do
+            [ -f "$backup_dir/$f" ] && cp -- "$backup_dir/$f" "$f"
+        done <<<"$unstaged_files"
+    fi
+    rm -rf "$backup_dir"
+}
+trap restore_unstaged EXIT
+
+if [ -n "$unstaged_files" ]; then
+    backup_dir=$(mktemp -d)
+    while IFS= read -r f; do
+        if [ -f "$f" ]; then
+            mkdir -p "$backup_dir/$(dirname "$f")"
+            cp -- "$f" "$backup_dir/$f"
+        fi
+    done <<<"$unstaged_files"
+    while IFS= read -r f; do
+        [ -f "$f" ] && git checkout-index -f -- "$f"
+    done <<<"$unstaged_files"
+fi
+
+# detekt --auto-correct exits non-zero whenever issues were found (even after fixing them),
+# so a non-zero status here is expected. The verify step below decides whether to block.
+echo "[pre-commit] Running detekt with auto-correct..."
+auto_status=0
+./gradlew checkCodeStyle -PdetektAutoCorrect=true --console=plain || auto_status=$?
+
+# Fast path: auto_status == 0 means detekt found nothing, so no fixes happened and verify
+# would be redundant. Skip both the re-stage / revert and the second detekt run.
+if [ $auto_status -eq 0 ]; then
+    exit 0
+fi
+echo "[pre-commit] detekt --auto-correct finished with status $auto_status; reconciling working tree."
+
+# Re-stage originally-staged files so their auto-correct fixes are committed.
+printf '%s\n' "$staged_kt" | while IFS= read -r f; do
+    [ -f "$f" ] && git add -- "$f"
+done
+
+# Discard auto-correct edits to clean files (not staged, not previously unstaged) — they
+# are unrelated to this commit and should not appear as surprise unstaged changes afterwards.
+git diff --name-only -- '*.kt' '*.kts' | while IFS= read -r f; do
+    if printf '%s\n' "$unstaged_files" | grep -qFx -- "$f"; then continue; fi
+    if printf '%s\n' "$staged_kt" | grep -qFx -- "$f"; then continue; fi
+    git checkout -- "$f"
+done
+
+echo "[pre-commit] Verifying detekt is clean..."
+./gradlew checkCodeStyle --console=plain

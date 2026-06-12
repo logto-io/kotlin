@@ -1,0 +1,6 @@
+[versions]
+logtoSdk = "3.0.0-beta" # x-release-please-version
+
+[libraries]
+logtoSdk-android = { module = "io.logto.sdk:android", version.ref = "logtoSdk" }
+logtoSdk-kotlin = { module = "io.logto.sdk:kotlin", version.ref = "logtoSdk" }

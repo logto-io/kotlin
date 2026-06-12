@@ -1,0 +1,58 @@
+createTasksForGithubActions()
+createTasksForSamples()
+
+tasks.register("installGitHooks") {
+    description = "Configures git to use .githooks/ for repository hooks"
+    group = "git hooks"
+    doLast {
+        if (!rootDir.resolve(".git").exists()) {
+            logger.warn("Skipping installGitHooks: not a git repository")
+            return@doLast
+        }
+        exec {
+            workingDir = rootDir
+            commandLine("git", "config", "core.hooksPath", ".githooks")
+        }
+        rootDir.resolve(".githooks").listFiles()?.forEach { it.setExecutable(true) }
+        logger.lifecycle("Git hooks installed: core.hooksPath -> .githooks")
+    }
+}
+
+fun createTasksForGithubActions() {
+    tasks.register("clean") {
+        dependsOn(gradle.includedBuild("kotlin-sdk").task(":kotlin:clean"))
+        dependsOn(gradle.includedBuild("android-sdk").task(":android:clean"))
+    }
+
+    tasks.register("checkCodeStyle") {
+        dependsOn(gradle.includedBuild("kotlin-sdk").task(":kotlin:detekt"))
+        dependsOn(gradle.includedBuild("android-sdk").task(":android:detekt"))
+        dependsOn(gradle.includedBuild("android-sample-kotlin").task(":app:detekt"))
+    }
+
+    tasks.register("lintAndroid") {
+        dependsOn(gradle.includedBuild("android-sdk").task(":android:lint"))
+    }
+
+    tasks.register("test") {
+        dependsOn(gradle.includedBuild("kotlin-sdk").task(":kotlin:test"))
+        dependsOn(gradle.includedBuild("android-sdk").task(":android:testDebugUnitTest"))
+    }
+
+    tasks.register("testWithReport") {
+        dependsOn(gradle.includedBuild("kotlin-sdk").task(":kotlin:koverReport"))
+        dependsOn(gradle.includedBuild("android-sdk").task(":android:koverReport"))
+    }
+}
+
+fun createTasksForSamples() {
+    val samples = listOf("android-sample-kotlin", "android-sample-java")
+    samples.forEach {
+        tasks.register("build-$it") {
+            dependsOn(gradle.includedBuild(it).task(":app:build"))
+        }
+        tasks.register("clean-$it") {
+            dependsOn(gradle.includedBuild(it).task(":app:clean"))
+        }
+    }
+}

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="io.logto.sdk.android">
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <queries>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+    </queries>
+
+    <application>
+        <activity android:name=".auth.logto.LogtoBrowserAuthActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!--
+            Receives the OAuth redirect from the browser. The redirect URI follows the
+            pattern `$(logtoRedirectScheme)://$(applicationId)/callback`:
+
+            - the scheme comes from the `logtoRedirectScheme` manifest placeholder the
+              integrating app must define (a lowercase, reverse-DNS style custom scheme):
+
+              android {
+                  defaultConfig {
+                      manifestPlaceholders["logtoRedirectScheme"] = "io.logto.android"
+                  }
+              }
+
+            - the host is bound to the app's own application id through the built-in
+              `${applicationId}` placeholder, so the OS only routes redirects that are
+              addressed to this app even when several apps share the same scheme.
+
+            - the path is fixed to `/callback`, so deep links that share the scheme
+              and host but serve other purposes are not routed here.
+
+            Apps may attach additional intent filters to this activity through manifest
+            merging (e.g. an App Links filter for an `https` redirect URI), and may drop
+            this built-in filter from their own manifest with
+            `<intent-filter tools:node="removeAll" />` (the app manifest must declare the
+            `tools` namespace) — the placeholder is then no longer required. See
+            "Use App Links" in the README.
+        -->
+        <activity android:name=".auth.logto.LogtoRedirectReceiverActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="${logtoRedirectScheme}"
+                    android:host="${applicationId}"
+                    android:path="/callback" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

@@ -1,0 +1,1483 @@
+package io.logto.sdk.android
+
+import android.app.Activity
+import android.net.Uri
+import com.google.common.truth.Truth.assertThat
+import io.logto.sdk.android.auth.logto.LogtoAuthManager
+import io.logto.sdk.android.auth.logto.LogtoAuthSession
+import io.logto.sdk.android.auth.logto.LogtoSignOutSession
+import io.logto.sdk.android.completion.Completion
+import io.logto.sdk.android.exception.LogtoException
+import io.logto.sdk.android.type.AccessToken
+import io.logto.sdk.android.type.LogtoConfig
+import io.logto.sdk.android.util.LogtoUtils
+import io.logto.sdk.core.Core
+import io.logto.sdk.core.http.HttpCompletion
+import io.logto.sdk.core.http.HttpEmptyCompletion
+import io.logto.sdk.core.type.CodeTokenResponse
+import io.logto.sdk.core.type.IdTokenClaims
+import io.logto.sdk.core.type.OidcConfigResponse
+import io.logto.sdk.core.type.RefreshTokenTokenResponse
+import io.logto.sdk.core.type.UserInfoResponse
+import io.logto.sdk.core.util.CallbackUriUtils
+import io.logto.sdk.core.util.TokenUtils
+import io.mockk.Runs
+import io.mockk.clearAllMocks
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.mockkConstructor
+import io.mockk.mockkObject
+import io.mockk.verify
+import org.jose4j.jwk.JsonWebKeySet
+import org.jose4j.jwt.consumer.InvalidJwtException
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+
+@Suppress("LargeClass")
+@RunWith(RobolectricTestRunner::class)
+class LogtoClientTest {
+    private val oidcConfigResponseMock: OidcConfigResponse = mockk()
+    private val jwksMock: JsonWebKeySet = mockk()
+    private val logtoConfigMock: LogtoConfig = mockk()
+    private lateinit var logtoClient: LogtoClient
+
+    private val timeBias = 10L
+
+    private val pendingRefreshCompletions = mutableListOf<HttpCompletion<RefreshTokenTokenResponse>>()
+    private val usedRefreshTokens = mutableListOf<String>()
+
+    companion object {
+        private const val TEST_SCOPE = "scope"
+
+        private const val TEST_RESOURCE_1 = "resource_1"
+        private const val TEST_RESOURCE_2 = "resource_2"
+        private const val TEST_RESOURCE_3 = "resource_3"
+
+        private const val TEST_APP_ID = "app_id"
+        private const val TEST_REFRESH_TOKEN = "refreshToken"
+        private const val TEST_TOKEN_ENDPOINT = "tokenEndpoint"
+        private const val TEST_USERINFO_ENDPOINT = "userinfoEndpoint"
+        private const val TEST_REVOCATION_ENDPOINT = "revocationEndpoint"
+        private const val TEST_END_SESSION_ENDPOINT = "https://logto.dev/oidc/session/end"
+        private const val TEST_ISSUER = "issuer"
+        private const val TEST_ACCESS_TOKEN = "accessToken"
+        private const val TEST_ID_TOKEN = "idToken"
+        private const val TEST_EXPIRE_IN = 60L
+        @Suppress("MaxLineLength", "MaximumLineLength")
+        private const val TEST_JWKS_JSON = """
+            {
+                "keys": [
+                    {
+                        "kty": "RSA",
+                        "use": "sig",
+                        "kid": "Cskl6H4FGsi-q4BEOOPP9belshDaGf7wEubUNJBYpBk",
+                        "e": "AQAB",
+                        "n": "pB5nO7qovnRQrSQoVmdh0g6TGtMMjc1eS0rexzcuVIgtD-7-84DHt9FaiS8UVr2Tjdp_U4Jr-mJJNbYhxae2FjNkpWf_ETND8hEYTSCZTJCkX0asnzb-xZgt2_xNiOAUzmXEaSHO215Y-WYL2LydLjoMrK70FfoFC4jnsgnnKlf1fQW2llCpG-b19w-aHU5m8fPOWKz5n27jEYNbEqHK-wsGavt7eyhVfEVPNbVl5j_n8o-VfnQT-LyO4Fg6U0XwHz1yXrT7NUMO_qdfwv1QbM0EPyWkxLoSColRZVibPmMpkc9RcOJ2crP5u602W8UOYvbtcBCaXVbzp5iriBAVxRq3tsrnTpHr-1FV5jtwU1aLMucIkOM3iJGSLoLizgwEIAnmLh1u_-lxFeSEWDX3RIE3kZOWdZoRBKcxCYPV4X7Mkca8UNW42FTeUG8f9bq43_FgZvWnnFBYpzTuHTnLlkw1a3GmjRy02_tqhV7xp5rM65Jc8HZEW81L3JKLp87ySqjKWfBkmI0ebzEPZVwV69ggI6eBVzGK1nViHsBWgDAomBGPVUqfZmACIcdy7hOp-40mDa6RscqBFtpd3RPb6lGyf2yDCH-4AY6ZRQUX10TdtW2NQon8-SBNgye4x5ZiUS7EXFxvIaTEZ_MZryS3yo5_xWtYAZLCJrDqEZLY2mE"
+                    }
+                ]
+            }
+        """
+    }
+
+    @Before
+    fun setup() {
+        every { logtoConfigMock.usingPersistStorage } returns false
+    }
+
+    @After
+    fun tearDown() {
+        clearAllMocks()
+        LogtoAuthManager.browserSession = null
+    }
+
+    @Test
+    fun `signIn should complete with exception if get oidc config failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG),
+                null,
+            )
+        }
+
+        logtoClient.signIn(mockk(), "dummyRedirectUri") { logtoException ->
+            assertThat(logtoException)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+        }
+    }
+
+    @Test
+    fun `signIn should start a logto auth session`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkConstructor(LogtoAuthSession::class)
+        every {
+            anyConstructed<LogtoAuthSession>().start()
+        } just Runs
+
+        logtoClient.signIn(mockk(), "dummyRedirectUri", mockk())
+
+        verify {
+            anyConstructed<LogtoAuthSession>().start()
+        }
+    }
+
+    @Test
+    fun `clearCredentials should clear all relevant data`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupIdToken("dummyIdToken")
+        logtoClient.setupRefreshToken("dummyRefreshToken")
+
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } just Runs
+
+        logtoClient.clearCredentials(mockk())
+
+        verify {
+            Core.revoke(any(), any(), any(), any())
+        }
+
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `clearCredentials should complete with exception if not authenticated`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        every { logtoClient.isAuthenticated } returns false
+
+        logtoClient.clearCredentials {
+            assertThat(it)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.NOT_AUTHENTICATED.name)
+        }
+    }
+
+    @Test
+    fun `clearCredentials should complete with exception if get oidc config failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken("dummyRefreshToken")
+        logtoClient.setupIdToken("dummyIdToken")
+
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG),
+                null,
+            )
+        }
+
+        logtoClient.clearCredentials {
+            assertThat(it)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+        }
+
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `clearCredentials should complete with exception if revoke failed`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken("dummyRefreshToken")
+        logtoClient.setupIdToken("dummyIdToken")
+
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(LogtoException(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN))
+        }
+
+        logtoClient.clearCredentials {
+            assertThat(it)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN.name)
+        }
+
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should start a sign out session`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken("dummyRefreshToken")
+        logtoClient.setupIdToken("dummyIdToken")
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(null)
+        }
+
+        mockkConstructor(LogtoSignOutSession::class)
+        every {
+            anyConstructed<LogtoSignOutSession>().start()
+        } just Runs
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback", mockk())
+
+        verify {
+            Core.revoke(any(), any(), any(), any())
+            anyConstructed<LogtoSignOutSession>().start()
+        }
+
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should complete with exception if not authenticated`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        every { logtoClient.isAuthenticated } returns false
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback") {
+            assertThat(it)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.NOT_AUTHENTICATED.name)
+        }
+    }
+
+    @Test
+    fun `signOut with an invalid postLogoutRedirectUri should still clear credentials without a browser flow`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken("dummyRefreshToken")
+        logtoClient.setupIdToken("dummyIdToken")
+
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(null)
+        }
+
+        mockkConstructor(LogtoSignOutSession::class)
+        every {
+            anyConstructed<LogtoSignOutSession>().start()
+        } just Runs
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback#fragment") {
+            assertThat(it)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.INVALID_REDIRECT_URI.name)
+        }
+
+        verify {
+            Core.revoke(any(), any(), any(), any())
+        }
+        verify(exactly = 0) {
+            anyConstructed<LogtoSignOutSession>().start()
+        }
+
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should clear local data even if get oidc config failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG),
+                null,
+            )
+        }
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback") {
+            completionResults.add(it)
+        }
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last())
+            .hasMessageThat()
+            .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should report the revoke exception after the browser flow settles`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(LogtoException(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN))
+        }
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            completionResults.add(it)
+        }
+
+        // The revoke has already failed, but the completion should wait for the browser flow
+        assertThat(completionResults).isEmpty()
+
+        LogtoAuthManager.handleCallbackUri(Uri.parse("io.logto.android://io.logto.sample/callback"))
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last())
+            .hasMessageThat()
+            .isEqualTo(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should open the browser only after the revocation settles`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        val revokeCompletions = mutableListOf<HttpEmptyCompletion>()
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            revokeCompletions.add(lastArg())
+        }
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            completionResults.add(it)
+        }
+
+        // The revocation is still pending, so the browser flow should not start yet
+        verify(exactly = 0) { mockActivity.startActivity(any()) }
+
+        revokeCompletions.last().onComplete(null)
+
+        verify { mockActivity.startActivity(any()) }
+        assertThat(completionResults).isEmpty()
+
+        LogtoAuthManager.handleCallbackUri(Uri.parse("io.logto.android://io.logto.sample/callback"))
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last()).isNull()
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut without postLogoutRedirectUri should complete without exception when the browser is dismissed`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(null)
+        }
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockActivity) {
+            completionResults.add(it)
+        }
+
+        // Without a redirect URI, dismissing the browser is the only way back to the app
+        LogtoAuthManager.handleUserCancel()
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last()).isNull()
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should complete without exception when the browser is dismissed`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(null)
+        }
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            completionResults.add(it)
+        }
+
+        LogtoAuthManager.handleUserCancel()
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last()).isNull()
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut with postLogoutRedirectUri should prioritize the browser exception when both flows fail`() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            lastArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                null,
+                oidcConfigResponseMock,
+            )
+        }
+
+        mockkObject(Core)
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(LogtoException(LogtoException.Type.UNABLE_TO_REVOKE_TOKEN))
+        }
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val completionResults = mutableListOf<LogtoException?>()
+        logtoClient.signOut(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            completionResults.add(it)
+        }
+
+        LogtoAuthManager.handleFailure(LogtoException(LogtoException.Type.UNABLE_TO_LAUNCH_BROWSER))
+
+        assertThat(completionResults).hasSize(1)
+        assertThat(completionResults.last())
+            .hasMessageThat()
+            .isEqualTo(LogtoException.Type.UNABLE_TO_LAUNCH_BROWSER.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut should discard the refresh token response that lands after it`() {
+        setupDeferredRefreshTestEnv()
+
+        val accessTokenResults = mutableListOf<Pair<LogtoException?, AccessToken?>>()
+        logtoClient.getAccessToken { logtoException, result ->
+            accessTokenResults.add(logtoException to result)
+        }
+        assertThat(pendingRefreshCompletions).hasSize(1)
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback")
+        assertThat(logtoClient.isAuthenticated).isFalse()
+
+        // The in-flight refresh resolves with a freshly rotated, fully valid token set
+        pendingRefreshCompletions.last().onComplete(
+            null,
+            mockRefreshTokenTokenResponse(refreshToken = "rotatedRefreshToken"),
+        )
+
+        assertThat(accessTokenResults).hasSize(1)
+        assertThat(accessTokenResults.last().first)
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        assertThat(accessTokenResults.last().second).isNull()
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `a refresh response from before signOut should not clobber the session of a later sign-in`() {
+        setupDeferredRefreshTestEnv()
+
+        logtoClient.getAccessToken { _, _ -> }
+        assertThat(pendingRefreshCompletions).hasSize(1)
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback")
+
+        // A new session is established after the sign-out
+        logtoClient.setupIdToken("newSessionIdToken")
+        logtoClient.setupRefreshToken("newSessionRefreshToken")
+
+        // The pre-sign-out refresh resolves with a valid but obsolete token set
+        pendingRefreshCompletions.last().onComplete(
+            null,
+            mockRefreshTokenTokenResponse(
+                accessToken = "staleAccessToken",
+                refreshToken = "staleRefreshToken",
+            ),
+        )
+
+        // Nothing from the stale response may be picked up: no cached stale access
+        // token, and the next refresh must run on the new session's refresh token
+        val accessTokenResults = mutableListOf<AccessToken?>()
+        logtoClient.getAccessToken { _, result -> accessTokenResults.add(result) }
+
+        assertThat(pendingRefreshCompletions).hasSize(2)
+        assertThat(usedRefreshTokens.last()).isEqualTo("newSessionRefreshToken")
+
+        pendingRefreshCompletions.last().onComplete(null, mockRefreshTokenTokenResponse())
+
+        assertThat(accessTokenResults).hasSize(1)
+        assertThat(requireNotNull(accessTokenResults.last()).token).isEqualTo(TEST_ACCESS_TOKEN)
+    }
+
+    @Test
+    fun `a stale refresh response should be discarded without fetching the JWKS`() {
+        setupDeferredRefreshTestEnv()
+
+        val accessTokenResults = mutableListOf<LogtoException?>()
+        logtoClient.getAccessToken { logtoException, _ ->
+            accessTokenResults.add(logtoException)
+        }
+        assertThat(pendingRefreshCompletions).hasSize(1)
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback")
+
+        pendingRefreshCompletions.last().onComplete(null, mockRefreshTokenTokenResponse())
+
+        assertThat(accessTokenResults).hasSize(1)
+        assertThat(accessTokenResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        verify(exactly = 0) { logtoClient.getJwks(any()) }
+    }
+
+    @Test
+    fun `signOut while the JWKS fetch is in flight should still discard the refresh response`() {
+        setupDeferredRefreshTestEnv()
+
+        // Defer the JWKS fetch, so the sign-out can land between the staleness
+        // pre-check and the commit
+        val jwksCompletions = mutableListOf<Completion<LogtoException, JsonWebKeySet>>()
+        every { logtoClient.getJwks(any()) } answers {
+            jwksCompletions.add(firstArg())
+        }
+
+        val accessTokenResults = mutableListOf<LogtoException?>()
+        logtoClient.getAccessToken { logtoException, _ ->
+            accessTokenResults.add(logtoException)
+        }
+        pendingRefreshCompletions.last().onComplete(null, mockRefreshTokenTokenResponse())
+        assertThat(jwksCompletions).hasSize(1)
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback")
+
+        jwksCompletions.first().onComplete(null, jwksMock)
+
+        assertThat(accessTokenResults).hasSize(1)
+        assertThat(accessTokenResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `a stale refresh response should report NOT_AUTHENTICATED even when its token is invalid`() {
+        setupDeferredRefreshTestEnv()
+
+        val jwksCompletions = mutableListOf<Completion<LogtoException, JsonWebKeySet>>()
+        every { logtoClient.getJwks(any()) } answers {
+            jwksCompletions.add(firstArg())
+        }
+        every { TokenUtils.verifyIdToken(any(), any(), any(), any()) } throws mockk<InvalidJwtException>()
+
+        val accessTokenResults = mutableListOf<LogtoException?>()
+        logtoClient.getAccessToken { logtoException, _ ->
+            accessTokenResults.add(logtoException)
+        }
+        pendingRefreshCompletions.last().onComplete(null, mockRefreshTokenTokenResponse())
+        assertThat(jwksCompletions).hasSize(1)
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback")
+
+        jwksCompletions.first().onComplete(null, jwksMock)
+
+        assertThat(accessTokenResults).hasSize(1)
+        // Staleness dominates the verification failure: the flow was discarded, so it
+        // must not surface INVALID_ID_TOKEN
+        assertThat(accessTokenResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+    }
+
+    @Test
+    fun `signOut while the oidc config fetch is in flight should not crash the refresh flow`() {
+        setupDeferredRefreshTestEnv()
+
+        // Defer the oidc config fetch as well, so the sign-out can land inside the
+        // window between the refresh-token null check and the token request
+        val oidcConfigCompletions = mutableListOf<Completion<LogtoException, OidcConfigResponse>>()
+        every { logtoClient.getOidcConfig(any()) } answers {
+            oidcConfigCompletions.add(firstArg())
+        }
+
+        val accessTokenResults = mutableListOf<Pair<LogtoException?, AccessToken?>>()
+        logtoClient.getAccessToken { logtoException, result ->
+            accessTokenResults.add(logtoException to result)
+        }
+        assertThat(oidcConfigCompletions).hasSize(1)
+
+        logtoClient.signOut(mockk(), "io.logto.android://io.logto.sample/callback")
+
+        // The oidc config arrives after the sign-out has already cleared the refresh token
+        oidcConfigCompletions.first().onComplete(null, oidcConfigResponseMock)
+
+        // The refresh runs on the snapshot it started from, and its response is discarded
+        assertThat(usedRefreshTokens).containsExactly(TEST_REFRESH_TOKEN)
+        assertThat(pendingRefreshCompletions).hasSize(1)
+        pendingRefreshCompletions.last().onComplete(null, mockRefreshTokenTokenResponse())
+
+        assertThat(accessTokenResults).hasSize(1)
+        assertThat(accessTokenResults.last().first)
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        assertThat(accessTokenResults.last().second).isNull()
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut during an ongoing sign-in should discard the sign-in result`() {
+        setupDeferredRefreshTestEnv()
+
+        every { oidcConfigResponseMock.authorizationEndpoint } returns "https://logto.dev/oidc/auth"
+        every { logtoConfigMock.scopes } returns emptyList()
+        every { logtoConfigMock.resources } returns null
+        every { logtoConfigMock.prompt } returns "consent"
+        every { logtoConfigMock.includeReservedScopes } returns true
+
+        val codeExchangeCompletions = mutableListOf<HttpCompletion<CodeTokenResponse>>()
+        every {
+            Core.fetchTokenByAuthorizationCode(any(), any(), any(), any(), any(), any(), any())
+        } answers {
+            codeExchangeCompletions.add(lastArg())
+        }
+
+        mockkObject(CallbackUriUtils)
+        every {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(any(), any(), any())
+        } returns "testAuthCode"
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val signInResults = mutableListOf<LogtoException?>()
+        logtoClient.signIn(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            signInResults.add(it)
+        }
+
+        // The browser flow returns and the code exchange starts
+        LogtoAuthManager.handleCallbackUri(
+            Uri.parse("io.logto.android://io.logto.sample/callback?code=testAuthCode"),
+        )
+        assertThat(codeExchangeCompletions).hasSize(1)
+
+        // The previous session signs out while the code exchange is in flight
+        logtoClient.signOut(mockActivity, "io.logto.android://io.logto.sample/callback")
+
+        codeExchangeCompletions.last().onComplete(null, mockCodeTokenResponse())
+
+        assertThat(signInResults).hasSize(1)
+        assertThat(signInResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `signOut during an unauthenticated ongoing sign-in should discard the sign-in result`() {
+        setupDeferredRefreshTestEnv()
+        logtoClient.setupIdToken(null)
+        logtoClient.setupRefreshToken(null)
+
+        every { oidcConfigResponseMock.authorizationEndpoint } returns "https://logto.dev/oidc/auth"
+        every { logtoConfigMock.scopes } returns emptyList()
+        every { logtoConfigMock.resources } returns null
+        every { logtoConfigMock.prompt } returns "consent"
+        every { logtoConfigMock.includeReservedScopes } returns true
+
+        val codeExchangeCompletions = mutableListOf<HttpCompletion<CodeTokenResponse>>()
+        every {
+            Core.fetchTokenByAuthorizationCode(any(), any(), any(), any(), any(), any(), any())
+        } answers {
+            codeExchangeCompletions.add(lastArg())
+        }
+
+        mockkObject(CallbackUriUtils)
+        every {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(any(), any(), any())
+        } returns "testAuthCode"
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val signInResults = mutableListOf<LogtoException?>()
+        logtoClient.signIn(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            signInResults.add(it)
+        }
+
+        LogtoAuthManager.handleCallbackUri(
+            Uri.parse("io.logto.android://io.logto.sample/callback?code=testAuthCode"),
+        )
+        assertThat(codeExchangeCompletions).hasSize(1)
+
+        logtoClient.signOut(mockActivity, "io.logto.android://io.logto.sample/callback")
+
+        codeExchangeCompletions.last().onComplete(null, mockCodeTokenResponse())
+
+        assertThat(signInResults).hasSize(1)
+        assertThat(signInResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `clearCredentials during an unauthenticated ongoing sign-in should discard the sign-in result`() {
+        setupDeferredRefreshTestEnv()
+        logtoClient.setupIdToken(null)
+        logtoClient.setupRefreshToken(null)
+
+        every { oidcConfigResponseMock.authorizationEndpoint } returns "https://logto.dev/oidc/auth"
+        every { logtoConfigMock.scopes } returns emptyList()
+        every { logtoConfigMock.resources } returns null
+        every { logtoConfigMock.prompt } returns "consent"
+        every { logtoConfigMock.includeReservedScopes } returns true
+
+        val codeExchangeCompletions = mutableListOf<HttpCompletion<CodeTokenResponse>>()
+        every {
+            Core.fetchTokenByAuthorizationCode(any(), any(), any(), any(), any(), any(), any())
+        } answers {
+            codeExchangeCompletions.add(lastArg())
+        }
+
+        mockkObject(CallbackUriUtils)
+        every {
+            CallbackUriUtils.verifyAndParseCodeFromCallbackUri(any(), any(), any())
+        } returns "testAuthCode"
+
+        val mockActivity: Activity = mockk()
+        every { mockActivity.packageName } returns "logto.test"
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val signInResults = mutableListOf<LogtoException?>()
+        logtoClient.signIn(mockActivity, "io.logto.android://io.logto.sample/callback") {
+            signInResults.add(it)
+        }
+
+        LogtoAuthManager.handleCallbackUri(
+            Uri.parse("io.logto.android://io.logto.sample/callback?code=testAuthCode"),
+        )
+        assertThat(codeExchangeCompletions).hasSize(1)
+
+        logtoClient.clearCredentials()
+
+        codeExchangeCompletions.last().onComplete(null, mockCodeTokenResponse())
+
+        assertThat(signInResults).hasSize(1)
+        assertThat(signInResults.last())
+            .hasMessageThat()
+            .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+        assertThat(logtoClient.isAuthenticated).isFalse()
+    }
+
+    @Test
+    fun `a refresh response without a refresh token should keep the existing one`() {
+        setupDeferredRefreshTestEnv()
+        every { logtoConfigMock.resources } returns listOf(TEST_RESOURCE_1)
+
+        // The first refresh succeeds, but its response does not issue a new refresh token
+        val accessTokenResults = mutableListOf<AccessToken?>()
+        logtoClient.getAccessToken { _, result -> accessTokenResults.add(result) }
+        assertThat(pendingRefreshCompletions).hasSize(1)
+        pendingRefreshCompletions.last().onComplete(
+            null,
+            mockRefreshTokenTokenResponse(refreshToken = null),
+        )
+        assertThat(requireNotNull(accessTokenResults.last()).token).isEqualTo(TEST_ACCESS_TOKEN)
+
+        // A refresh for another resource must still run, on the kept refresh token
+        logtoClient.getAccessToken(TEST_RESOURCE_1) { _, _ -> }
+        assertThat(pendingRefreshCompletions).hasSize(2)
+        assertThat(usedRefreshTokens.last()).isEqualTo(TEST_REFRESH_TOKEN)
+    }
+
+    @Test
+    fun `getAccessToken should fail without being authenticated`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.isAuthenticated } returns false
+
+        logtoClient.getAccessToken { logtoException, result ->
+            assertThat(logtoException).hasMessageThat().contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `getAccessToken should fail without refreshToken`() {
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+        logtoClient.setupRefreshToken(null)
+
+        mockkObject(logtoClient)
+        every { logtoClient.isAuthenticated } returns true
+
+        logtoClient.getAccessToken { logtoException, result ->
+            assertThat(logtoException).hasMessageThat().contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `getAccessToken should fail when resource is not granted`() {
+
+        every { logtoConfigMock.resources } returns listOf(TEST_RESOURCE_1, TEST_RESOURCE_2)
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+
+        mockkObject(logtoClient)
+        every { logtoClient.isAuthenticated } returns true
+
+        logtoClient.getAccessToken(
+            resource = TEST_RESOURCE_3,
+            organizationId = null,
+        ) { logtoException, result ->
+            assertThat(logtoException)
+                .hasMessageThat()
+                .contains(LogtoException.Type.UNGRANTED_RESOURCE_FOUND.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `getAccessToken should return valid accessToken which is already exist`() {
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+
+        val testTokenKey = logtoClient.buildAccessTokenKey()
+        val testAccessToken: AccessToken = mockk()
+        every { testAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() + timeBias
+
+        logtoClient.setupAccessTokenMap(mapOf(testTokenKey to testAccessToken))
+
+        mockkObject(logtoClient)
+        every { logtoClient.isAuthenticated } returns true
+
+        logtoClient.getAccessToken(
+            null,
+            null,
+        ) { logtoException, result ->
+            assertThat(logtoException).isNull()
+            assertThat(result).isEqualTo(testAccessToken)
+        }
+    }
+
+    @Test
+    fun `getAccessToken should refresh token when existing accessToken is expired`() {
+        setupRefreshTokenTestEnv()
+
+        val expiredAccessTokenKey = logtoClient.buildAccessTokenKey()
+        val expiredAccessToken: AccessToken = mockk()
+        every { expiredAccessToken.expiresAt } returns LogtoUtils.nowRoundToSec() - timeBias
+        logtoClient.setupAccessTokenMap(mapOf(expiredAccessTokenKey to expiredAccessToken))
+
+        logtoClient.getAccessToken(
+            null,
+            null,
+        ) { logtoException, result ->
+            assertThat(logtoException).isNull()
+            assertThat(result).isNotNull()
+            requireNotNull(result).apply {
+                assertThat(token).isEqualTo(TEST_ACCESS_TOKEN)
+            }
+        }
+
+        verify(exactly = 1) {
+            Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any(), any())
+        }
+    }
+
+    @Test
+    fun `getAccessToken should refresh token when accessToken does not exist`() {
+        setupRefreshTokenTestEnv()
+
+        logtoClient.getAccessToken(
+            null,
+            null,
+        ) { logtoException, result ->
+            assertThat(logtoException).isNull()
+            assertThat(result).isNotNull()
+            requireNotNull(result).apply {
+                assertThat(token).isEqualTo(TEST_ACCESS_TOKEN)
+            }
+        }
+
+        verify(exactly = 1) {
+            Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any(), any())
+        }
+    }
+
+    @Test
+    fun `getOidcConfig should complete with oidc config if fetchOidcConfig success`() {
+        every { logtoConfigMock.endpoint } returns "https://logto.dev"
+
+        mockkObject(Core)
+        every { Core.fetchOidcConfig(any(), any()) } answers {
+            secondArg<HttpCompletion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        val logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        logtoClient.getOidcConfig { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isEqualTo(oidcConfigResponseMock)
+        }
+    }
+
+    @Test
+    fun `getOidcConfig success more than once should only fetch once`() {
+        every { logtoConfigMock.endpoint } returns "https://logto.dev"
+
+        mockkObject(Core)
+        every { Core.fetchOidcConfig(any(), any()) } answers {
+            secondArg<HttpCompletion<OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        logtoClient.getOidcConfig { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isEqualTo(oidcConfigResponseMock)
+        }
+
+        logtoClient.getOidcConfig { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isEqualTo(oidcConfigResponseMock)
+        }
+
+        verify(exactly = 1) { Core.fetchOidcConfig(any(), any()) }
+    }
+
+    @Test
+    fun `getIdTokenClaims should complete with token claims`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        mockkObject(logtoClient)
+        every { logtoClient.isAuthenticated } returns true
+
+        val idTokenClaimsMock: IdTokenClaims = mockk()
+
+        mockkObject(TokenUtils)
+        every { TokenUtils.decodeIdToken(any()) } returns idTokenClaimsMock
+
+        logtoClient.getIdTokenClaims { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result).isEqualTo(idTokenClaimsMock)
+        }
+    }
+
+    @Test
+    fun `getIdTokenClaims should fail without being authenticated`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        mockkObject(logtoClient)
+        every { logtoClient.isAuthenticated } returns false
+
+        logtoClient.getIdTokenClaims { throwable, result ->
+            assertThat(throwable)
+                .hasMessageThat()
+                .contains(LogtoException.Type.NOT_AUTHENTICATED.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `getIdTokenClaims should fail if decodeIdToken failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        mockkObject(logtoClient)
+        every { logtoClient.isAuthenticated } returns true
+
+        val invalidJwtExceptionMock: InvalidJwtException = mockk()
+
+        mockkObject(TokenUtils)
+        every { TokenUtils.decodeIdToken(any()) } throws invalidJwtExceptionMock
+
+        logtoClient.getIdTokenClaims { logtoException, result ->
+            assertThat(logtoException)
+                .hasMessageThat()
+                .contains(LogtoException.Type.UNABLE_TO_PARSE_ID_TOKEN_CLAIMS.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `fetchUserInfo should complete with user info`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        every { oidcConfigResponseMock.userinfoEndpoint } returns TEST_USERINFO_ENDPOINT
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+        val accessTokenMock: AccessToken = mockk()
+        every { accessTokenMock.token } returns TEST_ACCESS_TOKEN
+        every { logtoClient.getAccessToken(any(), any(), any()) } answers {
+            lastArg<Completion<LogtoException, AccessToken>>().onComplete(null, accessTokenMock)
+        }
+
+        val userInfoResponseMock: UserInfoResponse = mockk()
+
+        mockkObject(Core)
+        every { Core.fetchUserInfo(any(), any(), any()) } answers {
+            lastArg<HttpCompletion<UserInfoResponse>>().onComplete(null, userInfoResponseMock)
+        }
+
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException).isNull()
+            assertThat(result).isEqualTo(userInfoResponseMock)
+        }
+    }
+
+    @Test
+    fun `fetchUserInfo should complete with exception if cannot get oidc config`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG),
+                null,
+            )
+        }
+
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `fetchUserInfo should complete with exception if cannot get access token`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        every { oidcConfigResponseMock.userinfoEndpoint } returns TEST_USERINFO_ENDPOINT
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        val mockGetAccessTokenException: LogtoException = mockk()
+        every { logtoClient.getAccessToken(any(), any(), any()) } answers {
+            lastArg<Completion<LogtoException, AccessToken>>().onComplete(mockGetAccessTokenException, null)
+        }
+
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException).isEqualTo(mockGetAccessTokenException)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `fetchUserInfo should complete with exception if fetchUserInfo failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        every { oidcConfigResponseMock.userinfoEndpoint } returns TEST_USERINFO_ENDPOINT
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+        val accessTokenMock: AccessToken = mockk()
+        every { accessTokenMock.token } returns TEST_ACCESS_TOKEN
+        every { logtoClient.getAccessToken(any(), any(), any()) } answers {
+            lastArg<Completion<LogtoException, AccessToken>>().onComplete(null, accessTokenMock)
+        }
+
+        mockkObject(Core)
+        every { Core.fetchUserInfo(any(), any(), any()) } answers {
+            lastArg<HttpCompletion<UserInfoResponse>>().onComplete(
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_USER_INFO),
+                null,
+            )
+        }
+
+        logtoClient.fetchUserInfo { logtoException, result ->
+            assertThat(logtoException)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_USER_INFO.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `getJwks should complete with jwks`() {
+        every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        mockkObject(Core)
+        every { Core.fetchJwksJson(any(), any()) } answers {
+            secondArg<HttpCompletion<String>>().onComplete(null, TEST_JWKS_JSON)
+        }
+
+        val expectedJwks = JsonWebKeySet(TEST_JWKS_JSON)
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result?.toJson()).isEqualTo(expectedJwks.toJson())
+        }
+    }
+
+    @Test
+    fun `getJwks success more than once should only fetch once`() {
+        every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        mockkObject(Core)
+        every { Core.fetchJwksJson(any(), any()) } answers {
+            secondArg<HttpCompletion<String>>().onComplete(null, TEST_JWKS_JSON)
+        }
+
+        val expectedJwks = JsonWebKeySet(TEST_JWKS_JSON)
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result?.toJson()).isEqualTo(expectedJwks.toJson())
+        }
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable).isNull()
+            assertThat(result?.toJson()).isEqualTo(expectedJwks.toJson())
+        }
+
+        verify(exactly = 1) {
+            Core.fetchJwksJson(any(), any())
+        }
+    }
+
+    @Test
+    fun `getJwks should complete with exception if get oidc config failed`() {
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG),
+                null,
+            )
+        }
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_OIDC_CONFIG.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `getJwks should complete with exception if fetchJwksJson failed`() {
+        every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        mockkObject(Core)
+        every { Core.fetchJwksJson(any(), any()) } answers {
+            secondArg<HttpCompletion<String>>().onComplete(
+                LogtoException(LogtoException.Type.UNABLE_TO_FETCH_JWKS_JSON),
+                null,
+            )
+        }
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.UNABLE_TO_FETCH_JWKS_JSON.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    @Test
+    fun `getJwks should complete with exception if got an invalid jwks JSON from fetchJwksJson`() {
+        every { oidcConfigResponseMock.jwksUri } returns "https://logto.dev/oidc/jwks"
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        val invalidJwksJson = "invalidJwksJson"
+
+        mockkObject(Core)
+        every { Core.fetchJwksJson(any(), any()) } answers {
+            secondArg<HttpCompletion<String>>().onComplete(null, invalidJwksJson)
+        }
+
+        logtoClient.getJwks { throwable, result ->
+            assertThat(throwable)
+                .hasMessageThat()
+                .isEqualTo(LogtoException.Type.UNABLE_TO_PARSE_JWKS.name)
+            assertThat(result).isNull()
+        }
+    }
+
+    /**
+     * Like [setupRefreshTokenTestEnv], but with a real (non-stubbed) authenticated state
+     * and a refresh request that stays in flight until its captured completion in
+     * [pendingRefreshCompletions] is invoked manually — for testing what happens when
+     * a sign-out lands while token requests are still in flight.
+     */
+    private fun setupDeferredRefreshTestEnv() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+        mockkObject(logtoClient)
+
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        logtoClient.setupIdToken(TEST_ID_TOKEN)
+
+        every { oidcConfigResponseMock.tokenEndpoint } returns TEST_TOKEN_ENDPOINT
+        every { oidcConfigResponseMock.issuer } returns TEST_ISSUER
+        every { oidcConfigResponseMock.revocationEndpoint } returns TEST_REVOCATION_ENDPOINT
+        every { oidcConfigResponseMock.endSessionEndpoint } returns TEST_END_SESSION_ENDPOINT
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+        every { logtoClient.getJwks(any()) } answers {
+            firstArg<Completion<LogtoException, JsonWebKeySet>>().onComplete(null, jwksMock)
+        }
+
+        mockkObject(Core)
+        every { Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any(), any()) } answers {
+            usedRefreshTokens.add(thirdArg())
+            pendingRefreshCompletions.add(lastArg())
+        }
+        every { Core.revoke(any(), any(), any(), any()) } answers {
+            lastArg<HttpEmptyCompletion>().onComplete(null)
+        }
+
+        mockkObject(TokenUtils)
+        every { TokenUtils.verifyIdToken(any(), any(), any(), any()) } just Runs
+
+        mockkConstructor(LogtoSignOutSession::class)
+        every { anyConstructed<LogtoSignOutSession>().start() } just Runs
+    }
+
+    private fun mockRefreshTokenTokenResponse(
+        accessToken: String = TEST_ACCESS_TOKEN,
+        refreshToken: String? = TEST_REFRESH_TOKEN,
+    ): RefreshTokenTokenResponse {
+        val response: RefreshTokenTokenResponse = mockk()
+        every { response.accessToken } returns accessToken
+        every { response.scope } returns TEST_SCOPE
+        every { response.expiresIn } returns TEST_EXPIRE_IN
+        every { response.refreshToken } returns refreshToken
+        every { response.idToken } returns TEST_ID_TOKEN
+        return response
+    }
+
+    private fun mockCodeTokenResponse(): CodeTokenResponse {
+        val response: CodeTokenResponse = mockk()
+        every { response.accessToken } returns TEST_ACCESS_TOKEN
+        every { response.scope } returns TEST_SCOPE
+        every { response.expiresIn } returns TEST_EXPIRE_IN
+        every { response.refreshToken } returns TEST_REFRESH_TOKEN
+        every { response.idToken } returns TEST_ID_TOKEN
+        return response
+    }
+
+    private fun setupRefreshTokenTestEnv() {
+        every { logtoConfigMock.appId } returns TEST_APP_ID
+
+        logtoClient = LogtoClient(logtoConfigMock, mockk())
+
+        mockkObject(logtoClient)
+        logtoClient.setupRefreshToken(TEST_REFRESH_TOKEN)
+        every { logtoClient.isAuthenticated } returns true
+
+        every { oidcConfigResponseMock.tokenEndpoint } returns TEST_TOKEN_ENDPOINT
+        every { oidcConfigResponseMock.issuer } returns TEST_ISSUER
+        every { logtoClient.getOidcConfig(any()) } answers {
+            firstArg<Completion<LogtoException, OidcConfigResponse>>().onComplete(null, oidcConfigResponseMock)
+        }
+
+        every { logtoClient.getJwks((any())) } answers {
+            firstArg<Completion<LogtoException, JsonWebKeySet>>().onComplete(null, jwksMock)
+        }
+
+        val refreshTokenTokenResponseMock: RefreshTokenTokenResponse = mockk()
+        every { refreshTokenTokenResponseMock.accessToken } returns TEST_ACCESS_TOKEN
+        every { refreshTokenTokenResponseMock.scope } returns TEST_SCOPE
+        every { refreshTokenTokenResponseMock.expiresIn } returns TEST_EXPIRE_IN
+        every { refreshTokenTokenResponseMock.refreshToken } returns TEST_REFRESH_TOKEN
+        every { refreshTokenTokenResponseMock.idToken } returns TEST_ID_TOKEN
+
+        mockkObject(Core)
+        every { Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any(), any()) } answers {
+            lastArg<HttpCompletion<RefreshTokenTokenResponse>>()
+                .onComplete(null, refreshTokenTokenResponseMock)
+        }
+
+        mockkObject(TokenUtils)
+        every { TokenUtils.verifyIdToken(any(), any(), any(), any()) } just Runs
+    }
+}
