@@ -333,7 +333,9 @@ open class LogtoClient(
                     credentialStamp = credentialStamp,
                     issuer = oidcConfig.issuer,
                     responseIdToken = refreshedToken.idToken,
-                    responseRefreshToken = refreshedToken.refreshToken,
+                    // RFC 6749 §6: keep the current refresh token when the response
+                    // does not issue a new one
+                    responseRefreshToken = refreshedToken.refreshToken ?: tokenForRefresh,
                     accessTokenKey = buildAccessTokenKey(null, resource, organizationId),
                     accessToken = refreshedAccessToken,
                 ) { verifyException ->

@@ -516,6 +516,27 @@ class LogtoClientTest {
     }
 
     @Test
+    fun `a refresh response without a refresh token should keep the existing one`() {
+        setupDeferredRefreshTestEnv()
+        every { logtoConfigMock.resources } returns listOf(TEST_RESOURCE_1)
+
+        // The first refresh succeeds, but its response does not issue a new refresh token
+        val accessTokenResults = mutableListOf<AccessToken?>()
+        logtoClient.getAccessToken { _, result -> accessTokenResults.add(result) }
+        assertThat(pendingRefreshCompletions).hasSize(1)
+        pendingRefreshCompletions.last().onComplete(
+            null,
+            mockRefreshTokenTokenResponse(refreshToken = null),
+        )
+        assertThat(requireNotNull(accessTokenResults.last()).token).isEqualTo(TEST_ACCESS_TOKEN)
+
+        // A refresh for another resource must still run, on the kept refresh token
+        logtoClient.getAccessToken(TEST_RESOURCE_1) { _, _ -> }
+        assertThat(pendingRefreshCompletions).hasSize(2)
+        assertThat(usedRefreshTokens.last()).isEqualTo(TEST_REFRESH_TOKEN)
+    }
+
+    @Test
     fun `getAccessToken should fail without being authenticated`() {
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 
@@ -1009,7 +1030,7 @@ class LogtoClientTest {
 
     private fun mockRefreshTokenTokenResponse(
         accessToken: String = TEST_ACCESS_TOKEN,
-        refreshToken: String = TEST_REFRESH_TOKEN,
+        refreshToken: String? = TEST_REFRESH_TOKEN,
     ): RefreshTokenTokenResponse {
         val response: RefreshTokenTokenResponse = mockk()
         every { response.accessToken } returns accessToken
