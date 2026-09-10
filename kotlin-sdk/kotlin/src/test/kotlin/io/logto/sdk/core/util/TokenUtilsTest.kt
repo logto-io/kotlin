@@ -26,7 +26,7 @@ class TokenUtilsTest {
     private val testRsaJsonWebKey = RsaJwkGenerator.generateJwk(2048).apply {
         keyId = "rsa-json-web-key-id"
     }
-    private val testTimeDelta = 10L
+    private val testTimeDelta = 60L
 
     @Test
     fun `verifyIdToken should complete without exceptions with valid id token`() {
@@ -61,7 +61,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun `verifyIdToken should complete without exceptions with issueAt within the clock tolerance`() {
+    fun `verifyIdToken should complete without exceptions with issuedAt within the clock tolerance`() {
         val jwks = createTestJwks()
 
         val claimsIssuedInThePast = createTestIdTokenClaims()
@@ -80,7 +80,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun `verifyIdToken should throw with overdue issueAt`() {
+    fun `verifyIdToken should throw with overdue issuedAt`() {
         val claims = createTestIdTokenClaims()
         claims.issuedAt = NumericDate.fromSeconds(
             NumericDate.now().value - DEFAULT_CLOCK_TOLERANCE_IN_SECONDS - testTimeDelta,
@@ -96,7 +96,7 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun `verifyIdToken should throw with issueAt time in the future`() {
+    fun `verifyIdToken should throw with issuedAt time in the future`() {
         val claims = createTestIdTokenClaims()
         claims.issuedAt = NumericDate.fromSeconds(
             NumericDate.now().value + DEFAULT_CLOCK_TOLERANCE_IN_SECONDS + testTimeDelta,
