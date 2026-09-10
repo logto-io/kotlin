@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.0.0](https://github.com/logto-io/kotlin/compare/v3.0.0-beta...v3.0.0) (2026-09-10)
+
+
+### Features
+
+* make the ID token clock tolerance configurable and default to 300s ([#275](https://github.com/logto-io/kotlin/issues/275)) ([b8dc6c7](https://github.com/logto-io/kotlin/commit/b8dc6c729e92eb7874f23f7c3ec06e4df99f9fa3))
+
+
+### Continuous Integration
+
+* graduate v3 to stable releases ([#277](https://github.com/logto-io/kotlin/issues/277)) ([2ee4d38](https://github.com/logto-io/kotlin/commit/2ee4d386127f2a4eeeb37c364e4f07bb71e21bcc))
+
 ## [3.0.0-beta](https://github.com/logto-io/kotlin/compare/v2.0.2...v3.0.0-beta) (2026-06-12)
 
 
