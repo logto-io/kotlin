@@ -9,6 +9,7 @@ import io.logto.sdk.android.auth.logto.LogtoSignOutSession
 import io.logto.sdk.android.completion.Completion
 import io.logto.sdk.android.exception.LogtoException
 import io.logto.sdk.android.type.AccessToken
+import io.logto.sdk.android.type.IdTokenVerificationOptions
 import io.logto.sdk.android.type.LogtoConfig
 import io.logto.sdk.android.util.LogtoUtils
 import io.logto.sdk.core.Core
@@ -67,6 +68,7 @@ class LogtoClientTest {
         private const val TEST_ACCESS_TOKEN = "accessToken"
         private const val TEST_ID_TOKEN = "idToken"
         private const val TEST_EXPIRE_IN = 60L
+        private const val TEST_CLOCK_TOLERANCE = 600
         @Suppress("MaxLineLength", "MaximumLineLength")
         private const val TEST_JWKS_JSON = """
             {
@@ -86,6 +88,7 @@ class LogtoClientTest {
     @Before
     fun setup() {
         every { logtoConfigMock.usingPersistStorage } returns false
+        every { logtoConfigMock.idTokenVerification } returns IdTokenVerificationOptions()
     }
 
     @After
@@ -707,7 +710,7 @@ class LogtoClientTest {
         every { logtoClient.getJwks(any()) } answers {
             jwksCompletions.add(firstArg())
         }
-        every { TokenUtils.verifyIdToken(any(), any(), any(), any()) } throws mockk<InvalidJwtException>()
+        every { TokenUtils.verifyIdToken(any(), any(), any(), any(), any()) } throws mockk<InvalidJwtException>()
 
         val accessTokenResults = mutableListOf<LogtoException?>()
         logtoClient.getAccessToken { logtoException, _ ->
@@ -1047,6 +1050,9 @@ class LogtoClientTest {
 
         verify(exactly = 1) {
             Core.fetchTokenByRefreshToken(any(), any(), any(), any(), any(), any(), any())
+        }
+        verify(exactly = 1) {
+            TokenUtils.verifyIdToken(TEST_ID_TOKEN, TEST_APP_ID, TEST_ISSUER, jwksMock, TEST_CLOCK_TOLERANCE)
         }
     }
 
@@ -1416,7 +1422,7 @@ class LogtoClientTest {
         }
 
         mockkObject(TokenUtils)
-        every { TokenUtils.verifyIdToken(any(), any(), any(), any()) } just Runs
+        every { TokenUtils.verifyIdToken(any(), any(), any(), any(), any()) } just Runs
 
         mockkConstructor(LogtoSignOutSession::class)
         every { anyConstructed<LogtoSignOutSession>().start() } just Runs
@@ -1447,6 +1453,7 @@ class LogtoClientTest {
 
     private fun setupRefreshTokenTestEnv() {
         every { logtoConfigMock.appId } returns TEST_APP_ID
+        every { logtoConfigMock.idTokenVerification } returns IdTokenVerificationOptions(TEST_CLOCK_TOLERANCE)
 
         logtoClient = LogtoClient(logtoConfigMock, mockk())
 
@@ -1478,6 +1485,6 @@ class LogtoClientTest {
         }
 
         mockkObject(TokenUtils)
-        every { TokenUtils.verifyIdToken(any(), any(), any(), any()) } just Runs
+        every { TokenUtils.verifyIdToken(any(), any(), any(), any(), any()) } just Runs
     }
 }

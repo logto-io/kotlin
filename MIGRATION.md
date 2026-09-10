@@ -113,6 +113,23 @@ credentials are cleared and the token revocation has settled before the browser 
 so the sign-out has already taken effect. Failures of the earlier steps (such as a
 failed revocation) are still reported through the completion.
 
+## Changed: ID token clock tolerance
+
+ID token verification now tolerates a clock drift of up to 300 seconds between the device
+and the Logto server (v2 allowed 60 seconds), and the tolerance also applies to the `exp`
+claim. This matches the default of the Logto JS SDK. Devices whose clock drifts by more than
+the tolerance still fail sign-in and token refresh with `INVALID_ID_TOKEN`.
+
+The tolerance is configurable in seconds through the new `idTokenVerification` option:
+
+```kotlin
+val logtoConfig = LogtoConfig(
+    endpoint = "<your-logto-endpoint>",
+    appId = "<your-app-id>",
+    idTokenVerification = IdTokenVerificationOptions(clockTolerance = 600),
+)
+```
+
 ## Other breaking changes
 
 - New `LogtoException.Type.UNABLE_TO_LAUNCH_BROWSER` is reported when no browser is

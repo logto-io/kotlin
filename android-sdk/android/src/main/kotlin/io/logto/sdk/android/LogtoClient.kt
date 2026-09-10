@@ -579,7 +579,13 @@ open class LogtoClient(
         jwks: JsonWebKeySet?,
     ): LogtoException? = responseIdToken?.let {
         try {
-            TokenUtils.verifyIdToken(it, logtoConfig.appId, issuer, requireNotNull(jwks))
+            TokenUtils.verifyIdToken(
+                it,
+                logtoConfig.appId,
+                issuer,
+                requireNotNull(jwks),
+                logtoConfig.idTokenVerification.clockTolerance,
+            )
             null
         } catch (exception: InvalidJwtException) {
             LogtoException(LogtoException.Type.INVALID_ID_TOKEN, exception)
