@@ -22,8 +22,8 @@ Check out the [Android SDK tutorial](https://docs.logto.io/sdk/android) for more
 
 | Version | Branch | Status |
 |---|---|---|
-| v3 (beta) | [`master`](https://github.com/logto-io/kotlin/tree/master) | In development — released as `3.0.0-beta` prereleases until GA |
-| v2 (stable) | [`v2.x`](https://github.com/logto-io/kotlin/tree/v2.x) | Maintenance — bug fixes only |
+| v3 (stable) | [`master`](https://github.com/logto-io/kotlin/tree/master) | Active development — new features and fixes |
+| v2 (maintenance) | [`v2.x`](https://github.com/logto-io/kotlin/tree/v2.x) | Bug fixes only |
 
 v3 moves the sign-in experience from an embedded WebView to
 [Chrome Custom Tabs](https://developer.android.com/develop/ui/views/layout/webapps/overview-of-android-custom-tabs)
@@ -38,8 +38,8 @@ social SDKs, stay on v2.
 
 ## Installation
 Logto Android SDK is now available on [MavenCentral](https://search.maven.org/search?q=io.logto.sdk).
-v3 is in beta: use the latest `3.0.0-beta` prerelease as the version below. For the
-stable v2 line, see [Versions](#versions).
+Use the latest v3 release as the version below. For the v2 line, see
+[Versions](#versions).
 
 ### Groovy
 ```groovy
