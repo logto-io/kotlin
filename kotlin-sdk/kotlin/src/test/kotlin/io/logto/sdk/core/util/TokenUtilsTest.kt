@@ -3,7 +3,7 @@ package io.logto.sdk.core.util
 import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.core.constant.ClaimName
 import io.logto.sdk.core.extension.toIdTokenClaims
-import io.logto.sdk.core.util.TokenUtils.ISSUED_AT_RESTRICTIONS_IN_SECONDS
+import io.logto.sdk.core.util.TokenUtils.DEFAULT_CLOCK_TOLERANCE_IN_SECONDS
 import org.jose4j.jwk.EcJwkGenerator
 import org.jose4j.jwk.JsonWebKeySet
 import org.jose4j.jwk.RsaJwkGenerator
@@ -12,6 +12,7 @@ import org.jose4j.jws.JsonWebSignature
 import org.jose4j.jwt.JwtClaims
 import org.jose4j.jwt.NumericDate
 import org.jose4j.jwt.ReservedClaimNames
+import org.jose4j.jwt.consumer.ErrorCodes
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.keys.EllipticCurves
 import org.junit.Assert
@@ -25,7 +26,7 @@ class TokenUtilsTest {
     private val testRsaJsonWebKey = RsaJwkGenerator.generateJwk(2048).apply {
         keyId = "rsa-json-web-key-id"
     }
-    private val testTimeDelta = 10L
+    private val testTimeDelta = 60L
 
     @Test
     fun `verifyIdToken should complete without exceptions with valid id token`() {
@@ -60,28 +61,29 @@ class TokenUtilsTest {
     }
 
     @Test
-    fun `verifyIdToken should throw with overdue issueAt`() {
-        val claims = createTestIdTokenClaims()
-        claims.issuedAt = NumericDate.fromSeconds(
-            NumericDate.now().value - ISSUED_AT_RESTRICTIONS_IN_SECONDS.toLong() - testTimeDelta,
-        )
-        val idToken = createTestIdTokenWithClaims(claims)
+    fun `verifyIdToken should complete without exceptions with issuedAt within the clock tolerance`() {
         val jwks = createTestJwks()
 
-        val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
-            TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
-        }
+        val claimsIssuedInThePast = createTestIdTokenClaims()
+        claimsIssuedInThePast.issuedAt = NumericDate.fromSeconds(
+            NumericDate.now().value - DEFAULT_CLOCK_TOLERANCE_IN_SECONDS + testTimeDelta,
+        )
+        val idTokenIssuedInThePast = createTestIdTokenWithClaims(claimsIssuedInThePast)
+        TokenUtils.verifyIdToken(idTokenIssuedInThePast, testAudience, testIssuer, jwks)
 
-        assertThat(expectedException)
-            .hasMessageThat()
-            .contains("more than $ISSUED_AT_RESTRICTIONS_IN_SECONDS second(s) in the past.")
+        val claimsIssuedInTheFuture = createTestIdTokenClaims()
+        claimsIssuedInTheFuture.issuedAt = NumericDate.fromSeconds(
+            NumericDate.now().value + DEFAULT_CLOCK_TOLERANCE_IN_SECONDS - testTimeDelta,
+        )
+        val idTokenIssuedInTheFuture = createTestIdTokenWithClaims(claimsIssuedInTheFuture)
+        TokenUtils.verifyIdToken(idTokenIssuedInTheFuture, testAudience, testIssuer, jwks)
     }
 
     @Test
-    fun `verifyIdToken should throw with issueAt time in the future`() {
+    fun `verifyIdToken should throw with overdue issuedAt`() {
         val claims = createTestIdTokenClaims()
         claims.issuedAt = NumericDate.fromSeconds(
-            NumericDate.now().value + ISSUED_AT_RESTRICTIONS_IN_SECONDS.toLong() + testTimeDelta,
+            NumericDate.now().value - DEFAULT_CLOCK_TOLERANCE_IN_SECONDS - testTimeDelta,
         )
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
@@ -90,17 +92,48 @@ class TokenUtilsTest {
             TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
         }
 
-        assertThat(expectedException)
-            .hasMessageThat()
-            .contains("more than $ISSUED_AT_RESTRICTIONS_IN_SECONDS second(s) ahead of now")
+        assertThat(expectedException.hasErrorCode(ErrorCodes.ISSUED_AT_INVALID_PAST)).isTrue()
+    }
+
+    @Test
+    fun `verifyIdToken should throw with issuedAt time in the future`() {
+        val claims = createTestIdTokenClaims()
+        claims.issuedAt = NumericDate.fromSeconds(
+            NumericDate.now().value + DEFAULT_CLOCK_TOLERANCE_IN_SECONDS + testTimeDelta,
+        )
+        val idToken = createTestIdTokenWithClaims(claims)
+        val jwks = createTestJwks()
+
+        val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
+            TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
+        }
+
+        assertThat(expectedException.hasErrorCode(ErrorCodes.ISSUED_AT_INVALID_FUTURE)).isTrue()
+    }
+
+    @Test
+    fun `verifyIdToken should complete without exceptions with token expired within the clock tolerance`() {
+        val expiredSeconds = 100L
+        val claims = createTestIdTokenClaims()
+        // The expiration time must stay later than the issued-at time, or jose4j rejects the token
+        // regardless of the clock tolerance.
+        claims.issuedAt = NumericDate.fromSeconds(NumericDate.now().value - 2 * expiredSeconds)
+        claims.expirationTime = NumericDate.fromSeconds(NumericDate.now().value - expiredSeconds)
+        val idToken = createTestIdTokenWithClaims(claims)
+        val jwks = createTestJwks()
+
+        TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
     }
 
     @Test
     fun `verifyIdToken should throw with expired token`() {
         val claims = createTestIdTokenClaims()
         claims.expirationTime = NumericDate.fromSeconds(
-            NumericDate.now().value - testTimeDelta,
+            NumericDate.now().value - DEFAULT_CLOCK_TOLERANCE_IN_SECONDS - testTimeDelta,
         )
+        // Keep `iat` before `exp` so the fixture is a realistic expired token rather than one
+        // whose `exp` precedes its `iat`.
+        claims.issuedAt = NumericDate.fromSeconds(claims.expirationTime.value - testTimeDelta)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
 
@@ -108,7 +141,50 @@ class TokenUtilsTest {
             TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
         }
 
-        assertThat(expectedException).hasMessageThat().contains("on or after the Expiration Time")
+        assertThat(expectedException.hasExpired()).isTrue()
+    }
+
+    @Test
+    fun `verifyIdToken should accept a larger custom clock tolerance`() {
+        val claims = createTestIdTokenClaims()
+        claims.issuedAt = NumericDate.fromSeconds(NumericDate.now().value - 450L)
+        val idToken = createTestIdTokenWithClaims(claims)
+        val jwks = createTestJwks()
+
+        Assert.assertThrows(InvalidJwtException::class.java) {
+            TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
+        }
+
+        TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks, clockTolerance = 600)
+    }
+
+    @Test
+    fun `verifyIdToken should respect a stricter custom clock tolerance`() {
+        val claims = createTestIdTokenClaims()
+        claims.issuedAt = NumericDate.fromSeconds(NumericDate.now().value - 100L)
+        val idToken = createTestIdTokenWithClaims(claims)
+        val jwks = createTestJwks()
+
+        TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks)
+
+        val expectedException = Assert.assertThrows(InvalidJwtException::class.java) {
+            TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks, clockTolerance = 60)
+        }
+
+        assertThat(expectedException.hasErrorCode(ErrorCodes.ISSUED_AT_INVALID_PAST)).isTrue()
+    }
+
+    @Test
+    fun `verifyIdToken should throw with non-positive clock tolerance`() {
+        val idToken = createTestIdTokenWithClaims(createTestIdTokenClaims())
+        val jwks = createTestJwks()
+
+        Assert.assertThrows(IllegalArgumentException::class.java) {
+            TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks, clockTolerance = 0)
+        }
+        Assert.assertThrows(IllegalArgumentException::class.java) {
+            TokenUtils.verifyIdToken(idToken, testAudience, testIssuer, jwks, clockTolerance = -1)
+        }
     }
 
     @Test

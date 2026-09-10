@@ -5,7 +5,7 @@ import io.logto.sdk.core.constant.ReservedResource
 import io.logto.sdk.core.constant.UserScope
 import io.logto.sdk.core.util.ScopeUtils
 
-class LogtoConfig(
+class LogtoConfig @JvmOverloads constructor(
     val endpoint: String,
     val appId: String,
     scopes: List<String>? = null,
@@ -13,6 +13,11 @@ class LogtoConfig(
     val usingPersistStorage: Boolean = true,
     val prompt: String = PromptValue.CONSENT,
     val includeReservedScopes: Boolean = true,
+    /**
+     * The options for verifying the ID token, such as the clock tolerance for devices whose clock
+     * drifts from the Logto server. See [IdTokenVerificationOptions].
+     */
+    val idTokenVerification: IdTokenVerificationOptions = IdTokenVerificationOptions(),
 ) {
     /**
      * Normalize the Logto client configuration per the following rules:

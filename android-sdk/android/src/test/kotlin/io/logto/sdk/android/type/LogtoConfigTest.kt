@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import io.logto.sdk.core.constant.ReservedResource
 import io.logto.sdk.core.constant.ReservedScope
 import io.logto.sdk.core.constant.UserScope
+import io.logto.sdk.core.util.TokenUtils
 import org.junit.Test
 
 class LogtoConfigTest {
@@ -43,5 +44,28 @@ class LogtoConfigTest {
         )
 
         assertThat(logtoConfig.resources).contains(ReservedResource.ORGANIZATION)
+    }
+
+    @Test
+    fun `LogtoConfig should use the default ID token verification options`() {
+        val logtoConfig = LogtoConfig(
+            endpoint = "endpoint",
+            appId = "appId",
+        )
+
+        assertThat(logtoConfig.idTokenVerification.clockTolerance)
+            .isEqualTo(TokenUtils.DEFAULT_CLOCK_TOLERANCE_IN_SECONDS)
+    }
+
+    @Test
+    fun `LogtoConfig should keep the custom ID token verification options`() {
+        val idTokenVerification = IdTokenVerificationOptions(clockTolerance = 600)
+        val logtoConfig = LogtoConfig(
+            endpoint = "endpoint",
+            appId = "appId",
+            idTokenVerification = idTokenVerification,
+        )
+
+        assertThat(logtoConfig.idTokenVerification).isSameInstanceAs(idTokenVerification)
     }
 }
