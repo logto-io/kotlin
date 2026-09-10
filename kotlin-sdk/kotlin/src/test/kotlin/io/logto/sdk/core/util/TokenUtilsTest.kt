@@ -131,6 +131,9 @@ class TokenUtilsTest {
         claims.expirationTime = NumericDate.fromSeconds(
             NumericDate.now().value - DEFAULT_CLOCK_TOLERANCE_IN_SECONDS - testTimeDelta,
         )
+        // Keep `iat` before `exp` so the fixture is a realistic expired token rather than one
+        // whose `exp` precedes its `iat`.
+        claims.issuedAt = NumericDate.fromSeconds(claims.expirationTime.value - testTimeDelta)
         val idToken = createTestIdTokenWithClaims(claims)
         val jwks = createTestJwks()
 
